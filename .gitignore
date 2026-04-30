@@ -1,0 +1,6 @@
+*.o
+*.obj
+build/
+.vs/
+CMakeFiles/
+cmake_install.cmake

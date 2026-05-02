@@ -92,8 +92,11 @@ public:
     }
 };
 
+void AddSC_AltbotCommands();
+
 void AddSC_AltbotLoader()
 {
     new altbot_commandscript();
     new altbot_worldscript();
+    AddSC_AltbotCommands();
 }

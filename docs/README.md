@@ -27,6 +27,13 @@ docs/
 │       ├── ranged-dps.md                    ← ranged DPS responses
 │       ├── melee-dps.md                     ← melee DPS responses
 │       └── tank.md                          ← tank responses
+├── raids/                                   ← per-zone raid bundles (consolidated at zone level, not per boss)
+│   └── {zone-slug}/
+│       ├── encounter.md                     ← top-level zone notes + H2 section per boss; 10/25 + N/H differences inline per boss
+│       ├── healer.md                        ← healer responses across all bosses in the zone
+│       ├── ranged-dps.md                    ← ranged DPS responses
+│       ├── melee-dps.md                     ← melee DPS responses
+│       └── tank.md                          ← tank responses
 └── research/                                ← multi-guide reconciliation audit trails
     └── {topic}-guide-survey.md
 ```
@@ -92,8 +99,11 @@ For each new doc:
 | specs/ | tank specs | NOT STARTED (last per project ordering — see memory) |
 | dungeons/ | leveling.md | complete (cross-class era-by-era + per-role progression + mechanic catalog + LFD specifics + open module gaps) |
 | dungeons/ | throne-of-the-tides/ (encounter + 4 role docs) | complete |
-| dungeons/ | other Cata 5-mans (Blackrock Caverns, Vortex Pinnacle, Stonecore, Lost City, Halls of Origination, Grim Batol, etc.) | DEFERRED — bot focus is leveling group; add only on demand |
-| raids/ | T11 / T12 / T13 | OUT OF SCOPE for the leveling-group focus |
+| dungeons/ | launch Cata 5-mans (BRC, Stonecore, VP, Lost City, HoO, Grim Batol) | NOT STARTED — full ToT-style treatment per dungeon (5 files + survey). 6 dungeons backlog. |
+| dungeons/ | 4.1 troll heroics (Zul'Aman, Zul'Gurub) | NOT STARTED — full ToT-style treatment. |
+| dungeons/ | 4.3 troll heroics (End Time, Hour of Twilight, Well of Eternity) | NOT STARTED — full ToT-style treatment. |
+| dungeons/ | leveling-revamps-supplement.md (vanilla/TBC/WotLK dungeons hit during leveling) | NOT STARTED — single quick-coverage supplement, flag non-tank-and-spank only. |
+| raids/ | T11 (Baradin Hold, BWD, BoT, ToFW), T12 (Firelands), T13 (Dragon Soul) | NOT STARTED — per-zone bundles (encounter.md with H2 boss sections + 4 role response docs + survey). 10/25 + N/H differences inline per boss, NOT separate docs. |
 | research/ | resto-shaman-guide-survey.md | complete (max-level reconciliation + leveling-rotation reconciliation + Telluric Currents correction note) |
 | research/ | leveling-dungeons-guide-survey.md | complete |
 | research/ | throne-of-the-tides-guide-survey.md | complete |
@@ -113,6 +123,25 @@ Listed in suggested execution order. Each item names what to do AND why it's the
 5. **Ranged DPS specs** — Frost Mage first (iconic for groups + Counterspell + Polymorph CC). Then Affliction Warlock, Marksmanship Hunter, Shadow Priest, Balance Druid, Elemental Shaman. Order is interrupt/CC value to a leveling group.
 6. **Melee DPS specs** — Combat Rogue first (Kick is the shortest interrupt in 4.3.4). Then Fury Warrior, Ret Paladin, Frost DK, Enhancement Shaman, Feral Cat Druid.
 7. **Tank specs** — Prot Warrior, Prot Paladin, Blood DK, Feral Tank Druid (Guardian-equivalent). **Last per project ordering** (see `~/.claude/projects/-Users-seth-oharra-web-cata-altbot/memory/feedback_role_ordering.md`).
+
+**Survey-first rule (added 2026-05-01):** every spec doc is preceded by a `docs/research/{spec}-guide-survey.md` that reconciles 4-5 sources. For specs where the role has multiple competitive specs (Mage Arcane/Fire/Frost, Warlock Aff/Demo/Destro, Hunter BM/MM/SV, Rogue Combat/Assn/Sub, Warrior Arms/Fury, DK Frost/Unholy), the survey opens with a **Spec selection** section that picks the winning spec for 4.3.4 PVE. The chosen spec is what the spec doc covers.
+
+### Cata 5-man dungeons (in scope as of 2026-05-01)
+
+Each dungeon: write `docs/research/{slug}-guide-survey.md` first, then full `docs/dungeons/{slug}/` bundle (encounter.md + 4 role response docs) per the throne-of-the-tides template.
+
+8. **Launch Cata 7** (ToT done): blackrock-caverns → the-stonecore → the-vortex-pinnacle → lost-city-of-the-tolvir → halls-of-origination → grim-batol.
+9. **Patch 4.1 troll heroics**: zul-aman → zul-gurub.
+10. **Patch 4.3 troll heroics** (gate Dragon Soul): end-time → hour-of-twilight → well-of-eternity.
+11. **`docs/dungeons/leveling-revamps-supplement.md`** — single supplement covering vanilla/TBC/WotLK dungeons hit during 1-85 leveling (Cata Deadmines, Cata SFK, BRD, ScholoStrat, Mana-Tombs, AN, etc.). One paragraph per dungeon. Flag any non-tank-and-spank mechanic (kiting, dispel-required, vehicle/escort, multi-add CC); skip the rest.
+
+### Cata raids (in scope as of 2026-05-01)
+
+Per-zone format. For each zone: `docs/research/{zone-slug}-raid-survey.md` first (4-5 guides per zone, not per boss), then `docs/raids/{zone-slug}/encounter.md` (top-level zone notes, then H2 sections per boss with phases/spell IDs/interrupts/dispels/positioning + inline `### 10-man` / `### 25-man` / `### Heroic` notes only where mechanics actually diverge) + 4 role response docs covering all bosses in the zone with per-boss subsections only where the role's behavior changes.
+
+12. **T11**: baradin-hold → blackwing-descent → bastion-of-twilight → throne-of-the-four-winds.
+13. **T12**: firelands.
+14. **T13**: dragon-soul.
 
 ### DBC verification pass — DEFERRED until server access available
 

@@ -30,9 +30,19 @@ AltbotMgr::AddAltbot()
   → [async] HandlePlayerLogin(holder)        // player loaded, added to world
 ```
 
-## Known Pending Compile Issues
-- `RBAC_PERM_COMMAND_GM` — grep CPP TC for correct constant name before building
-- Verify `_legacyConnectionModeEnabled` is accessible from `AltbotLogin` in CharacterHandler.cpp
+## Pending — TC fork / private-server code access required
+
+Items in this section can't be resolved from the altbot working directory alone — they need access to the TrinityCore source tree (and in some cases the private server's DBC / world DB). Pick these up in a session on the machine with the TC fork checked out. Each item is tagged with what kind of external access it needs.
+
+### Compile blockers
+- **[TC fork]** `RBAC_PERM_COMMAND_GM` — grep TC for the correct constant name before building. RBAC permissions are typically in `server-core/src/server/game/Misc/RBAC.h` (or similar); the actual symbol may be `rbac::RBAC_PERM_COMMAND_GM` or a different prefix on this fork.
+- **[TC fork]** Verify `_legacyConnectionModeEnabled` is accessible from `AltbotLogin` in `server-core/src/server/game/Handlers/CharacterHandler.cpp` (line ~766). Member-visibility / friend-declaration check — if it's private and `AltbotLogin` can't see it, we either widen visibility or route around it.
+
+### Design verification
+- **[TC fork]** **Talent-aware combat (Phase 3 redesign)** — see `docs/research/talent-aware-combat-design.md`. Three open questions (PlayerScript hook surface, Cata spell-rank resolution, Player→AltbotAI accessor) need answers from the TC source tree before we lock data shapes and start writing. Resolve those before doing any combat-rotation work.
+
+### Data verification (deferred — not blocking module work)
+- **[TC fork + DBC]** **Resto Shaman UNVERIFIED items** — 9 spell-detail ambiguities flagged in `docs/specs/resto-shaman.md`. Step-by-step checklist lives at `docs/research/dbc-verification-checklist.md`. Needs `Spell.dbc` access (in-game GM lookup, WDBXEditor, or sqlite-converted DBC). Becomes a real blocker only when `AltbotCombat` references these as compile-time constants OR when level-gating logic needs to decide "talent vs baseline" for those 3 abilities.
 
 ## Reference Counterparts (mod-playerbots)
 | Our file | Maps from |

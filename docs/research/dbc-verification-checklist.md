@@ -11,7 +11,7 @@
 Every `docs/specs/<spec>.md` has an `## UNVERIFIED items` table at the bottom. Each row has the claim, current encoded value, and the DBC file to check. Open the spec doc, work through the table, update the table inline, remove the row when resolved.
 
 ### Healer specs (5)
-- `docs/specs/resto-shaman.md` — 9 items (the original detailed worked example below)
+- ~~`docs/specs/resto-shaman.md`~~ — ✅ all 9 items resolved 2026-05-02 (worked example below)
 - `docs/specs/holy-paladin.md` — ~14 items
 - `docs/specs/holy-priest.md` — ~15 items (Chakra mechanics)
 - `docs/specs/disc-priest.md` — ~18 items (Atonement-Smite specifics)
@@ -78,42 +78,70 @@ If you don't see them, run TC's `mapextractor` or `dbcextractor` against your Wo
 
 ---
 
-## Three ways to read the values
+## Methodology — Spell.dbc is normalized into sub-tables in Cata 4.x
 
-Pick whichever is easiest for you.
+**Important** — Wrath-era guides describe `RecoveryTime`, `BaseLevel`, `ManaCost`, `Duration` as direct columns of `Spell.dbc`. **That is no longer true in Cata 4.x.** The spell row in `Spell.dbc` holds index references that point at separate sub-tables:
 
-### Option 1 — In-game GM lookup (simplest if your server is running)
+| Sub-table         | Spell.dbc index field      | Holds                                              |
+|-------------------|----------------------------|----------------------------------------------------|
+| `SpellCooldowns`  | `SpellCooldownsId`         | `RecoveryTime`, `CategoryRecoveryTime`             |
+| `SpellLevels`     | `SpellLevelsId`            | `BaseLevel`, `MaxLevel`, `SpellLevel`              |
+| `SpellPower`      | `SpellPowerId`             | `ManaCost`, `ManaCostPct`, `ManaCostPerLevel`      |
+| `SpellDuration`   | `DurationIndex`            | `Duration_ms`, `DurationPerLevel`, `MaxDuration_ms`|
 
-Log in as a GM character and use chat commands:
+To resolve a single spell's full picture you must export all 5 DBCs to CSV and join them by index. This is what `tools/dbc-extract.py` does.
+
+### Working extraction tool — `tools/dbc-extract.py`
+
+The script reads the 5 CSVs exported from WDBXEditor, joins them by ID, prints answers to stdout, and writes a flat `docs/data/spell-ref.csv` with resolved per-spell values. Currently hardcoded with the original 9 Resto Shaman spell IDs in `TARGET_SPELLS`; extend that dict to verify additional spells.
+
+**Workflow:**
+1. Open `<TC server build>/dbc/enUS/Spell.dbc` in [WDBXEditor](https://github.com/WowDevTools/WDBXEditor) (Windows GUI tool)
+2. Export each table to CSV:
+   - `Spell.csv`
+   - `SpellCooldowns.csv`
+   - `SpellLevels.csv`
+   - `SpellPower.csv`
+   - `SpellDuration.csv`
+3. Edit `DBC_DIR` in `tools/dbc-extract.py` to point at the export folder
+4. Add target spell IDs to `TARGET_SPELLS` (key: spell ID, value: human name for log output)
+5. Run `python tools/dbc-extract.py` — prints verification answers; appends to `docs/data/spell-ref.csv`
+
+The output CSV is the durable artifact — refer to it from spec docs when removing UNVERIFIED markers.
+
+### Sub-table field names in WDBXEditor exports
+
+WDBXEditor exports sub-table columns with generic `Field01/Field02/...` names. Mapping:
+
+```
+SpellLevels:    Field01=BaseLevel    Field02=MaxLevel    Field03=SpellLevel
+SpellDuration:  Field01=Duration_ms  Field02=DurationPerLevel  Field03=MaxDuration_ms
+SpellPower:     Field01=ManaCost     Field02=ManaCostPct  Field03=ManaCostPerLevel  Field04=ManaPerSecond
+SpellCooldowns: named correctly      (RecoveryTime, CategoryRecoveryTime)
+```
+
+The script bakes this mapping in; if the WDBXEditor schema changes, update the field references in `dbc-extract.py`.
+
+### Fallback — in-game GM lookup
+
+Fast for one-off single-spell questions:
+
 ```
 .lookup spell <spell_name_or_id>
 .lookup spell shock                  # finds all spells with "shock" in name
-.gobject info                        # not relevant here, but useful generally
 ```
-The server reports its loaded values for cooldown, mana cost, etc. directly from `Spell.dbc`.
 
-### Option 2 — WDBXEditor (GUI tool)
+The server resolves the cross-table joins internally and reports loaded values. Slower than the script for batch verification but no setup required.
 
-Download [WDBXEditor](https://github.com/WowDevTools/WDBXEditor) (Windows) — opens DBC files in a spreadsheet view. Open `Spell.dbc`, search by `Id` column for each spell ID below, read the columns you need.
+### For talent-vs-baseline questions
 
-### Option 3 — sqlite via DBC-to-SQL conversion
-
-If you have a script that converts DBC → SQLite, run something like:
-```sql
-SELECT id, recovery_time, cast_time, mana_cost, base_level, duration_index
-FROM spell
-WHERE id IN (57994, 52127, 101033, 5394, 98008, 16190, 16188, 77472, 61882);
-```
-(Field names vary by build; adjust based on your converter's schema.)
-
-For talent-vs-baseline questions, also query `Talent.dbc`:
-```sql
-SELECT * FROM talent WHERE spell_rank LIKE '%98008%' OR spell_rank LIKE '%16190%' OR spell_rank LIKE '%16188%';
-```
+Cross-check `BaseLevel` and `SpellLevel` from `SpellLevels` (already in the script's output). If both are 0, also query `Talent.dbc` directly to confirm whether the spell ID appears in any talent row's `SpellRank` field. The script doesn't do this; for the original 9 Resto items it was resolved by inspection — note the pattern in `phase 3` commit if extending.
 
 ---
 
-## The 9 items to verify
+## The 9 items to verify ✅ RESOLVED 2026-05-02
+
+The 9 detailed items below have been **resolved** via the dbc-extract.py workflow. Verified values are in `docs/data/spell-ref.csv` and `docs/specs/resto-shaman.md` has been updated. Sections kept as a worked example showing the per-row format you'll use when verifying additional specs.
 
 ### 1. Wind Shear cooldown
 
@@ -235,7 +263,7 @@ Smaller items that would also benefit from verification but aren't blocking anyt
 If you don't have time to do everything in one session, prioritize by runtime-correctness impact:
 
 1. **BRC spell ID collisions and dispel-blacklist** (75476, 75763) — runtime-correctness; bot will mis-behave if wrong.
-2. **The original 9 Resto Shaman items** (talent-vs-baseline questions in particular: SLT, MTT, NS) — gates leveling-rotation correctness from L20-L85 for one of the project's most-used specs.
+2. ~~Resto Shaman 9 items~~ — ✅ resolved 2026-05-02.
 3. **First-of-class mechanics** for specs that introduce a new resource model:
    - Frost DK Runes / Runic Power / disease IDs (first DK doc — pattern for Blood tank later)
    - Feral Cat per-target Combo Points / bleed pandemic windows / glyphs (bleed mechanics had Cata 4.0 rework)
@@ -248,16 +276,21 @@ If you don't have time to do everything in one session, prioritize by runtime-co
 
 ## TC-fork code-blockers (also pendable this trip)
 
-These are not DBC items but live in the same TC-fork session because they need the source tree:
+These are not DBC items but live in the same TC-fork session because they need the source tree.
 
-- `RBAC_PERM_COMMAND_GM` — confirm the correct constant name on this fork (referenced in `CLAUDE.md`)
-- `_legacyConnectionModeEnabled` — confirm visibility from `AltbotLogin` in `server-core/src/server/game/Handlers/CharacterHandler.cpp`
+### ✅ Resolved 2026-05-02 (phase 3 commit)
+
+- ~~`RBAC_PERM_COMMAND_GM`~~ — confirmed at `server-core/src/server/game/Accounts/RBAC.h:279`, value 371. Name correct as written.
+- ~~`_legacyConnectionModeEnabled`~~ — private member of `WorldSession` (`WorldSession.h:1428`); `AltbotLogin` is a member function so it has full access. No fix needed.
+- ~~3 talent-aware-combat design questions~~ — all answered. See `docs/research/talent-aware-combat-design.md`. Phase 3 work can begin.
+
+### Still pending
+
 - PlayerScript hook surface: `OnLootRoll`, `OnQuestAccept`, `OnQuestReward`, mount detection (`OnSpellCast` vs `OnAuraApply`)
 - `ServerScript::OnPacketReceive` for inbound addon-channel packets (or the patched `WorldSession::HandleMessagechatOpcode` route)
 - `Group::GetTargetIcons()` accessor for skull-mark assist
 - `Player::LearnTalent(uint32 talentId, uint32 rank)` signature on Cata fork (and `GetActiveSpec()` for dual-spec)
 - Addon-message prefix max length + per-message size cap (drives chunking decisions)
-- 3 talent-aware-combat design questions in `docs/research/talent-aware-combat-design.md`
 
 ---
 

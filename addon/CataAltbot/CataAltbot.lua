@@ -28,7 +28,13 @@ end
 
 function addon:Send(target, verbAndArgs)
     if not target or target == "" then return end
-    SendChatMessage(self.PREFIX .. verbAndArgs, "WHISPER", nil, target)
+    -- WoW's chat parser treats `|x` as an escape (colors, hyperlinks, textures)
+    -- and outright rejects unknown ones with "invalid escape code". Doubling
+    -- every pipe makes the parser emit a literal `|`, so the server still sees
+    -- single-pipe delimiters. Don't move this below the prefix concat — the
+    -- prefix's own pipe needs the same treatment.
+    local escaped = (self.PREFIX .. verbAndArgs):gsub("|", "||")
+    SendChatMessage(escaped, "WHISPER", nil, target)
 end
 
 -- Pick a whisper transport. Prefer an active bot; fall back to master self-

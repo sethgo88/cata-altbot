@@ -75,4 +75,10 @@ private:
     bool          _lfgRoleResponded        = false;
     bool          _lfgProposalResponded    = false;
     lfg::LfgState _lastLfgState            = lfg::LFG_STATE_NONE;
+
+    // Combat-state tracking for the threat-window gate and combat-aware follow.
+    // _combatElapsedMs is the ms since master last entered combat (0 when out
+    // of combat). _wasInCombat detects the rising edge so we reset elapsed.
+    bool   _wasInCombat     = false;
+    uint32 _combatElapsedMs = 0;
 };

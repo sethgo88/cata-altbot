@@ -7,6 +7,8 @@
 #include "AltbotMgr.h"
 #include "AltbotMount.h"
 #include "AltbotRelease.h"
+#include "AltbotTickContext.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "WorldSession.h"
@@ -76,6 +78,33 @@ void AltbotAI::Update(uint32 diff)
         _strategyResolved = true;
     }
 
+    // Track combat enter/elapsed so the threat-window gate and follow gating
+    // both see the same value. Rising edge resets the timer to 0; falling edge
+    // (master leaves combat) clears both fields so the next pull starts fresh.
+    if (master->IsInCombat())
+    {
+        if (_wasInCombat)
+            _combatElapsedMs += diff;
+        else
+        {
+            _combatElapsedMs = 0;
+            _wasInCombat     = true;
+        }
+    }
+    else
+    {
+        _wasInCombat     = false;
+        _combatElapsedMs = 0;
+    }
+
+    AltbotTickContext ctx;
+    ctx.combatElapsedMs = _combatElapsedMs;
+    if (Map* map = bot->GetMap())
+    {
+        ctx.inDungeon = map->IsDungeon() && !map->IsRaid();
+        ctx.inRaid    = map->IsRaid();
+    }
+
     _followTimer = (_followTimer > diff) ? _followTimer - diff : 0;
     if (_followTimer == 0)
     {
@@ -95,7 +124,11 @@ void AltbotAI::Update(uint32 diff)
         // a dead-but-in-world bot can still be in a queued group.
         AltbotLfg::Tick(bot, this);
 
-        if (_state.mode == AltbotMode::Follow && bot->IsAlive())
+        // In a dungeon or raid, hand positioning to the strategy once combat
+        // starts so ranged casters don't get cleaved sitting on the master's
+        // back. Out of instance, follow always (existing behavior).
+        bool followGated = ctx.InInstance() && master->IsInCombat();
+        if (_state.mode == AltbotMode::Follow && bot->IsAlive() && !followGated)
             AltbotFollow::Update(bot, master);
     }
 
@@ -104,6 +137,6 @@ void AltbotAI::Update(uint32 diff)
     {
         _combatTimer = COMBAT_INTERVAL_MS;
         if (bot->IsAlive())
-            AltbotCombat::Update(bot, master, _state, _strategy.get());
+            AltbotCombat::Update(bot, master, _state, ctx, _strategy.get());
     }
 }

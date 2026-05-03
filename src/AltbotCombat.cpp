@@ -1,6 +1,7 @@
 #include "AltbotCombat.h"
 #include "AltbotAssist.h"
 #include "AltbotStrategy.h"
+#include "AltbotTickContext.h"
 #include "Log.h"
 #include "Player.h"
 #include "SharedDefines.h"
@@ -101,7 +102,8 @@ static uint32 FindBestDamageSpell(Player* bot)
     return bestSpell;
 }
 
-void Update(Player* bot, Player* master, AltbotState const& state, AltbotStrategy* strategy)
+void Update(Player* bot, Player* master, AltbotState const& state,
+            AltbotTickContext const& ctx, AltbotStrategy* strategy)
 {
     // Only act when master is in combat
     if (!master->IsInCombat())
@@ -111,7 +113,7 @@ void Update(Player* bot, Player* master, AltbotState const& state, AltbotStrateg
     // scan below is the fallback for specs without a strategy yet.
     if (strategy)
     {
-        strategy->Update(bot, master);
+        strategy->Update(bot, master, ctx);
         return;
     }
 

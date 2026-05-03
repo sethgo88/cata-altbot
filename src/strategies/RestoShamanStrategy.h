@@ -12,7 +12,7 @@ class RestoShamanStrategy : public AltbotStrategy
 public:
     RestoShamanStrategy();
 
-    void         Update(Player* bot, Player* master) override;
+    void         Update(Player* bot, Player* master, AltbotTickContext const& ctx) override;
     char const*  GetName() const override { return "resto-shaman"; }
 
     void InvalidateCache() { _cacheResolved = false; _cache.fill(0); }
@@ -56,5 +56,5 @@ private:
     bool Tier6_GHW(Player* bot, Player* master, ManaMode mode) const;
     bool Tier7_HealingSurgeNonTank(Player* bot, Player* master, ManaMode mode) const;
     bool Tier8_HealingWaveFiller(Player* bot, Player* master) const;
-    bool Tier9_SupportDPS(Player* bot, Player* master, ManaMode mode) const;
+    bool Tier9_SupportDPS(Player* bot, Player* master, ManaMode mode, AltbotTickContext const& ctx) const;
 };

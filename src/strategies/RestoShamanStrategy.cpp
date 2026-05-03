@@ -1,5 +1,5 @@
 #include "RestoShamanStrategy.h"
-#include "Group.h"
+#include "AltbotTickContext.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -7,6 +7,7 @@
 #include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
+#include "StrategyUtil.h"
 #include "Unit.h"
 
 namespace
@@ -30,120 +31,12 @@ namespace
     // (SpellLevel 68 in Cata) when classifying direct heals with cast time > 2000ms.
     constexpr uint32 GHW_LEVEL_FLOOR = 50;
 
-    Player* FindTank(Player* bot, Player* master)
-    {
-        Group* group = bot->GetGroup();
-        if (!group)
-            return master;
-
-        Player* tank = master;
-        uint32 maxHp = master ? master->GetMaxHealth() : 0;
-        for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
-        {
-            Player* m = itr->GetSource();
-            if (!m || !m->IsAlive() || m->GetMap() != bot->GetMap())
-                continue;
-            if (m == bot)
-                continue;
-            if (m->GetMaxHealth() > maxHp)
-            {
-                maxHp = m->GetMaxHealth();
-                tank  = m;
-            }
-        }
-        return tank;
-    }
-
-    Player* FindLowestHpAlly(Player* bot, Player* master, Player* exclude = nullptr)
-    {
-        Player* lowest    = nullptr;
-        float   lowestPct = 1000.0f;
-
-        auto consider = [&](Player* p)
-        {
-            if (!p || !p->IsAlive() || p->GetMap() != bot->GetMap())
-                return;
-            if (p == exclude)
-                return;
-            float pct = p->GetHealthPct();
-            if (pct < lowestPct)
-            {
-                lowestPct = pct;
-                lowest    = p;
-            }
-        };
-
-        Group* group = bot->GetGroup();
-        if (group)
-        {
-            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
-                consider(itr->GetSource());
-        }
-        else
-        {
-            consider(bot);
-            if (master != bot)
-                consider(master);
-        }
-        return lowest;
-    }
-
-    int CountInjured(Player* bot, Player* master, float thresholdPct)
-    {
-        int count = 0;
-        auto consider = [&](Player* p)
-        {
-            if (!p || !p->IsAlive() || p->GetMap() != bot->GetMap())
-                return;
-            if (p->GetHealthPct() < thresholdPct)
-                ++count;
-        };
-
-        Group* group = bot->GetGroup();
-        if (group)
-        {
-            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
-                consider(itr->GetSource());
-        }
-        else
-        {
-            consider(bot);
-            if (master != bot)
-                consider(master);
-        }
-        return count;
-    }
-
-    bool AllAtFullHp(Player* bot, Player* master, float minPct)
-    {
-        bool allHealthy = true;
-        auto consider = [&](Player* p)
-        {
-            if (!p || !p->IsAlive() || p->GetMap() != bot->GetMap())
-                return;
-            if (p->GetHealthPct() < minPct)
-                allHealthy = false;
-        };
-
-        Group* group = bot->GetGroup();
-        if (group)
-        {
-            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
-                consider(itr->GetSource());
-        }
-        else
-        {
-            consider(bot);
-            if (master != bot)
-                consider(master);
-        }
-        return allHealthy;
-    }
+    constexpr uint32 THREAT_WINDOW_MS = 2000;
 } // anon namespace
 
 RestoShamanStrategy::RestoShamanStrategy() = default;
 
-void RestoShamanStrategy::Update(Player* bot, Player* master)
+void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext const& ctx)
 {
     if (!_cacheResolved)
     {
@@ -175,7 +68,7 @@ void RestoShamanStrategy::Update(Player* bot, Player* master)
     if (Tier6_GHW(bot, master, mode))                 return;
     if (Tier7_HealingSurgeNonTank(bot, master, mode)) return;
     if (Tier8_HealingWaveFiller(bot, master))         return;
-    Tier9_SupportDPS(bot, master, mode);
+    Tier9_SupportDPS(bot, master, mode, ctx);
 }
 
 // Spell cache: classify each known spell by its effect signature so the
@@ -342,7 +235,7 @@ void RestoShamanStrategy::DoMaintenance(Player* bot, Player* master)
     uint32 es = GetSpell(Spell::EarthShield);
     if (es)
     {
-        Player* tank = FindTank(bot, master);
+        Player* tank = StrategyUtil::FindTank(bot, master);
         if (tank && tank->IsAlive() && !tank->HasAura(es))
             TryCast(bot, tank, Spell::EarthShield);
     }
@@ -363,7 +256,7 @@ bool RestoShamanStrategy::Tier1_SelfEmergency(Player* bot) const
 
 bool RestoShamanStrategy::Tier2_TankEmergency(Player* bot, Player* master, ManaMode mode) const
 {
-    Player* tank = FindTank(bot, master);
+    Player* tank = StrategyUtil::FindTank(bot, master);
     if (!tank || !tank->IsAlive())
         return false;
     if (tank->GetHealthPct() >= TANK_EMERGENCY_HP_PCT)
@@ -382,11 +275,11 @@ bool RestoShamanStrategy::Tier3_Riptide(Player* bot, Player* master) const
     if (!rt || IsOnCooldown(bot, rt))
         return false;
 
-    Player* tank = FindTank(bot, master);
+    Player* tank = StrategyUtil::FindTank(bot, master);
     if (tank && tank->IsAlive() && !tank->HasAura(rt))
         return TryCast(bot, tank, Spell::Riptide);
 
-    Player* lowest = FindLowestHpAlly(bot, master);
+    Player* lowest = StrategyUtil::FindLowestHpAlly(bot, master);
     if (lowest && lowest->GetHealthPct() < RIPTIDE_FALLBACK_HP_PCT && !lowest->HasAura(rt))
         return TryCast(bot, lowest, Spell::Riptide);
 
@@ -398,7 +291,7 @@ bool RestoShamanStrategy::Tier4_SpiritLink(Player* bot, Player* master) const
     uint32 slt = GetSpell(Spell::SpiritLinkTotem);
     if (!slt || IsOnCooldown(bot, slt))
         return false;
-    if (CountInjured(bot, master, SPIRIT_LINK_TRIGGER_HP) < SPIRIT_LINK_MIN_LOW)
+    if (StrategyUtil::CountInjured(bot, master, SPIRIT_LINK_TRIGGER_HP) < SPIRIT_LINK_MIN_LOW)
         return false;
     return TryCast(bot, bot, Spell::SpiritLinkTotem);
 }
@@ -407,10 +300,10 @@ bool RestoShamanStrategy::Tier5_ChainHeal(Player* bot, Player* master, ManaMode 
 {
     if (mode == ManaMode::Crisis)
         return false;
-    if (CountInjured(bot, master, CHAIN_HEAL_TRIGGER_HP) < CHAIN_HEAL_MIN_INJURED)
+    if (StrategyUtil::CountInjured(bot, master, CHAIN_HEAL_TRIGGER_HP) < CHAIN_HEAL_MIN_INJURED)
         return false;
 
-    Player* lowest = FindLowestHpAlly(bot, master);
+    Player* lowest = StrategyUtil::FindLowestHpAlly(bot, master);
     if (!lowest)
         return false;
     return TryCast(bot, lowest, Spell::ChainHeal);
@@ -423,7 +316,7 @@ bool RestoShamanStrategy::Tier6_GHW(Player* bot, Player* master, ManaMode mode) 
     if (!GetSpell(Spell::GreaterHealingWave))
         return false;
 
-    Player* lowest = FindLowestHpAlly(bot, master);
+    Player* lowest = StrategyUtil::FindLowestHpAlly(bot, master);
     if (!lowest || lowest->GetHealthPct() >= GHW_TRIGGER_HP_PCT)
         return false;
     return TryCast(bot, lowest, Spell::GreaterHealingWave);
@@ -434,8 +327,8 @@ bool RestoShamanStrategy::Tier7_HealingSurgeNonTank(Player* bot, Player* master,
     if (mode == ManaMode::Crisis)
         return false;
 
-    Player* tank   = FindTank(bot, master);
-    Player* lowest = FindLowestHpAlly(bot, master, tank);
+    Player* tank   = StrategyUtil::FindTank(bot, master);
+    Player* lowest = StrategyUtil::FindLowestHpAlly(bot, master, tank);
     if (!lowest || lowest->GetHealthPct() >= HSURGE_NON_TANK_PCT)
         return false;
     return TryCast(bot, lowest, Spell::HealingSurge);
@@ -443,17 +336,19 @@ bool RestoShamanStrategy::Tier7_HealingSurgeNonTank(Player* bot, Player* master,
 
 bool RestoShamanStrategy::Tier8_HealingWaveFiller(Player* bot, Player* master) const
 {
-    Player* lowest = FindLowestHpAlly(bot, master);
+    Player* lowest = StrategyUtil::FindLowestHpAlly(bot, master);
     if (!lowest || lowest->GetHealthPct() >= HW_FILLER_PCT)
         return false;
     return TryCast(bot, lowest, Spell::HealingWave);
 }
 
-bool RestoShamanStrategy::Tier9_SupportDPS(Player* bot, Player* master, ManaMode mode) const
+bool RestoShamanStrategy::Tier9_SupportDPS(Player* bot, Player* master, ManaMode mode, AltbotTickContext const& ctx) const
 {
+    if (ctx.combatElapsedMs < THREAT_WINDOW_MS)
+        return false;
     if (mode != ManaMode::Normal)
         return false;
-    if (!AllAtFullHp(bot, master, DPS_ALL_HEALTHY_PCT))
+    if (!StrategyUtil::AllAtFullHp(bot, master, DPS_ALL_HEALTHY_PCT))
         return false;
     if (!GetSpell(Spell::LightningBolt))
         return false;

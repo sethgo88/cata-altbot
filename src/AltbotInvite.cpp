@@ -139,7 +139,10 @@ bool Summon(Player* master, AltbotAI* ai)
         // Cross-map: bot's session will never receive MSG_MOVE_WORLDPORT_ACK.
         // Drive the ack handler directly so the teleport finalizes in-place.
         if (bot->IsBeingTeleportedFar())
-            bot->GetSession()->HandleMoveWorldportAckOpcode();
+        {
+            WorldPacket dummyPkt(MSG_MOVE_WORLDPORT_ACK);
+            bot->GetSession()->HandleMoveWorldportAckOpcode(dummyPkt);
+        }
     }
 
     ChatHandler(master->GetSession()).PSendSysMessage("%s summoned to your location.",

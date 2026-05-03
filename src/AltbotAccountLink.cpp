@@ -90,7 +90,8 @@ bool AltbotAccountLink::CompleteLink(Player* master, std::string const& password
         return false;
     }
 
-    if (AccountMgr::CheckPassword(linkedAccount, password) != AOR_OK)
+    // TC 4.3.4: AccountMgr::CheckPassword returns bool, not AccountOpResult enum.
+    if (!AccountMgr::CheckPassword(linkedAccount, password))
     {
         ChatHandler(master->GetSession()).SendSysMessage("Altbot: link failed — wrong password.");
         // Don't clear the pending entry on a wrong attempt; let the master retry within the TTL.

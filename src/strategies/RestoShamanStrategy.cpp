@@ -198,7 +198,7 @@ void RestoShamanStrategy::ResolveSpellCache(Player* bot)
 
     for (auto const& [spellId, playerSpell] : bot->GetSpellMap())
     {
-        if (playerSpell->State == PLAYERSPELL_REMOVED || !playerSpell->Active)
+        if (playerSpell.state == PLAYERSPELL_REMOVED || !playerSpell.active)
             continue;
 
         SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId);
@@ -223,11 +223,11 @@ void RestoShamanStrategy::ResolveSpellCache(Player* bot)
                 hasSchoolDamage = true;
             if (info->Effects[i].ApplyAuraName == SPELL_AURA_PERIODIC_HEAL)
                 hasPeriodicHeal = true;
-            if (effect == SPELL_EFFECT_HEAL && info->Effects[i].ChainTargets > 0)
+            if (effect == SPELL_EFFECT_HEAL && info->Effects[i].ChainTarget > 0)
                 hasChainTargets = true;
         }
 
-        uint32 castMs   = info->CastTimeEntry ? uint32(info->CastTimeEntry->CastTime) : 0;
+        uint32 castMs   = info->CastTimeEntry ? uint32(info->CastTimeEntry->Base) : 0;
         uint32 spellLvl = info->SpellLevel;
 
         // Riptide: instant heal + HoT (both effects in the same spell)

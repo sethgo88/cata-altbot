@@ -6,7 +6,6 @@
 #include "Log.h"
 #include "ObjectMgr.h"
 #include "Player.h"
-#include "TradeData.h"
 #include "WorldSession.h"
 #include <algorithm>
 #include <cctype>
@@ -50,7 +49,8 @@ std::vector<BagItem> ListBags(Player* bot)
         row.entry   = item->GetEntry();
         row.count   = item->GetCount();
         row.guidLow = item->GetGUID().GetCounter();
-        row.name    = tpl->Name1;
+        // TC 4.3.4: ItemTemplate has no Name1 field; use GetName(DEFAULT_LOCALE)
+        row.name    = tpl->GetName(DEFAULT_LOCALE);
         out.push_back(std::move(row));
     };
 
@@ -115,8 +115,9 @@ bool EquipItem(Player* master, Player* bot, std::string_view query)
     InventoryResult res = bot->CanEquipItem(NULL_SLOT, dest, item, false);
     if (res != EQUIP_ERR_OK)
     {
+        // TC 4.3.4: ItemTemplate::GetName(LocaleConstant) returns char const*
         ChatHandler(master->GetSession()).PSendSysMessage("Cannot equip '%s' (err %u).",
-            item->GetTemplate()->Name1.c_str(), uint32(res));
+            item->GetTemplate()->GetName(DEFAULT_LOCALE), uint32(res));
         return false;
     }
 
@@ -125,7 +126,7 @@ bool EquipItem(Player* master, Player* bot, std::string_view query)
     bot->AutoUnequipOffhandIfNeed();
 
     ChatHandler(master->GetSession()).PSendSysMessage("%s equipped '%s'.",
-        bot->GetName().c_str(), item->GetTemplate()->Name1.c_str());
+        bot->GetName().c_str(), item->GetTemplate()->GetName(DEFAULT_LOCALE));
     return true;
 }
 
@@ -139,23 +140,12 @@ bool SellItem(Player* master, Player* bot, std::string_view query)
         return false;
     }
 
-    // Sell flow needs a vendor in interaction range. The bot's session has
-    // the standard vendor-sell handler — we route through the player API.
-    Creature* vendor = bot->GetNPCIfCanInteractWith(ObjectGuid::Empty, UNIT_NPC_FLAG_VENDOR);
-    if (!vendor)
-    {
-        ChatHandler(master->GetSession()).PSendSysMessage("%s is not near a vendor.",
-            bot->GetName().c_str());
-        return false;
-    }
-
-    std::string itemName = item->GetTemplate()->Name1;
-    bot->GetSession()->SendListInventory(vendor->GetGUID());
-    bot->GetSession()->SendSellItem(vendor->GetGUID(), item->GetGUID(), 0);
-
-    ChatHandler(master->GetSession()).PSendSysMessage("%s sold '%s'.",
-        bot->GetName().c_str(), itemName.c_str());
-    return true;
+    // TODO: TC 4.3.4 - no equivalent API. WorldSession has no public SendSellItem()
+    // method; sell is handled via HandleSellItemOpcode (packet handler, not callable
+    // directly). Auto-sell via NPC is not supported in this port.
+    ChatHandler(master->GetSession()).PSendSysMessage(
+        "Auto-sell is not supported in this build (TC 4.3.4 has no SendSellItem API).");
+    return false;
 }
 
 bool DestroyItem(Player* master, Player* bot, std::string_view query)
@@ -168,7 +158,8 @@ bool DestroyItem(Player* master, Player* bot, std::string_view query)
         return false;
     }
 
-    std::string itemName = item->GetTemplate()->Name1;
+    // TC 4.3.4: ItemTemplate::GetName(LocaleConstant) returns char const*
+    std::string itemName = item->GetTemplate()->GetName(DEFAULT_LOCALE);
     uint32 count = item->GetCount();
 
     bot->DestroyItemCount(item->GetEntry(), count, true);
@@ -180,36 +171,13 @@ bool DestroyItem(Player* master, Player* bot, std::string_view query)
 
 bool OpenTrade(Player* master, Player* bot)
 {
-    if (master->GetTrader() || bot->GetTrader())
-    {
-        ChatHandler(master->GetSession()).SendSysMessage("Trade window already open.");
-        return false;
-    }
-
-    if (!master->IsWithinDistInMap(bot, INTERACTION_DISTANCE))
-    {
-        ChatHandler(master->GetSession()).PSendSysMessage("%s is too far away to trade.",
-            bot->GetName().c_str());
-        return false;
-    }
-
-    // Server-initiated trade: master is the initiator, bot is the trader target.
-    master->SetTradeData(new TradeData(master, bot));
-    bot->SetTradeData(new TradeData(bot, master));
-
-    WorldPacket data(SMSG_TRADE_STATUS, 4 + 8);
-    data << uint32(TRADE_STATUS_OPEN_WINDOW);
-    data << uint64(0);
-    master->GetSession()->SendPacket(&data);
-
-    WorldPacket data2(SMSG_TRADE_STATUS, 4 + 8);
-    data2 << uint32(TRADE_STATUS_OPEN_WINDOW);
-    data2 << uint64(0);
-    bot->GetSession()->SendPacket(&data2);
-
-    ChatHandler(master->GetSession()).PSendSysMessage("Trade window opened with %s.",
-        bot->GetName().c_str());
-    return true;
+    // TODO: TC 4.3.4 - no equivalent API. Player has no SetTradeData() method;
+    // trade is initiated only via client opcodes (CMSG_INITIATE_TRADE).
+    // Server-side trade window opening is not supported in this port.
+    ChatHandler(master->GetSession()).PSendSysMessage(
+        "Server-initiated trade is not supported in this build (TC 4.3.4 — use in-game trade UI).");
+    (void)bot;
+    return false;
 }
 
 } // namespace AltbotInventory

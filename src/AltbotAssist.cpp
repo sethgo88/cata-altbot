@@ -14,12 +14,11 @@ static Unit* GetSkullTarget(Player* viewer)
     if (!group)
         return nullptr;
 
-    // Slot 7 = skull. TC's Group::GetTargetIcons returns the 8-marker array.
-    ObjectGuid skullGuid = group->GetTargetIcons()[7];
-    if (skullGuid.IsEmpty())
-        return nullptr;
-
-    return ObjectAccessor::GetUnit(*viewer, skullGuid);
+    // TODO: TC 4.3.4 - Group has no public GetTargetIcons() accessor.
+    // m_targetIcons[8] is private with only SetTargetIcon()/SendTargetIconList()
+    // as public API. Skull targeting is disabled until a getter is exposed
+    // (e.g., add GetTargetIcon(uint8) to Group.h in server-core).
+    return nullptr;
 }
 
 static Unit* GetMasterTarget(Player* master)

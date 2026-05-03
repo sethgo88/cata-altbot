@@ -19,7 +19,8 @@ static uint32 FindBestMountSpell(Player* bot, bool wantFlying)
 
     for (auto const& [spellId, ps] : bot->GetSpellMap())
     {
-        if (ps->State == PLAYERSPELL_REMOVED || !ps->Active)
+        // TC 4.3.4: PlayerSpell is a struct (not pointer), fields are lowercase
+        if (ps.state == PLAYERSPELL_REMOVED || !ps.active)
             continue;
 
         SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId);
@@ -32,7 +33,9 @@ static uint32 FindBestMountSpell(Player* bot, bool wantFlying)
         {
             if (info->Effects[i].ApplyAuraName == SPELL_AURA_MOUNTED)
                 isMount = true;
-            if (info->Effects[i].ApplyAuraName == SPELL_AURA_MOD_FLIGHT_SPEED ||
+            // TC 4.3.4: SPELL_AURA_MOD_FLIGHT_SPEED does not exist;
+            // use SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED instead.
+            if (info->Effects[i].ApplyAuraName == SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED ||
                 info->Effects[i].ApplyAuraName == SPELL_AURA_FLY ||
                 info->Effects[i].ApplyAuraName == SPELL_AURA_MOD_INCREASE_VEHICLE_FLIGHT_SPEED)
                 isFly = true;
@@ -77,8 +80,9 @@ void Tick(Player* bot, Player* master)
     if (bot->IsInCombat() || bot->IsNonMeleeSpellCast(false))
         return;
 
+    // TC 4.3.4: use SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED (not MOD_FLIGHT_SPEED)
     bool masterFlying = master->IsFlying() || master->HasAuraType(SPELL_AURA_FLY) ||
-                        master->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED);
+                        master->HasAuraType(SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED);
 
     uint32 mountSpell = FindBestMountSpell(bot, masterFlying);
     if (!mountSpell)

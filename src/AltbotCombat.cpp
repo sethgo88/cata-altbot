@@ -23,7 +23,8 @@ static uint32 FindBestHealSpell(Player* bot)
 
     for (auto const& [spellId, playerSpell] : bot->GetSpellMap())
     {
-        if (playerSpell->State == PLAYERSPELL_REMOVED || !playerSpell->Active)
+        // TC 4.3.4: PlayerSpell is a struct (not pointer), fields are lowercase
+        if (playerSpell.state == PLAYERSPELL_REMOVED || !playerSpell.active)
             continue;
 
         SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId);
@@ -64,7 +65,8 @@ static uint32 FindBestDamageSpell(Player* bot)
 
     for (auto const& [spellId, playerSpell] : bot->GetSpellMap())
     {
-        if (playerSpell->State == PLAYERSPELL_REMOVED || !playerSpell->Active)
+        // TC 4.3.4: PlayerSpell is a struct (not pointer), fields are lowercase
+        if (playerSpell.state == PLAYERSPELL_REMOVED || !playerSpell.active)
             continue;
 
         SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId);

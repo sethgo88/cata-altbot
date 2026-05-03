@@ -6,6 +6,7 @@
 #include "AltbotMgr.h"
 #include "AltbotTalents.h"
 #include "AccountMgr.h"
+#include "Chat.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"

@@ -1,6 +1,7 @@
 #include "AltbotQuest.h"
 #include "AltbotAI.h"
 #include "AltbotMgr.h"
+#include "Chat.h"
 #include "Group.h"
 #include "Log.h"
 #include "ObjectMgr.h"
@@ -90,27 +91,41 @@ void OnMasterQuestReward(Player* master, Quest const* quest)
     }
 }
 
-// NOTE: PlayerScript hook signatures vary across TC forks. This file is
-// written against the common "OnQuestAccept(Player*, Quest const*)" /
-// "OnQuestReward(Player*, Quest const*)" 2-arg pattern. If the Cataclysm
-// Preservation Project fork uses 3-arg signatures (e.g., with a questGiver
-// Object* trailing arg, or OnQuestStatusChange(Player*, uint32, QuestStatus)),
-// adjust the override declarations below and route through the same
-// OnMasterQuestAccept / OnMasterQuestReward helpers above. CLAUDE.md
-// "Pending — TC fork access required" tracks this verification item.
+// TC 4.3.4 PlayerScript quest hooks:
+//   - There is no OnQuestAccept(Player*, Quest const*) 2-arg form on PlayerScript.
+//     The only quest accept hook on PlayerScript is on Item scripts
+//     (ItemScript::OnQuestAccept).
+//   - Quest accept/reward from NPCs fires CreatureScript hooks, not PlayerScript.
+//   - The available PlayerScript hook is OnQuestStatusChange(Player*, uint32 questId).
+//
+// We hook OnQuestStatusChange and fire our helpers when status transitions to
+// QUEST_STATUS_COMPLETE (turn-in trigger) or when the master takes a new quest
+// (QUEST_STATUS_INCOMPLETE / QUEST_STATUS_NONE transition is not visible here,
+// so quest-take mirroring is handled at QUEST_STATUS_INCOMPLETE = quest accepted).
 class altbot_quest_playerscript : public PlayerScript
 {
 public:
     altbot_quest_playerscript() : PlayerScript("altbot_quest_playerscript") { }
 
-    void OnQuestAccept(Player* player, Quest const* quest) override
+    // TC 4.3.4: PlayerScript::OnQuestStatusChange(Player*, uint32 questId)
+    void OnQuestStatusChange(Player* player, uint32 questId) override
     {
-        OnMasterQuestAccept(player, quest);
-    }
+        QuestStatus status = player->GetQuestStatus(questId);
 
-    void OnQuestReward(Player* player, Quest const* quest) override
-    {
-        OnMasterQuestReward(player, quest);
+        Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+        if (!quest)
+            return;
+
+        if (status == QUEST_STATUS_INCOMPLETE)
+        {
+            // Player just accepted the quest — mirror to bots.
+            OnMasterQuestAccept(player, quest);
+        }
+        else if (status == QUEST_STATUS_REWARDED)
+        {
+            // Player just turned in the quest — mirror to bots.
+            OnMasterQuestReward(player, quest);
+        }
     }
 };
 

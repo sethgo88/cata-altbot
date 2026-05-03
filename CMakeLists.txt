@@ -11,10 +11,26 @@
 #      AddSC_AltbotLoader();
 
 set(altbot_SOURCES
-    src/AltbotMgr.cpp
-    src/AltbotLoader.cpp
+    src/AltbotAccountLink.cpp
+    src/AltbotAddonProto.cpp
     src/AltbotAI.cpp
+    src/AltbotAssist.cpp
+    src/AltbotCombat.cpp
+    src/AltbotCommands.cpp
+    src/AltbotCommandTable.cpp
+    src/AltbotConfig.cpp
     src/AltbotFollow.cpp
+    src/AltbotInventory.cpp
+    src/AltbotInvite.cpp
+    src/AltbotLoader.cpp
+    src/AltbotLoot.cpp
+    src/AltbotMgr.cpp
+    src/AltbotMount.cpp
+    src/AltbotQuest.cpp
+    src/AltbotRelease.cpp
+    src/AltbotStrategyFactory.cpp
+    src/AltbotTalents.cpp
+    src/strategies/RestoShamanStrategy.cpp
 )
 
 target_sources(scripts PRIVATE ${altbot_SOURCES})

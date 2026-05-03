@@ -1,4 +1,4 @@
--- SpecMenu.lua — class-aware spec dropdown for AltRow.
+-- SpecMenu.lua — class-aware spec dropdown invoked from BotSubMenu.
 --
 -- Slugs match the docs/specs/ filenames (canonical convention). The server
 -- stores whichever slug we send into character_altbot.spec_override; unknown

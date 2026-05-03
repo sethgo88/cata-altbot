@@ -1,0 +1,181 @@
+-- BotSubMenu.lua — horizontal action strip for one bot.
+--
+-- Triggered by right-click on a BotButton. Anchored to the right of the
+-- triggering button so it visually extends out of the bot icon.
+--
+-- Buttons: [Bags] [Talents] [Spec] [Role] [Summon] [Login/Logout] [Remove].
+-- Spec opens the existing class-aware UIDropDown; Role opens RoleMenu (a
+-- vertical 3-icon popout for tank/healer/dps); the rest are direct actions.
+--
+-- Single-instance; OpenFor(botButton, alt) repositions and rebinds.
+
+local _, addon = ...
+local SM = {}
+addon.BotSubMenu = SM
+
+local BUTTON_SIZE = 32
+local SPACING     = 4
+
+-- Frame --------------------------------------------------------------------
+
+local frame = CreateFrame("Frame", "CataAltbotBotSubMenu", UIParent)
+frame:SetFrameStrata("HIGH")    -- above RosterPopout so it overlaps cleanly
+frame:Hide()
+
+-- Button factory -----------------------------------------------------------
+
+local function MakeIconButton(parent, iconPath)
+    local b = CreateFrame("Button", nil, parent)
+    b:SetSize(BUTTON_SIZE, BUTTON_SIZE)
+    b:RegisterForClicks("AnyUp")
+
+    b.icon = b:CreateTexture(nil, "BACKGROUND")
+    b.icon:SetAllPoints()
+    b.icon:SetTexture(iconPath)
+    b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
+    b.border = b:CreateTexture(nil, "ARTWORK")
+    b.border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    b.border:SetSize(BUTTON_SIZE * 1.7, BUTTON_SIZE * 1.7)
+    b.border:SetPoint("CENTER", b, "CENTER", 0, -1)
+
+    b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+    return b
+end
+
+local function SetTip(button, title)
+    button:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine(title)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+end
+
+local ICON_BAGS    = "Interface\\Icons\\INV_Misc_Bag_07"
+local ICON_TALENT  = "Interface\\Icons\\Spell_Nature_NatureTouchGrow"
+local ICON_SPEC    = "Interface\\Icons\\Inv_Inscription_82_Tome_C"
+local ICON_ROLE    = "Interface\\Icons\\Achievement_GuildPerk_HavingaBall"
+local ICON_SUMMON  = "Interface\\Icons\\Spell_Arcane_TeleportShattrath"
+local ICON_LOGIN   = "Interface\\Icons\\Spell_Holy_Resurrection"
+local ICON_LOGOUT  = "Interface\\Icons\\Spell_Magic_LesserInvisibilty"
+local ICON_REMOVE  = "Interface\\Icons\\Spell_Shadow_DeathPact"
+
+-- Build all 7 children once; OpenFor binds them to the active alt.
+
+SM.btnBags    = MakeIconButton(frame, ICON_BAGS);   SetTip(SM.btnBags,    "Bags")
+SM.btnTalents = MakeIconButton(frame, ICON_TALENT); SetTip(SM.btnTalents, "Talents")
+SM.btnSpec    = MakeIconButton(frame, ICON_SPEC);   SetTip(SM.btnSpec,    "Spec")
+SM.btnRole    = MakeIconButton(frame, ICON_ROLE);   SetTip(SM.btnRole,    "Role")
+SM.btnSummon  = MakeIconButton(frame, ICON_SUMMON); SetTip(SM.btnSummon,  "Summon")
+SM.btnToggle  = MakeIconButton(frame, ICON_LOGIN);  SetTip(SM.btnToggle,  "Login")
+SM.btnRemove  = MakeIconButton(frame, ICON_REMOVE); SetTip(SM.btnRemove,  "Remove")
+
+-- Layout left → right.
+local children = { SM.btnBags, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnSummon, SM.btnToggle, SM.btnRemove }
+for i, b in ipairs(children) do
+    if i == 1 then
+        b:SetPoint("LEFT", frame, "LEFT", 0, 0)
+    else
+        b:SetPoint("LEFT", children[i - 1], "RIGHT", SPACING, 0)
+    end
+end
+frame:SetSize(#children * BUTTON_SIZE + (#children - 1) * SPACING, BUTTON_SIZE)
+
+-- Hidden dropdown frame for the spec UIDropDownMenuTemplate. Built lazily so
+-- we don't pay the dropdown init cost until the user clicks Spec.
+local specDropdown
+
+-- Public API ---------------------------------------------------------------
+
+function SM:Hide()
+    frame:Hide()
+    if addon.RoleMenu then addon.RoleMenu:Hide() end
+end
+
+-- Anchor to the right of the bot icon and rebind every button to `alt`.
+-- Snapping to a fresh alt on each call lets a single sub-menu instance
+-- service the entire roster.
+function SM:OpenFor(botButton, alt)
+    if not alt then return end
+
+    -- Reposition.
+    frame:ClearAllPoints()
+    frame:SetPoint("LEFT", botButton, "RIGHT", SPACING, 0)
+
+    -- Toggle behavior: clicking the same bot twice closes the strip.
+    if frame:IsShown() and self._currentAlt and self._currentAlt.guidLow == alt.guidLow then
+        self:Hide()
+        return
+    end
+    self._currentAlt = alt
+
+    -- Login/logout icon swaps based on active state.
+    if alt.active then
+        self.btnToggle.icon:SetTexture(ICON_LOGOUT)
+        SetTip(self.btnToggle, "Logout")
+    else
+        self.btnToggle.icon:SetTexture(ICON_LOGIN)
+        SetTip(self.btnToggle, "Login")
+    end
+
+    -- Bind all action buttons to this alt.
+    self.btnBags:SetScript("OnClick", function()
+        if addon.BagsModal then addon.BagsModal:Open(alt.name, alt.guidLow) end
+    end)
+
+    self.btnTalents:SetScript("OnClick", function()
+        if addon.TalentsModal then addon.TalentsModal:Show(alt.name) end
+    end)
+
+    self.btnSpec:SetScript("OnClick", function(specBtn)
+        if not addon.SpecMenu then return end
+        if not specDropdown then
+            specDropdown = CreateFrame("Frame", "CataAltbotSpecDropdown", UIParent, "UIDropDownMenuTemplate")
+        end
+        addon.SpecMenu:Attach(specDropdown, alt.classId,
+            function() return (alt.state and alt.state.spec) or "auto" end,
+            function(slug) addon:SetSpec(alt.name, slug) end)
+        -- "cursor" anchor avoids requiring the spec button to have a frame name.
+        ToggleDropDownMenu(1, nil, specDropdown, "cursor", 0, 0)
+    end)
+
+    self.btnRole:SetScript("OnClick", function()
+        if addon.RoleMenu then addon.RoleMenu:OpenFor(self.btnRole, alt) end
+    end)
+
+    self.btnSummon:SetScript("OnClick", function()
+        addon:Summon(alt.name)
+    end)
+
+    self.btnToggle:SetScript("OnClick", function()
+        if alt.active then
+            addon:Logout(alt.name)
+            alt.active = false
+        else
+            if alt.registered then addon:Login(alt.name)
+            else                   addon:Add  (alt.name) end
+            alt.active = true
+        end
+        addon:RefreshAlts()
+        SM:Hide()
+    end)
+
+    self.btnRemove:SetScript("OnClick", function()
+        StaticPopup_Show("CATAALTBOT_CONFIRM_REMOVE", alt.name, nil, alt)
+    end)
+
+    frame:Show()
+end
+
+StaticPopupDialogs["CATAALTBOT_CONFIRM_REMOVE"] = {
+    text = "Remove %s from your altbot roster? Their saved state will be deleted.",
+    button1 = "Remove", button2 = "Cancel",
+    OnAccept = function(_, alt)
+        if alt and alt.name then
+            addon:Remove(alt.name)
+            addon:RefreshAlts()
+        end
+    end,
+    timeout = 0, hideOnEscape = true, whileDead = true,
+}

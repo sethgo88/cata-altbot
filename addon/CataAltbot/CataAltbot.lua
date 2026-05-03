@@ -5,9 +5,10 @@
 -- the server side simple (it just hooks regular CHAT_MSG_WHISPER) and works
 -- without prefix-registration on the 4.3.4 client.
 --
--- Inbound  (master -> server): SendChatMessage("CATABOT|VERB|...", "WHISPER", nil, "BotName")
--- Outbound (server -> master): bot Whispers back "CATABOT|VERB|..." which we
---                              parse out of CHAT_MSG_WHISPER events.
+-- Master self-whispers (master → master) are also intercepted server-side as
+-- the bootstrap path: this lets the addon LIST/ADD/LOGIN with zero bots online.
+-- Once a bot is up, AnyActiveBotName picks it as the transport, but the
+-- behavior is otherwise indistinguishable from the master-self path.
 
 local addonName, addon = ...
 CataAltbot = addon
@@ -18,32 +19,21 @@ CataAltbot.PROTO_VERSION = 1
 addon.alts  = {}    -- keyed by guidLow: {name, classId, level, accountId, registered, active, state}
 addon.links = {}    -- linked accounts list
 
--- Saved variables: panel position, default view filter.
+-- Saved variables: action-bar position.
 local function InitDB()
     CataAltbotDB = CataAltbotDB or {}
-    CataAltbotDB.position = CataAltbotDB.position or { point = "CENTER", x = 0, y = 0 }
-    CataAltbotDB.showOffline = CataAltbotDB.showOffline ~= false
 end
 
 -- ---- Send / receive primitives ----
 
--- Send a verb to the server. `botName` is the bot the whisper goes to; for
--- some verbs (LIST, LINKS, ADD) the bot just acts as a transport, but we still
--- need an active bot to whisper. If no bots are active, falls back to whispering
--- the master themselves (server's OnChat treats master->master with prefix as
--- a no-op route — addon should pick a different bot).
-function addon:Send(botName, verbAndArgs)
-    if not botName or botName == "" then
-        return
-    end
-    SendChatMessage(self.PREFIX .. verbAndArgs, "WHISPER", nil, botName)
+function addon:Send(target, verbAndArgs)
+    if not target or target == "" then return end
+    SendChatMessage(self.PREFIX .. verbAndArgs, "WHISPER", nil, target)
 end
 
--- Pick any active bot's name to use as the whisper target for stateless verbs.
--- Final fallback is the master themselves (self-whisper) — the server hooks
--- master→master whispers carrying the CATABOT prefix the same as bot whispers,
--- which makes bootstrapping (LIST/ADD/LOGIN with zero bots online) work without
--- any chat-command priming.
+-- Pick a whisper transport. Prefer an active bot; fall back to master self-
+-- whisper, which the server hooks the same way. Always returns a valid name,
+-- so callers don't need to gate.
 function addon:AnyActiveBotName()
     for _, alt in pairs(self.alts) do
         if alt.active then return alt.name end
@@ -51,7 +41,6 @@ function addon:AnyActiveBotName()
     return UnitName("player")
 end
 
--- Parse a whisper. Returns (verb, args[]) if it's an addon message, else nil.
 function addon:Parse(msg)
     if not msg or string.sub(msg, 1, #self.PREFIX) ~= self.PREFIX then
         return nil
@@ -64,7 +53,7 @@ function addon:Parse(msg)
     return parts[1], parts
 end
 
--- ---- Verb handlers (server -> client) ----
+-- ---- Server → client verb handlers ----
 
 local handlers = {}
 
@@ -87,16 +76,16 @@ handlers.ALT_ROW = function(parts)
 end
 
 handlers.LIST_DONE = function()
-    if addon.MainFrame then addon.MainFrame:Refresh() end
+    if addon.RosterPopout and addon.RosterPopout:IsShown() then
+        addon.RosterPopout:Refresh()
+    end
 end
 
 handlers.LINK_ROW = function(parts)
     table.insert(addon.links, { username = parts[2], accountId = tonumber(parts[3]) })
 end
 
-handlers.LINKS_DONE = function()
-    if addon.LinksTab then addon.LinksTab:Refresh() end
-end
+handlers.LINKS_DONE = function() end
 
 handlers.STATE = function(parts)
     local guidLow = tonumber(parts[2])
@@ -107,7 +96,6 @@ handlers.STATE = function(parts)
         if k and v then state[k] = v end
     end
     addon.alts[guidLow].state = state
-    if addon.MainFrame then addon.MainFrame:Refresh() end
 end
 
 handlers.BAG_ROW = function(parts)
@@ -123,89 +111,53 @@ handlers.ERR = function(parts)
         ": " .. (parts[3] or "") .. "|r")
 end
 
--- ---- Public API used by other UI files ----
+-- ---- Public API used by UI files ----
 
 function addon:RefreshAlts()
     self.alts = {}
-    local target = self:AnyActiveBotName()
-    if target then self:Send(target, "LIST") end
+    self:Send(self:AnyActiveBotName(), "LIST")
 end
 
 function addon:RefreshLinks()
     self.links = {}
-    local target = self:AnyActiveBotName()
-    if target then self:Send(target, "LINKS") end
+    self:Send(self:AnyActiveBotName(), "LINKS")
 end
 
-function addon:Login(botName)  self:Send(botName, "LOGIN|" .. botName) end
-function addon:Logout(botName) self:Send(botName, "LOGOUT|" .. botName) end
-function addon:Add(botName)    local t = self:AnyActiveBotName(); if t then self:Send(t, "ADD|" .. botName) end end
-function addon:Remove(botName) local t = self:AnyActiveBotName(); if t then self:Send(t, "REMOVE|" .. botName) end end
-
-function addon:Invite(botName)   self:Send(botName, "INVITE|"   .. botName) end
-function addon:Uninvite(botName) self:Send(botName, "UNINVITE|" .. botName) end
-function addon:Summon(botName)   self:Send(botName, "SUMMON|"   .. botName) end
+-- Per-bot lifecycle / actions. The server resolves the bot by name argument,
+-- so the whisper target only matters as transport — we use the same self-
+-- whisper fallback everywhere.
+function addon:Login(botName)    self:Send(self:AnyActiveBotName(), "LOGIN|"   .. botName) end
+function addon:Logout(botName)   self:Send(self:AnyActiveBotName(), "LOGOUT|"  .. botName) end
+function addon:Add(botName)      self:Send(self:AnyActiveBotName(), "ADD|"     .. botName) end
+function addon:Remove(botName)   self:Send(self:AnyActiveBotName(), "REMOVE|"  .. botName) end
+function addon:Invite(botName)   self:Send(self:AnyActiveBotName(), "INVITE|"  .. botName) end
+function addon:Uninvite(botName) self:Send(self:AnyActiveBotName(), "UNINVITE|".. botName) end
+function addon:Summon(botName)   self:Send(self:AnyActiveBotName(), "SUMMON|"  .. botName) end
 
 function addon:RequestBags(botName)
-    self:Send(botName, "BAGS|" .. botName)
+    self:Send(self:AnyActiveBotName(), "BAGS|" .. botName)
 end
 
 function addon:LearnTalent(botName, talentId, rank)
-    self:Send(botName, "LEARN_TALENT|" .. botName .. "|" .. talentId .. "|" .. rank)
+    self:Send(self:AnyActiveBotName(), "LEARN_TALENT|" .. botName .. "|" .. talentId .. "|" .. rank)
 end
 
 function addon:SetSpec(botName, slug)
-    self:Send(botName, "SET_SPEC|" .. botName .. "|" .. slug)
+    self:Send(self:AnyActiveBotName(), "SET_SPEC|" .. botName .. "|" .. slug)
 end
 
 function addon:SetRole(botName, slug)
-    self:Send(botName, "SET_ROLE|" .. botName .. "|" .. slug)
+    self:Send(self:AnyActiveBotName(), "SET_ROLE|" .. botName .. "|" .. slug)
 end
 
--- ---- Broadcast verbs (drive every active bot in one click) ----
--- Routed through any one active bot's whisper channel; the server fans out
--- across the master's whole roster, so the choice of transport bot is
--- irrelevant.
-
-function addon:SetModeAll(mode)
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "SET_MODE_ALL|" .. mode)
-end
-
-function addon:SetAssistAll(mode)
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "SET_ASSIST_ALL|" .. mode)
-end
-
-function addon:SetToggleAll(key, on)
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "SET_TOGGLE_ALL|" .. key .. "|" .. (on and "on" or "off"))
-end
-
-function addon:AttackAll()
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "ATTACK_ALL")
-end
-
-function addon:InviteAll()
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "INVITE_ALL")
-end
-
-function addon:UninviteAll()
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "UNINVITE_ALL")
-end
-
-function addon:SummonAll()
-    local target = self:AnyActiveBotName(); if not target then return end
-    self:Send(target, "SUMMON_ALL")
-end
-
--- True if at least one bot is active. UI uses this to gate broadcast buttons.
-function addon:HasActiveBot()
-    return self:AnyActiveBotName() ~= nil
-end
+-- Broadcast verbs — server fans out across all active bots.
+function addon:SetModeAll(mode)         self:Send(self:AnyActiveBotName(), "SET_MODE_ALL|"   .. mode) end
+function addon:SetAssistAll(mode)       self:Send(self:AnyActiveBotName(), "SET_ASSIST_ALL|" .. mode) end
+function addon:SetToggleAll(key, on)    self:Send(self:AnyActiveBotName(), "SET_TOGGLE_ALL|" .. key .. "|" .. (on and "on" or "off")) end
+function addon:AttackAll()              self:Send(self:AnyActiveBotName(), "ATTACK_ALL")             end
+function addon:InviteAll()              self:Send(self:AnyActiveBotName(), "INVITE_ALL")             end
+function addon:UninviteAll()            self:Send(self:AnyActiveBotName(), "UNINVITE_ALL")           end
+function addon:SummonAll()              self:Send(self:AnyActiveBotName(), "SUMMON_ALL")             end
 
 -- ---- Event wiring ----
 
@@ -218,53 +170,33 @@ f:SetScript("OnEvent", function(self, event, arg1, ...)
     if event == "ADDON_LOADED" and arg1 == addonName then
         InitDB()
     elseif event == "PLAYER_LOGIN" then
-        if addon.Launcher then addon.Launcher:Show() end
-        addon:RefreshAlts()
+        if addon.ActionBar then addon.ActionBar:Show() end
     elseif event == "CHAT_MSG_WHISPER" then
-        local msg, sender = arg1, ...
+        local msg = arg1
         local verb, parts = addon:Parse(msg)
         if verb and handlers[verb] then
-            handlers[verb](parts, sender)
+            handlers[verb](parts)
         end
     end
 end)
 
--- Slash command for quick test / open panel.
+-- Slash command — toggles the action bar. No subcommands; the bar IS the UI.
 SLASH_CATAALTBOT1 = "/cab"
 SLASH_CATAALTBOT2 = "/cataaltbot"
-SlashCmdList["CATAALTBOT"] = function(msg)
-    if msg == "refresh" then
-        addon:RefreshAlts()
-        return
-    elseif msg == "icon" then
-        if addon.Launcher then addon.Launcher:Show() end
+SlashCmdList["CATAALTBOT"] = function()
+    if addon.ActionBar then
+        addon.ActionBar:Toggle()
         return
     end
 
-    -- Toggle the main panel. We don't depend on Launcher.lua loading — using
-    -- addon.MainFrame directly means /cab still works even if the launcher
-    -- file errored out for some reason.
-    local mf = addon.MainFrame
-    if mf and mf.Show and mf.Hide and mf.IsShown then
-        if mf:IsShown() then mf:Hide() else mf:Show() end
-        return
-    end
-
-    -- Fallback diagnostic. List which UI submodules registered themselves so
-    -- the user can tell which file failed to load. (none) means the UI/*.lua
-    -- files in the .toc never executed — almost always a stale install where
-    -- only the root files made it into Interface/AddOns/CataAltbot/ and the
-    -- UI/ subdir is missing on disk.
-    local expected = { "MainFrame", "AltRow", "SpecMenu", "BagsModal", "TalentsModal", "LinksTab", "Launcher" }
+    -- Diagnostic when the action bar didn't register — almost always means
+    -- one or more UI/*.lua files didn't reach the WoW client.
+    local expected = { "ActionBar", "RosterPopout", "BotButton", "BotSubMenu", "RoleMenu", "SpecMenu", "BagsModal", "TalentsModal" }
     local loaded, missing = {}, {}
     for _, k in ipairs(expected) do
         if addon[k] then table.insert(loaded, k) else table.insert(missing, k) end
     end
-    DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r MainFrame missing.")
+    DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r action bar not loaded.")
     DEFAULT_CHAT_FRAME:AddMessage("  loaded:  " .. (next(loaded)  and table.concat(loaded,  ", ") or "(none)"))
     DEFAULT_CHAT_FRAME:AddMessage("  missing: " .. (next(missing) and table.concat(missing, ", ") or "(none)"))
-    if not next(loaded) then
-        DEFAULT_CHAT_FRAME:AddMessage("  → Verify Interface/AddOns/CataAltbot/UI/ exists and contains all 7 *.lua files,")
-        DEFAULT_CHAT_FRAME:AddMessage("    and locales/enUS.lua. Then '/console scriptErrors 1' and '/reload'.")
-    end
 end

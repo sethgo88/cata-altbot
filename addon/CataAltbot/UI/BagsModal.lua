@@ -1,6 +1,6 @@
 -- BagsModal.lua — full inventory grid for one bot.
 --
--- Activated by clicking a "Bags" button on an AltRow (added in Phase 9).
+-- Activated by clicking the Bags button in BotSubMenu.
 -- Sends BAGS request, accumulates BAG_ROW replies, renders a grid with
 -- per-item action buttons (equip / sell / drop). Item icon and tooltip
 -- come from GetItemInfo on the client side.
@@ -85,7 +85,7 @@ function BM:Open(botName, botGuid)
     f.btnEquip:SetScript("OnClick", function() self:DoAction("EQUIP") end)
     f.btnSell:SetScript ("OnClick", function() self:DoAction("SELL")  end)
     f.btnDrop:SetScript ("OnClick", function() self:DoAction("DROP")  end)
-    f.btnTrade:SetScript("OnClick", function() addon:Send(botName, "TRADE|" .. botName) end)
+    f.btnTrade:SetScript("OnClick", function() addon:Send(addon:AnyActiveBotName(), "TRADE|" .. botName) end)
 end
 
 function BM:OnBagRow(parts)
@@ -160,5 +160,5 @@ end
 function BM:DoAction(verb)
     if not self.current or not self.selected then return end
     local payload = string.format("%s|%s|%d", verb, self.current.botName, self.selected.guidLow)
-    addon:Send(self.current.botName, payload)
+    addon:Send(addon:AnyActiveBotName(), payload)
 end

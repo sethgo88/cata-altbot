@@ -18,6 +18,7 @@
 #include <functional>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace AltbotAddonProto
@@ -456,6 +457,17 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         return true;   // matched prefix; handled (as a no-op).
 
     std::string const& verb = parts[0];
+
+    // Server-bound replies are echoed back through OnPlayerChat when we
+    // self-whisper the master (bootstrap path). Drop them here so we don't
+    // recursively dispatch our own outbound traffic — without this guard,
+    // every ALT_ROW would loop into UNKNOWN_VERB → ERR → UNKNOWN_VERB → ...
+    static std::unordered_set<std::string> const OUTBOUND_VERBS = {
+        "HELLO_OK", "ALT_ROW", "LIST_DONE", "LINK_ROW", "LINKS_DONE",
+        "STATE", "BAG_ROW", "BAGS_DONE", "ERR"
+    };
+    if (OUTBOUND_VERBS.count(verb))
+        return true;
 
     // Reply transport: prefer the bot we received from, fall back to the master
     // self-whispering (bootstrap path — no bots online yet). Either way the

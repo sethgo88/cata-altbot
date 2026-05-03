@@ -2,6 +2,7 @@
 #include "AltbotState.h"
 #include "AltbotStrategy.h"
 #include "AltbotStrategyFactory.h"
+#include "LFG.h"
 #include "ObjectGuid.h"
 #include <cstdint>
 #include <functional>
@@ -53,6 +54,11 @@ public:
     void MarkLfgProposalResponded()      { _lfgProposalResponded = true;  }
     void ClearLfgProposalResponded()     { _lfgProposalResponded = false; }
 
+    // Diagnostic: tracks the last seen LfgState so AltbotLfg::Tick can log only
+    // on transitions instead of spamming every tick.
+    lfg::LfgState GetLastLfgState() const          { return _lastLfgState; }
+    void          SetLastLfgState(lfg::LfgState s) { _lastLfgState = s;    }
+
 private:
     WorldSession* _botSession;    // non-owning; owned by World
     ObjectGuid    _masterGuid;
@@ -65,7 +71,8 @@ private:
     bool        _strategyResolved = false;
     std::string _specOverride;
 
-    bool        _pendingAutoInviteSummon = false;
-    bool        _lfgRoleResponded        = false;
-    bool        _lfgProposalResponded    = false;
+    bool          _pendingAutoInviteSummon = false;
+    bool          _lfgRoleResponded        = false;
+    bool          _lfgProposalResponded    = false;
+    lfg::LfgState _lastLfgState            = lfg::LFG_STATE_NONE;
 };

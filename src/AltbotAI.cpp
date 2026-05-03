@@ -81,8 +81,9 @@ void AltbotAI::Update(uint32 diff)
         if (_state.autoLoot && bot->IsAlive())
             AltbotLoot::Tick(bot, master);
 
-        if (bot->IsAlive())
-            AltbotLfg::Tick(bot, this);
+        // LFG rolecheck/proposal accepts must fire even if the bot is dead —
+        // a dead-but-in-world bot can still be in a queued group.
+        AltbotLfg::Tick(bot, this);
 
         if (_state.mode == AltbotMode::Follow && bot->IsAlive())
             AltbotFollow::Update(bot, master);

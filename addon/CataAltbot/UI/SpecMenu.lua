@@ -5,7 +5,7 @@
 -- slugs harmlessly fall through to the generic combat loop in
 -- AltbotStrategyFactory::Create until a per-spec strategy class lands.
 
-local addon = CataAltbot
+local _, addon = ...
 local SM = {}
 addon.SpecMenu = SM
 

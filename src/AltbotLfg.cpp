@@ -9,20 +9,8 @@
 namespace AltbotLfg
 {
 
-void Tick(Player* bot, AltbotAI* ai)
+static void HandleRoleCheck(Player* bot, AltbotAI* ai)
 {
-    if (!bot || !ai)
-        return;
-
-    lfg::LfgState state = sLFGMgr->GetState(bot->GetGUID());
-
-    if (state != lfg::LFG_STATE_ROLECHECK)
-    {
-        // Not in a rolecheck — clear the latch so the next one fires.
-        ai->ClearLfgRoleResponded();
-        return;
-    }
-
     if (ai->HasLfgRoleResponded())
         return;
 
@@ -41,8 +29,46 @@ void Tick(Player* bot, AltbotAI* ai)
     if (!sLFGMgr->CanPerformSelectedRoles(bot->getClass(), mask))
         return;
 
+    // UpdateRoleCheck with a non-zero role mask both submits the role and
+    // accepts the rolecheck — Cata uses a single CMSG_LFG_SET_ROLES packet
+    // for the combined "choose + accept" step.
     sLFGMgr->UpdateRoleCheck(group->GetGUID(), bot->GetGUID(), mask);
     ai->MarkLfgRoleResponded();
+}
+
+static void HandleProposal(Player* bot, AltbotAI* ai)
+{
+    if (ai->HasLfgProposalResponded())
+        return;
+
+    uint32 proposalId = sLFGMgr->GetPendingProposalIdForPlayer(bot->GetGUID());
+    if (!proposalId)
+        return;
+
+    sLFGMgr->UpdateProposal(proposalId, bot->GetGUID(), true);
+    ai->MarkLfgProposalResponded();
+}
+
+void Tick(Player* bot, AltbotAI* ai)
+{
+    if (!bot || !ai)
+        return;
+
+    lfg::LfgState state = sLFGMgr->GetState(bot->GetGUID());
+
+    // Reset latches as soon as the bot transitions out of the matching state
+    // so the next rolecheck/proposal cycle fires cleanly.
+    if (state != lfg::LFG_STATE_ROLECHECK)
+        ai->ClearLfgRoleResponded();
+    if (state != lfg::LFG_STATE_PROPOSAL)
+        ai->ClearLfgProposalResponded();
+
+    switch (state)
+    {
+        case lfg::LFG_STATE_ROLECHECK: HandleRoleCheck(bot, ai); break;
+        case lfg::LFG_STATE_PROPOSAL:  HandleProposal(bot, ai);  break;
+        default:                                                 break;
+    }
 }
 
 } // namespace AltbotLfg

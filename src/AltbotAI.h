@@ -48,6 +48,11 @@ public:
     void MarkLfgRoleResponded()      { _lfgRoleResponded = true;  }
     void ClearLfgRoleResponded()     { _lfgRoleResponded = false; }
 
+    // Same pattern for the post-rolecheck proposal accept (CMSG_LFG_PROPOSAL_RESULT).
+    bool HasLfgProposalResponded() const { return _lfgProposalResponded; }
+    void MarkLfgProposalResponded()      { _lfgProposalResponded = true;  }
+    void ClearLfgProposalResponded()     { _lfgProposalResponded = false; }
+
 private:
     WorldSession* _botSession;    // non-owning; owned by World
     ObjectGuid    _masterGuid;
@@ -62,4 +67,5 @@ private:
 
     bool        _pendingAutoInviteSummon = false;
     bool        _lfgRoleResponded        = false;
+    bool        _lfgProposalResponded    = false;
 };

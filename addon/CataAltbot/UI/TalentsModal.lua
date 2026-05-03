@@ -9,7 +9,7 @@
 -- (server-side enumeration of sTalentStore — not implemented in Phase 7
 -- since the verb table omits TALENT_ROW from the initial protocol).
 
-local addon = CataAltbot
+local _, addon = ...
 local TM = {}
 addon.TalentsModal = TM
 

@@ -10,7 +10,7 @@
 --
 -- The two surfaces are independent: hiding one doesn't affect the other.
 
-local addon = CataAltbot
+local _, addon = ...
 local L = {}
 addon.Launcher = L
 

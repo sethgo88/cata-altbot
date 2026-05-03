@@ -5,7 +5,7 @@
 -- login, logout, spec, talents, bags, remove. State badges show what the
 -- bot currently has applied so a broadcast click is verifiable at a glance.
 
-local addon = CataAltbot
+local _, addon = ...
 local AltRow = {}
 addon.AltRow = AltRow
 

@@ -1,7 +1,7 @@
 -- locales/enUS.lua — string table, English (default).
 -- Other locales would override entries from this default.
 
-local addon = CataAltbot
+local _, addon = ...
 addon.L = setmetatable({
     ["Add..."]                = "Add...",
     ["Refresh"]               = "Refresh",

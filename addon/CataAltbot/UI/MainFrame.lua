@@ -7,7 +7,7 @@
 -- Toggle/assist visuals show the FIRST active bot's STATE as a snapshot.
 -- Clicking a toggle broadcasts the new value to every bot via SET_TOGGLE_ALL.
 
-local addon = CataAltbot
+local _, addon = ...
 local MF = {}
 addon.MainFrame = MF
 

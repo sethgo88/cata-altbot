@@ -5,7 +5,7 @@
 -- per-item action buttons (equip / sell / drop). Item icon and tooltip
 -- come from GetItemInfo on the client side.
 
-local addon = CataAltbot
+local _, addon = ...
 local BM = {}
 addon.BagsModal = BM
 

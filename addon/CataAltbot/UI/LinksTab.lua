@@ -1,6 +1,6 @@
 -- LinksTab.lua — show linked accounts; mirror of `.altbot links`.
 
-local addon = CataAltbot
+local _, addon = ...
 local LT = {}
 addon.LinksTab = LT
 

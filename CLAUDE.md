@@ -20,6 +20,8 @@ cata-altbot/src/
 ## Core Patches Made
 - `server-core/src/server/game/Server/WorldSession.h` line ~479 — `AltbotLogin(ObjectGuid)` declared
 - `server-core/src/server/game/Handlers/CharacterHandler.cpp` line ~766 — `AltbotLogin` implemented
+- `server-core/src/server/game/DungeonFinding/LFGMgr.h` near `GetTicket` — `GetPendingProposalIdForPlayer(ObjectGuid)` declared (public). Scans `ProposalsStore` so bots can auto-accept LFG proposals via `UpdateProposal`.
+- `server-core/src/server/game/DungeonFinding/LFGMgr.cpp` after `GetTicket` impl — implementation of the above.
 
 ## AltbotLogin Flow
 ```

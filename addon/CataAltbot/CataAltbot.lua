@@ -248,12 +248,20 @@ SlashCmdList["CATAALTBOT"] = function(msg)
     end
 
     -- Fallback diagnostic. List which UI submodules registered themselves so
-    -- the user can tell which file failed to load.
-    local loaded = {}
-    for _, k in ipairs({ "MainFrame", "AltRow", "SpecMenu", "BagsModal", "TalentsModal", "LinksTab", "Launcher" }) do
-        if addon[k] then table.insert(loaded, k) end
+    -- the user can tell which file failed to load. (none) means the UI/*.lua
+    -- files in the .toc never executed — almost always a stale install where
+    -- only the root files made it into Interface/AddOns/CataAltbot/ and the
+    -- UI/ subdir is missing on disk.
+    local expected = { "MainFrame", "AltRow", "SpecMenu", "BagsModal", "TalentsModal", "LinksTab", "Launcher" }
+    local loaded, missing = {}, {}
+    for _, k in ipairs(expected) do
+        if addon[k] then table.insert(loaded, k) else table.insert(missing, k) end
     end
-    DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r MainFrame missing. Loaded modules: " ..
-        (next(loaded) and table.concat(loaded, ", ") or "(none)") ..
-        ". Run '/console scriptErrors 1' then '/reload' and watch chat as the addon loads.")
+    DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r MainFrame missing.")
+    DEFAULT_CHAT_FRAME:AddMessage("  loaded:  " .. (next(loaded)  and table.concat(loaded,  ", ") or "(none)"))
+    DEFAULT_CHAT_FRAME:AddMessage("  missing: " .. (next(missing) and table.concat(missing, ", ") or "(none)"))
+    if not next(loaded) then
+        DEFAULT_CHAT_FRAME:AddMessage("  → Verify Interface/AddOns/CataAltbot/UI/ exists and contains all 7 *.lua files,")
+        DEFAULT_CHAT_FRAME:AddMessage("    and locales/enUS.lua. Then '/console scriptErrors 1' and '/reload'.")
+    end
 end

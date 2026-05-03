@@ -1,8 +1,34 @@
 # Talent-aware combat — design notes pending TC verification
 
-Status: **design sketch, not implemented**. This file captures the agreed design for replacing the current effect-introspection rotation in `AltbotCombat.cpp` with a per-bot compiled "Playbook" derived from a per-class master Action Priority List (APL).
+Status: **future direction, not the current implementation**. The cata-altbot codebase
+went a different route in 2026-05 — see "Current implementation" below. This file is kept
+as the reference for an eventual APL/Playbook refactor; new specs landing today should
+follow the strategy-class pattern, not the APL pattern described here.
 
-The design needs three things verified against the TrinityCore fork before we lock the data shapes and start writing code. The chat session that produced this lives on a machine without TC source access — pick this up in a session on the TC-fork machine.
+## Current implementation (as of 2026-05-03)
+
+Each spec is a hand-written C++ class in `src/strategies/{Spec}Strategy.{h,cpp}` that
+inherits `AltbotStrategy` and owns its full tick: maintenance, pet, defensives, and a
+tier-priority rotation. Spec dispatch happens in `AltbotStrategyFactory.cpp` keyed on
+`getClass()` + `GetPrimaryTalentTree()`. Spell IDs are resolved at first tick via either:
+
+- **Effect introspection** — RestoShamanStrategy's pattern: classify spells by their
+  `SPELL_EFFECT_*` / `SPELL_AURA_*` signatures. Works when each ability has a unique
+  effect shape (heals are easy: HoT vs direct vs chain vs shield).
+- **Name match** — Aff Warlock / Frost Mage / MM Hunter pattern via
+  `StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_X, "Canonical English Name")`.
+  Used when effect introspection can't disambiguate (warlock DoTs all look identical
+  by effect type). Trade-off: assumes enUS DBC pack — flagged in
+  `docs/research/dbc-verification-checklist.md`.
+
+Implemented specs: resto-shaman, affliction-warlock, frost-mage, marksmanship-hunter.
+
+Future migration to the APL/Playbook model below is **not** blocking new specs — the
+strategy-class pattern is the working approach.
+
+---
+
+The design below needs three things verified against the TrinityCore fork before we lock the data shapes and start writing code. The chat session that produced this lives on a machine without TC source access — pick this up in a session on the TC-fork machine.
 
 ---
 

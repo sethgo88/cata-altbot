@@ -25,9 +25,11 @@ namespace AltbotAddonProto
     // and was dispatched). False = pass through to regular command table.
     bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg);
 
-    // Send an outgoing addon message from `bot` to `master`. `payload` is the
-    // verb-and-args part WITHOUT the "CATABOT|" prefix; we add it.
-    void Send(Player* bot, Player* master, std::string const& payload);
+    // Send an outgoing addon message from `sender` to `master`. `sender` is
+    // usually one of master's bots, but during bootstrap (no bots online) it
+    // is the master themselves self-whispering. `payload` is the verb-and-args
+    // part WITHOUT the "CATABOT|" prefix; we add it.
+    void Send(Player* sender, Player* master, std::string const& payload);
 
     // Push a STATE update for one bot's toggles to the master's addon. Called
     // from MutateState wiring (later: AltbotMgr::PersistState extends to also

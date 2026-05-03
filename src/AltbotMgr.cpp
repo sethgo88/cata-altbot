@@ -1,5 +1,7 @@
 #include "AltbotMgr.h"
 #include "AltbotAI.h"
+#include "AltbotAccountLink.h"
+#include "AltbotState.h"
 #include "CharacterCache.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
@@ -8,7 +10,9 @@
 #include "World.h"
 #include "WorldSession.h"
 #include <algorithm>
+#include <sstream>
 #include <string>
+#include <unordered_set>
 
 AltbotMgr* AltbotMgr::instance()
 {
@@ -16,10 +20,10 @@ AltbotMgr* AltbotMgr::instance()
     return &instance;
 }
 
-// Core session + AI creation. Shared by AddAltbot() and SpawnBotsForMaster().
+// Core session + AI creation. Shared by AddAltbot() and LoginBot().
 bool AltbotMgr::SpawnBot(ObjectGuid masterGuid, ObjectGuid botGuid)
 {
-    // Guard against double-spawn (e.g. master logs in while bot is already active)
+    // Guard against double-spawn (e.g. Add followed by Login on the same bot)
     auto& bots = _activeBots[masterGuid.GetRawValue()];
     for (auto const& ai : bots)
     {
@@ -55,7 +59,9 @@ bool AltbotMgr::SpawnBot(ObjectGuid masterGuid, ObjectGuid botGuid)
     botSession->AltbotLogin(botGuid);
     sWorld->AddSession(botSession);
 
-    bots.push_back(std::make_unique<AltbotAI>(botSession, masterGuid));
+    auto ai = std::make_unique<AltbotAI>(botSession, masterGuid, botGuid);
+    LoadState(*ai);
+    bots.push_back(std::move(ai));
 
     TC_LOG_INFO("altbot", "AltbotMgr::SpawnBot: bot guid %s (account %u) queued for master %s.",
         botGuid.ToString().c_str(), botAccountId, masterGuid.ToString().c_str());
@@ -72,14 +78,25 @@ bool AltbotMgr::AddAltbot(Player* master, std::string const& botName)
         return false;
     }
 
-    if (!SpawnBot(master->GetGUID(), botGuid))
+    if (!IsAuthorizedAsBot(master->GetSession()->GetAccountId(), botGuid))
+    {
+        TC_LOG_WARN("altbot", "AltbotMgr::AddAltbot: '%s' tried to add '%s' from an unlinked account.",
+            master->GetName().c_str(), botName.c_str());
         return false;
+    }
 
-    // Persist so the bot respawns automatically on next master login
+    // Persist registration first so LoadState (called from SpawnBot) can read its row.
     CharacterDatabase.Execute(
         ("INSERT IGNORE INTO character_altbot (master_guid, bot_guid) VALUES (" +
          std::to_string(master->GetGUID().GetCounter()) + ", " +
          std::to_string(botGuid.GetCounter()) + ")").c_str());
+
+    CharacterDatabase.Execute(
+        ("INSERT IGNORE INTO character_altbot_state (bot_guid) VALUES (" +
+         std::to_string(botGuid.GetCounter()) + ")").c_str());
+
+    if (!SpawnBot(master->GetGUID(), botGuid))
+        return false;
 
     TC_LOG_INFO("altbot", "AltbotMgr::AddAltbot: '%s' added bot '%s'.",
         master->GetName().c_str(), botName.c_str());
@@ -103,9 +120,74 @@ void AltbotMgr::RemoveAltbot(Player* master, std::string const& botName)
         return bot && bot->GetGUID() == botGuid;
     });
 
+    if (it != bots.end())
+    {
+        Player* bot = (*it)->GetSession()->GetPlayer();
+        if (bot && bot->IsInWorld())
+            (*it)->GetSession()->LogoutPlayer(true);
+
+        bots.erase(it);
+    }
+
+    CharacterDatabase.Execute(
+        ("DELETE FROM character_altbot WHERE master_guid = " +
+         std::to_string(master->GetGUID().GetCounter()) +
+         " AND bot_guid = " +
+         std::to_string(botGuid.GetCounter())).c_str());
+
+    CharacterDatabase.Execute(
+        ("DELETE FROM character_altbot_state WHERE bot_guid = " +
+         std::to_string(botGuid.GetCounter())).c_str());
+
+    TC_LOG_INFO("altbot", "AltbotMgr::RemoveAltbot: '%s' removed bot '%s'.",
+        master->GetName().c_str(), botName.c_str());
+}
+
+bool AltbotMgr::LoginBot(Player* master, std::string const& botName)
+{
+    ObjectGuid botGuid = sCharacterCache->GetCharacterGuidByName(botName);
+    if (botGuid.IsEmpty())
+    {
+        TC_LOG_ERROR("altbot", "AltbotMgr::LoginBot: Character '%s' not found.", botName.c_str());
+        return false;
+    }
+
+    // Must be registered to this master.
+    QueryResult registered = CharacterDatabase.Query(
+        ("SELECT 1 FROM character_altbot WHERE master_guid = " +
+         std::to_string(master->GetGUID().GetCounter()) +
+         " AND bot_guid = " +
+         std::to_string(botGuid.GetCounter())).c_str());
+
+    if (!registered)
+    {
+        TC_LOG_WARN("altbot", "AltbotMgr::LoginBot: '%s' not registered for master '%s'.",
+            botName.c_str(), master->GetName().c_str());
+        return false;
+    }
+
+    return SpawnBot(master->GetGUID(), botGuid);
+}
+
+void AltbotMgr::LogoutBot(Player* master, std::string const& botName)
+{
+    ObjectGuid botGuid = sCharacterCache->GetCharacterGuidByName(botName);
+    if (botGuid.IsEmpty())
+    {
+        TC_LOG_ERROR("altbot", "AltbotMgr::LogoutBot: Character '%s' not found.", botName.c_str());
+        return;
+    }
+
+    auto& bots = _activeBots[master->GetGUID().GetRawValue()];
+    auto it = std::find_if(bots.begin(), bots.end(), [&](std::unique_ptr<AltbotAI> const& ai)
+    {
+        Player* bot = ai->GetSession()->GetPlayer();
+        return bot && bot->GetGUID() == botGuid;
+    });
+
     if (it == bots.end())
     {
-        TC_LOG_WARN("altbot", "AltbotMgr::RemoveAltbot: bot '%s' not active for master '%s'.",
+        TC_LOG_DEBUG("altbot", "AltbotMgr::LogoutBot: '%s' not active for master '%s'.",
             botName.c_str(), master->GetName().c_str());
         return;
     }
@@ -116,37 +198,8 @@ void AltbotMgr::RemoveAltbot(Player* master, std::string const& botName)
 
     bots.erase(it);
 
-    CharacterDatabase.Execute(
-        ("DELETE FROM character_altbot WHERE master_guid = " +
-         std::to_string(master->GetGUID().GetCounter()) +
-         " AND bot_guid = " +
-         std::to_string(botGuid.GetCounter())).c_str());
-
-    TC_LOG_INFO("altbot", "AltbotMgr::RemoveAltbot: '%s' removed bot '%s'.",
+    TC_LOG_INFO("altbot", "AltbotMgr::LogoutBot: '%s' logged out bot '%s' (registration kept).",
         master->GetName().c_str(), botName.c_str());
-}
-
-void AltbotMgr::SpawnBotsForMaster(ObjectGuid masterGuid)
-{
-    QueryResult result = CharacterDatabase.Query(
-        ("SELECT bot_guid FROM character_altbot WHERE master_guid = " +
-         std::to_string(masterGuid.GetCounter())).c_str());
-
-    if (!result)
-        return;
-
-    uint32 count = 0;
-    do
-    {
-        Field* fields = result->Fetch();
-        ObjectGuid botGuid(HighGuid::Player, fields[0].GetUInt32());
-        if (SpawnBot(masterGuid, botGuid))
-            ++count;
-    } while (result->NextRow());
-
-    if (count > 0)
-        TC_LOG_INFO("altbot", "AltbotMgr::SpawnBotsForMaster: spawned %u bot(s) for master %s.",
-            count, masterGuid.ToString().c_str());
 }
 
 AltbotAI* AltbotMgr::FindBotAI(ObjectGuid masterGuid, ObjectGuid botGuid)
@@ -163,6 +216,190 @@ AltbotAI* AltbotMgr::FindBotAI(ObjectGuid masterGuid, ObjectGuid botGuid)
     }
 
     return nullptr;
+}
+
+AltbotAI* AltbotMgr::FindBotByName(ObjectGuid masterGuid, std::string const& botName)
+{
+    ObjectGuid botGuid = sCharacterCache->GetCharacterGuidByName(botName);
+    if (botGuid.IsEmpty())
+        return nullptr;
+    return FindBotAI(masterGuid, botGuid);
+}
+
+std::vector<RegisteredBot> AltbotMgr::ListRegistered(ObjectGuid masterGuid)
+{
+    std::vector<RegisteredBot> out;
+
+    QueryResult result = CharacterDatabase.Query(
+        ("SELECT c.guid, c.name, c.class, c.level "
+         "FROM character_altbot a "
+         "JOIN characters c ON c.guid = a.bot_guid "
+         "WHERE a.master_guid = " +
+         std::to_string(masterGuid.GetCounter()) +
+         " ORDER BY c.name").c_str());
+
+    if (!result)
+        return out;
+
+    auto activeIt = _activeBots.find(masterGuid.GetRawValue());
+
+    do
+    {
+        Field* fields = result->Fetch();
+        RegisteredBot row;
+        row.guid    = ObjectGuid(HighGuid::Player, fields[0].GetUInt32());
+        row.name    = fields[1].GetString();
+        row.classId = fields[2].GetUInt8();
+        row.level   = fields[3].GetUInt8();
+
+        if (activeIt != _activeBots.end())
+        {
+            for (auto const& ai : activeIt->second)
+            {
+                Player* bot = ai->GetSession()->GetPlayer();
+                if (bot && bot->GetGUID() == row.guid)
+                {
+                    row.active = true;
+                    break;
+                }
+            }
+        }
+
+        out.push_back(std::move(row));
+    } while (result->NextRow());
+
+    return out;
+}
+
+void AltbotMgr::PersistState(AltbotAI const& ai)
+{
+    if (ai.GetBotGuid().IsEmpty())
+        return;
+
+    AltbotState const& s = ai.GetState();
+
+    CharacterDatabase.Execute(
+        ("INSERT INTO character_altbot_state "
+         "(bot_guid, mode, assist_mode, auto_loot, auto_pass, auto_mount, auto_release, auto_quest_take, auto_quest_turn_in) "
+         "VALUES (" +
+         std::to_string(ai.GetBotGuid().GetCounter()) + ", " +
+         std::to_string(uint32(s.mode))            + ", " +
+         std::to_string(uint32(s.assist))          + ", " +
+         std::to_string(s.autoLoot         ? 1 : 0) + ", " +
+         std::to_string(s.autoPass         ? 1 : 0) + ", " +
+         std::to_string(s.autoMount        ? 1 : 0) + ", " +
+         std::to_string(s.autoRelease      ? 1 : 0) + ", " +
+         std::to_string(s.autoQuestTake    ? 1 : 0) + ", " +
+         std::to_string(s.autoQuestTurnIn  ? 1 : 0) + ") "
+         "ON DUPLICATE KEY UPDATE "
+         "mode               = VALUES(mode), "
+         "assist_mode        = VALUES(assist_mode), "
+         "auto_loot          = VALUES(auto_loot), "
+         "auto_pass          = VALUES(auto_pass), "
+         "auto_mount         = VALUES(auto_mount), "
+         "auto_release       = VALUES(auto_release), "
+         "auto_quest_take    = VALUES(auto_quest_take), "
+         "auto_quest_turn_in = VALUES(auto_quest_turn_in)").c_str());
+}
+
+void AltbotMgr::LoadState(AltbotAI& ai)
+{
+    QueryResult result = CharacterDatabase.Query(
+        ("SELECT mode, assist_mode, auto_loot, auto_pass, auto_mount, auto_release, auto_quest_take, auto_quest_turn_in "
+         "FROM character_altbot_state WHERE bot_guid = " +
+         std::to_string(ai.GetBotGuid().GetCounter())).c_str());
+
+    if (!result)
+        return;
+
+    Field* f = result->Fetch();
+    AltbotState& s     = ai.MutableState();
+    s.mode             = AltbotMode(f[0].GetUInt8());
+    s.assist           = AltbotAssistMode(f[1].GetUInt8());
+    s.autoLoot         = f[2].GetUInt8() != 0;
+    s.autoPass         = f[3].GetUInt8() != 0;
+    s.autoMount        = f[4].GetUInt8() != 0;
+    s.autoRelease      = f[5].GetUInt8() != 0;
+    s.autoQuestTake    = f[6].GetUInt8() != 0;
+    s.autoQuestTurnIn  = f[7].GetUInt8() != 0;
+}
+
+bool AltbotMgr::IsAuthorizedAsBot(uint32 masterAccountId, ObjectGuid botGuid)
+{
+    uint32 botAccountId = sCharacterCache->GetCharacterAccountIdByGuid(botGuid);
+    if (!botAccountId)
+        return false;
+
+    if (botAccountId == masterAccountId)
+        return true;
+
+    for (uint32 linked : AltbotAccountLink::GetLinkedAccounts(masterAccountId))
+        if (linked == botAccountId)
+            return true;
+
+    return false;
+}
+
+std::vector<AvailableAlt> AltbotMgr::ListAvailableAlts(Player* master)
+{
+    std::vector<AvailableAlt> out;
+
+    uint32 masterAccount = master->GetSession()->GetAccountId();
+
+    // Build the IN-list: own account + linked accounts.
+    std::ostringstream accountList;
+    accountList << masterAccount;
+    for (uint32 linked : AltbotAccountLink::GetLinkedAccounts(masterAccount))
+        accountList << "," << linked;
+
+    QueryResult result = CharacterDatabase.Query(
+        ("SELECT guid, name, class, level, account FROM characters "
+         "WHERE account IN (" + accountList.str() + ") "
+         "AND guid <> " + std::to_string(master->GetGUID().GetCounter()) + " "
+         "ORDER BY name").c_str());
+
+    if (!result)
+        return out;
+
+    // Pre-load registered bot guids for this master into a set.
+    std::unordered_set<uint32> registeredGuids;
+    if (QueryResult regs = CharacterDatabase.Query(
+        ("SELECT bot_guid FROM character_altbot WHERE master_guid = " +
+         std::to_string(master->GetGUID().GetCounter())).c_str()))
+    {
+        do { registeredGuids.insert(regs->Fetch()[0].GetUInt32()); } while (regs->NextRow());
+    }
+
+    auto activeIt = _activeBots.find(master->GetGUID().GetRawValue());
+
+    do
+    {
+        Field* fields = result->Fetch();
+        AvailableAlt row;
+        row.guid       = ObjectGuid(HighGuid::Player, fields[0].GetUInt32());
+        row.name       = fields[1].GetString();
+        row.classId    = fields[2].GetUInt8();
+        row.level      = fields[3].GetUInt8();
+        row.accountId  = fields[4].GetUInt32();
+        row.registered = registeredGuids.count(row.guid.GetCounter()) != 0;
+
+        if (row.registered && activeIt != _activeBots.end())
+        {
+            for (auto const& ai : activeIt->second)
+            {
+                Player* bot = ai->GetSession()->GetPlayer();
+                if (bot && bot->GetGUID() == row.guid)
+                {
+                    row.active = true;
+                    break;
+                }
+            }
+        }
+
+        out.push_back(std::move(row));
+    } while (result->NextRow());
+
+    return out;
 }
 
 void AltbotMgr::Update(uint32 diff)

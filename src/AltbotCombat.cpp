@@ -1,4 +1,5 @@
 #include "AltbotCombat.h"
+#include "AltbotAssist.h"
 #include "Log.h"
 #include "Player.h"
 #include "SharedDefines.h"
@@ -97,7 +98,7 @@ static uint32 FindBestDamageSpell(Player* bot)
     return bestSpell;
 }
 
-void Update(Player* bot, Player* master)
+void Update(Player* bot, Player* master, AltbotState const& state)
 {
     // Only act when master is in combat
     if (!master->IsInCombat())
@@ -117,9 +118,9 @@ void Update(Player* bot, Player* master)
         }
     }
 
-    // DPS: engage master's current target
-    Unit* target = master->GetVictim();
-    if (!target || !target->IsAlive())
+    // DPS: target chosen via assist mode (skull / master's victim / off).
+    Unit* target = AltbotAssist::SelectTarget(bot, master, state.assist);
+    if (!target)
         return;
 
     if (!bot->IsInCombat())

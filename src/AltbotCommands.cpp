@@ -1,10 +1,12 @@
 #include "AltbotAI.h"
+#include "AltbotAccountLink.h"
+#include "AltbotAddonProto.h"
+#include "AltbotCommandTable.h"
 #include "AltbotMgr.h"
 #include "Chat.h"
 #include "Player.h"
 #include "ScriptMgr.h"
-#include <algorithm>
-#include <cctype>
+#include "WorldSession.h"
 
 class altbot_playerscript : public PlayerScript
 {
@@ -20,31 +22,45 @@ public:
         if (!ai)
             return;
 
-        std::string cmd = msg;
-        std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+        // If a cross-account link is pending for this master, treat the whisper
+        // as the password and consume it. The check is gated on receiver being
+        // one of master's bots (already enforced by the FindBotAI guard above)
+        // so unrelated whispers don't accidentally consume the pending state.
+        uint32 masterAccount = player->GetSession()->GetAccountId();
+        if (sAltbotAccountLink->HasPending(masterAccount))
+        {
+            sAltbotAccountLink->CompleteLink(player, msg);
+            return;
+        }
 
-        ChatHandler chat(player->GetSession());
+        // Addon-protocol pipe-prefixed messages route to AltbotAddonProto
+        // before falling through to the regular command table.
+        if (AltbotAddonProto::TryDispatch(player, ai, msg))
+            return;
 
-        if (cmd == "follow")
-        {
-            ai->SetMode(AltbotMode::Follow);
-            chat.PSendSysMessage("%s is now following you.", receiver->GetName().c_str());
-        }
-        else if (cmd == "stay")
-        {
-            ai->SetMode(AltbotMode::Stay);
-            receiver->GetMotionMaster()->MoveIdle();
-            chat.PSendSysMessage("%s will stay put.", receiver->GetName().c_str());
-        }
-        else if (cmd == "help")
-        {
-            chat.SendSysMessage("Altbot commands (whisper your bot): follow, stay, help");
-        }
+        AltbotCommandTable::Dispatch(player, ai, msg);
     }
 
     void OnLogin(Player* player, bool /*firstLogin*/) override
     {
-        sAltbotMgr->SpawnBotsForMaster(player->GetGUID());
+        // Pure-explicit login model: do NOT auto-spawn registered bots.
+        // Instead, list them so the master can pick which to bring in this session.
+        std::vector<RegisteredBot> registered = sAltbotMgr->ListRegistered(player->GetGUID());
+        if (registered.empty())
+            return;
+
+        ChatHandler chat(player->GetSession());
+        chat.PSendSysMessage("Altbot: %zu registered bot(s). Use '.altbot login <name>' to bring one in.",
+                             registered.size());
+
+        std::string list;
+        for (auto const& bot : registered)
+        {
+            if (!list.empty())
+                list += ", ";
+            list += bot.name;
+        }
+        chat.PSendSysMessage("Altbot: %s", list.c_str());
     }
 };
 

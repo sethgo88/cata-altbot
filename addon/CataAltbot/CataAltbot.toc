@@ -1,0 +1,16 @@
+## Interface: 40300
+## Title: CataAltbot
+## Notes: Control panel for the cata-altbot server module. Lists, lifecycle, toggles, bags, talents.
+## Author: Seth (cata-altbot)
+## Version: 0.1.0
+## SavedVariables: CataAltbotDB
+## SavedVariablesPerCharacter: CataAltbotCharDB
+
+CataAltbot.lua
+UI/MainFrame.lua
+UI/AltRow.lua
+UI/SettingsTab.lua
+UI/LinksTab.lua
+UI/BagsModal.lua
+UI/TalentsModal.lua
+locales/enUS.lua

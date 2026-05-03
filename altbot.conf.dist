@@ -1,0 +1,66 @@
+###############################################################################
+# cata-altbot module configuration                                            #
+#                                                                             #
+# Place a copy at <server-config-dir>/altbot.conf with the values you want    #
+# overridden. Values left at the defaults below do not need to be present in  #
+# the deployed file. The TC config loader picks this up via sConfigMgr.       #
+###############################################################################
+
+#
+#    Altbot.AutoEquip
+#        Description: WIP. When enabled, bots will auto-equip upgrades from
+#                     their bags as they out-level / loot gear. Currently a
+#                     no-op stub — server logs "WIP" once on enable and does
+#                     nothing further. Set to 0 until the gear-scoring
+#                     module ships.
+#        Default:     0
+#
+
+Altbot.AutoEquip = 0
+
+#
+#    Altbot.AutoTalent
+#        Description: WIP. When enabled, bots will auto-allocate talent points
+#                     from a built-in template per spec/role at level-up.
+#                     Currently a no-op stub. Set to 0 until the talent-template
+#                     module ships.
+#        Default:     0
+#
+
+Altbot.AutoTalent = 0
+
+#
+#    Altbot.AddonProtocol.RateLimit
+#        Description: Maximum addon-protocol verbs accepted per master per
+#                     second. Excess is dropped with ERR|RATE.
+#        Default:     10
+#
+
+Altbot.AddonProtocol.RateLimit = 10
+
+#
+#    Altbot.LinkPasswordTtlSeconds
+#        Description: Window during which a master can confirm a `.altbot link`
+#                     by whispering the alt-account password. After this many
+#                     seconds the pending entry is purged.
+#        Default:     60
+#
+
+Altbot.LinkPasswordTtlSeconds = 60
+
+#
+#    Altbot.UpdateInterval.Follow
+#        Description: Milliseconds between follow / mount / release / loot
+#                     polled checks per active bot.
+#        Default:     1000
+#
+
+Altbot.UpdateInterval.Follow = 1000
+
+#
+#    Altbot.UpdateInterval.Combat
+#        Description: Milliseconds between combat / heal / DPS rotation ticks.
+#        Default:     1500
+#
+
+Altbot.UpdateInterval.Combat = 1500

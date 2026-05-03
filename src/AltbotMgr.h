@@ -10,17 +10,59 @@ class AltbotAI;
 class Player;
 class WorldSession;
 
+struct RegisteredBot
+{
+    ObjectGuid  guid;
+    std::string name;
+    uint8       classId = 0;
+    uint8       level   = 0;
+    bool        active  = false;   // currently spawned this session
+};
+
+struct AvailableAlt
+{
+    ObjectGuid  guid;
+    std::string name;
+    uint8       classId    = 0;
+    uint8       level      = 0;
+    uint32      accountId  = 0;
+    bool        registered = false;   // exists in character_altbot for this master
+    bool        active     = false;   // currently spawned this session
+};
+
 class AltbotMgr
 {
 public:
     static AltbotMgr* instance();
 
+    // Registration (durable). Writes/deletes character_altbot row + character_altbot_state row.
     bool AddAltbot(Player* master, std::string const& botName);
     void RemoveAltbot(Player* master, std::string const& botName);
+
+    // Session lifecycle (transient). Spawns/despawns an already-registered bot.
+    bool LoginBot (Player* master, std::string const& botName);
+    void LogoutBot(Player* master, std::string const& botName);
+
     void Update(uint32 diff);
 
-    AltbotAI* FindBotAI(ObjectGuid masterGuid, ObjectGuid botGuid);
-    void SpawnBotsForMaster(ObjectGuid masterGuid);
+    AltbotAI* FindBotAI    (ObjectGuid masterGuid, ObjectGuid botGuid);
+    AltbotAI* FindBotByName(ObjectGuid masterGuid, std::string const& botName);
+
+    // Joins character_altbot with characters to return everything the master has registered.
+    // `active` is filled by cross-referencing _activeBots.
+    std::vector<RegisteredBot> ListRegistered(ObjectGuid masterGuid);
+
+    // All characters on the master's account + linked accounts. `registered` and `active`
+    // are filled per row. Used by `.altbot list` and the addon LIST verb.
+    std::vector<AvailableAlt> ListAvailableAlts(Player* master);
+
+    // True if `botGuid` belongs to master's own account or any of master's linked accounts.
+    // Called by AddAltbot before allowing registration of a bot.
+    bool IsAuthorizedAsBot(uint32 masterAccountId, ObjectGuid botGuid);
+
+    // Per-bot state persistence (character_altbot_state).
+    void PersistState(AltbotAI const& ai);
+    void LoadState   (AltbotAI& ai);
 
 private:
     AltbotMgr() = default;

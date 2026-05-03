@@ -93,8 +93,19 @@ For each new doc:
 | roles/ | melee-dps.md | complete (rear-arc discipline, gap-closer pacing, interrupt as primary duty, cleave thresholds, anti-patterns) |
 | roles/ | tank.md | complete (active mitigation cycle, threat-on-pull, cone facing, defensive CD pacing, kite path planning) |
 | specs/ | **resto-shaman.md** | complete: encounter rotation (8 healing tiers + 1 support-DPS tier) · cooldown profile · proc reactions · mana mgmt · consumables · non-encounter content · leveling rotation (14 spell-unlock-bracketed sub-rotations) · UNVERIFIED registry |
-| specs/ | holy-paladin.md | NOT STARTED — next per ordering |
-| specs/ | holy-priest.md, disc-priest.md, resto-druid.md | NOT STARTED |
+| specs/ | **holy-paladin.md** | complete: encounter rotation (10 tiers w/ Holy Power dual-resource model) · cooldown profile · proc reactions · mana + HP mgmt · consumables · non-encounter content · leveling rotation (12 spell-unlock-bracketed sub-rotations) · UNVERIFIED registry |
+| specs/ | **holy-priest.md** | complete: Sanctuary/Serenity Chakra modes · 10-tier rotation · Lightwell pre-pull placement · cooldown profile · proc reactions · mana mgmt · leveling rotation (10 brackets) · UNVERIFIED registry |
+| specs/ | **disc-priest.md** | complete: Atonement-spec default with Shield-spec preset · Atonement-Smite encoded as Tier-3 healing (NOT support DPS) · Evangelism/Archangel cycle · cooldown profile · leveling rotation (8 brackets) · UNVERIFIED registry |
+| specs/ | **resto-druid.md** | complete: HoT-rolling tier shape (Tiers 1-3 are HoT maintenance) · Tree of Life rotation table · Mastery: Harmony refresh logic · cooldown profile · 11 leveling brackets · 20 UNVERIFIED items |
+| specs/ | **frost-mage.md** | complete: 7-tier single-target rotation (Deep Freeze + FoF + Shatter combo) · AoE mode hysteresis · armor-mode swap (Molten/Mage/Frost) · permanent Water Elemental pet · 14 leveling brackets · 20 UNVERIFIED items · spec-choice rationale (F-tier raid DPS but utility-iconic) |
+| specs/ | **affliction-warlock.md** | complete: DoT-priority rotation (Haunt + BoD + Corruption + UA) · Soul Swap multi-target spread · 31/0/10 build · Soulburn-Seed AoE · Felhunter pet · 26 UNVERIFIED items · spec-choice rationale (A-tier vs Demonology S-tier) |
+| specs/ | **marksmanship-hunter.md** | complete: 8-tier focus rotation · Master Marksman + Careful Aim + ISS · 7/31/3 build · pet management · AoE-mode at ≥3 enemies in 8y · 25 UNVERIFIED items · spec-choice rationale (D-tier vs Survival A-tier) · FOCUS-only since 4.0.1 (no mana model) |
+| specs/ | **shadow-priest.md** | complete: 6-tier DoT rotation + Mind Blast Shadow Orb consumer · Empowered Shadow snapshot · Dark Evangelism → Archangel · 31/10/0 build · pre-Shadowform leveling fallback · Mind Spike correctly excluded from rotation · 20 UNVERIFIED items |
+| specs/ | **balance-druid.md** | complete: 7-tier Eclipse bar rotation (Wrath ↔ Starfire alternation; Starsurge on CD) · Moonfire/Sunfire mutual exclusion (Eclipse-conditional) · Lunar Shower movement DPS · Force of Nature + Starfall on CD · 31/2/8 build · 20 UNVERIFIED items |
+| specs/ | **elemental-shaman.md** | complete: 6-tier rotation (Lava Surge proc → LvB → ES Fulmination cap-protect → FS maint → ES Fulmination spend → LB filler) · Lightning Shield charge stack resource (max 9) · totem slot management (4 elements) · 31/2/8 build · 20 UNVERIFIED items |
+| specs/ | **combat-rogue.md** | complete: 4-tier Energy/CP rotation (SnD maint → RvS refresh → Eviscerate at 5 CP → SS builder) · Bandit's Guile + Restless Blades + Main Gauche mechanics · Blade Flurry toggle · 31/5/5 build · spec-choice rationale (vs S-tier Assassination) · 20 UNVERIFIED items |
+| specs/ | **fury-warrior.md** | complete: 8-tier rage rotation (Slam Bloodsurge proc → CS → BT → RB Enraged → WW → Execute → HS rage dump) · Inner Rage cap-protect · Berserker Stance permanent · 31/5/5 build · spec-choice rationale (vs A-tier Arms) · 24 UNVERIFIED items |
+| specs/ | **retribution-paladin.md** | complete: 8-tier rotation (Inq refresh → TV at 3 HP → CS on CD → HoW conditional → Exo on AoW → Judge → Holy Wrath → Consecration AoE) · mana + Holy Power dual resource · AW + Zealotry + GoAK CD stack · 31/7/3 build · cross-references holy-paladin.md · 28 UNVERIFIED items |
 | specs/ | DPS specs | NOT STARTED (ranged before melee per project ordering) |
 | specs/ | tank specs | NOT STARTED (last per project ordering — see memory) |
 | dungeons/ | leveling.md | complete (cross-class era-by-era + per-role progression + mechanic catalog + LFD specifics + open module gaps) |
@@ -105,6 +116,19 @@ For each new doc:
 | dungeons/ | leveling-revamps-supplement.md (vanilla/TBC/WotLK dungeons hit during leveling) | NOT STARTED — single quick-coverage supplement, flag non-tank-and-spank only. |
 | raids/ | T11 (Baradin Hold, BWD, BoT, ToFW), T12 (Firelands), T13 (Dragon Soul) | NOT STARTED — per-zone bundles (encounter.md with H2 boss sections + 4 role response docs + survey). 10/25 + N/H differences inline per boss, NOT separate docs. |
 | research/ | resto-shaman-guide-survey.md | complete (max-level reconciliation + leveling-rotation reconciliation + Telluric Currents correction note) |
+| research/ | **holy-paladin-guide-survey.md** | complete (9 sources reconciled, Prot 5 split locked, Beacon-bounce flagged for DBC verify) |
+| research/ | **holy-priest-guide-survey.md** | complete (9 sources, 3 Chakras confirmed, Disc/Shadow secondary-tree split rationale) |
+| research/ | **disc-priest-guide-survey.md** | complete (13 sources, Atonement-spec vs Shield-spec rationale, 15y radius / 100% conversion locked) |
+| research/ | **resto-druid-guide-survey.md** | complete (9 sources, HoT-rolling philosophy locked, Balance secondary tree, 25s TOL duration confirmed) |
+| research/ | **frost-mage-guide-survey.md** | complete (11 sources, spec-choice section justifies Frost over Fire, 2/8/31 build locked, 20 DBC items flagged) |
+| research/ | **affliction-warlock-guide-survey.md** | complete (22 sources, spec-choice section justifies Aff over Demonology, 31/0/10 build locked, Bane of Havoc correctly identified as Destruction-only) |
+| research/ | **marksmanship-hunter-guide-survey.md** | complete (17 sources, spec-choice justifies MM over Survival on rotation simplicity, 7/31/3 build locked, Cobra Shot correctly excluded from MM) |
+| research/ | **shadow-priest-guide-survey.md** | complete (12 sources, no spec-selection needed (Shadow is only DPS spec), 31/10/0 build locked, Mind Spike correctly excluded from DoT rotation) |
+| research/ | **balance-druid-guide-survey.md** | complete (10 sources, no spec-selection needed (Balance is only ranged DPS spec), Eclipse-bar mechanic locked, 31/2/8 Heart-of-the-Wild path) |
+| research/ | **elemental-shaman-guide-survey.md** | complete (10 sources, no spec-selection needed (Elemental is only ranged caster Shaman spec), Lightning Shield charge stack + Fulmination economy locked, 31/2/8 build) |
+| research/ | **combat-rogue-guide-survey.md** | complete (10 sources, spec-choice section justifies Combat over Assassination/Subtlety on rotation simplicity + Kick + Blade Flurry, 31/5/5 build locked) |
+| research/ | **fury-warrior-guide-survey.md** | complete (10 sources, spec-choice section justifies Fury over Arms on T13 ceiling + cleave + Bloodsurge simplicity, 31/5/5 build locked, Titan's Grip default) |
+| research/ | **retribution-paladin-guide-survey.md** | complete (10 sources, no spec-selection needed (only Paladin DPS spec), 31/7/3 build locked, cross-refs holy-paladin survey for shared mechanics) |
 | research/ | leveling-dungeons-guide-survey.md | complete |
 | research/ | throne-of-the-tides-guide-survey.md | complete |
 
@@ -116,12 +140,30 @@ Listed in suggested execution order. Each item names what to do AND why it's the
 
 ### Spec docs (in role order: healer → ranged → melee → tank)
 
-1. **`docs/specs/holy-paladin.md`** — second healer spec, follows the `resto-shaman.md` template (12 sections + leveling rotation). Pairs cleanly with the existing `roles/healer.md` triage / dispel / mana / support-DPS patterns. Verify spell unlock levels via Wowhead Cata Classic; reconcile rotation across 4-5 guides per project research-depth standard.
-2. **`docs/specs/holy-priest.md`** — third healer spec. Cross-link to `roles/healer.md` Chakra mode in the support-DPS section.
-3. **`docs/specs/disc-priest.md`** — fourth healer spec. SPECIAL CASE in support DPS — Atonement Smite *is* the heal model, not downtime. The spec doc should reflect this (rotation tiers integrate Smite at higher priority than other healers, gated on Atonement target selection).
-4. **`docs/specs/resto-druid.md`** — fifth healer spec. HoT-rolling philosophy differs from Resto Shaman's reactive style; rotation tier shape needs adjustment.
-5. **Ranged DPS specs** — Frost Mage first (iconic for groups + Counterspell + Polymorph CC). Then Affliction Warlock, Marksmanship Hunter, Shadow Priest, Balance Druid, Elemental Shaman. Order is interrupt/CC value to a leveling group.
-6. **Melee DPS specs** — Combat Rogue first (Kick is the shortest interrupt in 4.3.4). Then Fury Warrior, Ret Paladin, Frost DK, Enhancement Shaman, Feral Cat Druid.
+1. ~~`docs/specs/holy-paladin.md`~~ — DONE 2026-05-02. Survey + spec complete; 14 UNVERIFIED items flagged for DBC pass.
+2. ~~`docs/specs/holy-priest.md`~~ — DONE 2026-05-02. Sanctuary/Serenity Chakra modes; 15 UNVERIFIED items.
+3. ~~`docs/specs/disc-priest.md`~~ — DONE 2026-05-02. Atonement-Smite encoded as Tier-3 healing per project mandate; 18 UNVERIFIED items.
+4. ~~`docs/specs/resto-druid.md`~~ — DONE 2026-05-02. HoT-rolling tier shape (departs from prior healer specs); 20 UNVERIFIED items.
+
+**HEALER PHASE COMPLETE 2026-05-02** — all 5 healer specs done (resto-shaman, holy-paladin, holy-priest, disc-priest, resto-druid).
+5. **Ranged DPS specs** — order is interrupt/CC value to a leveling group:
+   - ~~`docs/specs/frost-mage.md`~~ — DONE 2026-05-02. Spec-choice section justifies Frost over Fire on utility/leveling/CC grounds.
+   - ~~`docs/specs/affliction-warlock.md`~~ — DONE 2026-05-02. Spec-choice picks Aff over Demonology on rotation-engine simplicity.
+   - ~~`docs/specs/marksmanship-hunter.md`~~ — DONE 2026-05-02. Spec-choice picks MM over Survival on rotation simplicity.
+   - ~~`docs/specs/shadow-priest.md`~~ — DONE 2026-05-02. Only viable Priest DPS spec; no spec-selection needed.
+   - ~~`docs/specs/balance-druid.md`~~ — DONE 2026-05-02. Eclipse bar + 31/2/8 build.
+   - ~~`docs/specs/elemental-shaman.md`~~ — DONE 2026-05-02. Lightning Shield + Fulmination economy.
+
+**RANGED DPS PHASE COMPLETE 2026-05-02** — all 6 ranged DPS specs done.
+6. **Melee DPS specs** — order is interrupt + leveling utility:
+   - ~~`docs/specs/combat-rogue.md`~~ — DONE 2026-05-02. Spec-choice picks Combat over S-tier Assassination on rotation simplicity + cleave.
+   - ~~`docs/specs/fury-warrior.md`~~ — DONE 2026-05-02. Spec-choice picks Fury over Arms on T13 ceiling.
+   - ~~`docs/specs/retribution-paladin.md`~~ — DONE 2026-05-02. Only Paladin DPS spec.
+   - ~~`docs/specs/frost-death-knight.md`~~ — DONE 2026-05-02. 2H Frost (Might of the Frozen Wastes) over DW + over Unholy on bot-control simplicity; 35 UNVERIFIED items.
+   - ~~`docs/specs/enhancement-shaman.md`~~ — DONE 2026-05-02. Only Shaman melee DPS; Maelstrom Weapon dual-rotation engine + Stormstrike + Lava Lash; 34 UNVERIFIED items.
+   - ~~`docs/specs/feral-cat-druid.md`~~ — DONE 2026-05-02. Cat-DPS half of shared Feral tree (Bear deferred to tank phase); Energy + per-target CP + bleed pandemic; 41 UNVERIFIED items.
+
+**MELEE DPS PHASE COMPLETE 2026-05-02** — all 6 melee DPS specs done (combat-rogue, fury-warrior, retribution-paladin, frost-death-knight, enhancement-shaman, feral-cat-druid).
 7. **Tank specs** — Prot Warrior, Prot Paladin, Blood DK, Feral Tank Druid (Guardian-equivalent). **Last per project ordering** (see `~/.claude/projects/-Users-seth-oharra-web-cata-altbot/memory/feedback_role_ordering.md`).
 
 **Survey-first rule (added 2026-05-01):** every spec doc is preceded by a `docs/research/{spec}-guide-survey.md` that reconciles 4-5 sources. For specs where the role has multiple competitive specs (Mage Arcane/Fire/Frost, Warlock Aff/Demo/Destro, Hunter BM/MM/SV, Rogue Combat/Assn/Sub, Warrior Arms/Fury, DK Frost/Unholy), the survey opens with a **Spec selection** section that picks the winning spec for 4.3.4 PVE. The chosen spec is what the spec doc covers.
@@ -130,7 +172,7 @@ Listed in suggested execution order. Each item names what to do AND why it's the
 
 Each dungeon: write `docs/research/{slug}-guide-survey.md` first, then full `docs/dungeons/{slug}/` bundle (encounter.md + 4 role response docs) per the throne-of-the-tides template.
 
-8. **Launch Cata 7** (ToT done): blackrock-caverns → the-stonecore → the-vortex-pinnacle → lost-city-of-the-tolvir → halls-of-origination → grim-batol.
+8. **Launch Cata 7** (ToT done): ~~blackrock-caverns~~ DONE 2026-05-02 → **the-stonecore** NEXT → the-vortex-pinnacle → lost-city-of-the-tolvir → halls-of-origination → grim-batol.
 9. **Patch 4.1 troll heroics**: zul-aman → zul-gurub.
 10. **Patch 4.3 troll heroics** (gate Dragon Soul): end-time → hour-of-twilight → well-of-eternity.
 11. **`docs/dungeons/leveling-revamps-supplement.md`** — single supplement covering vanilla/TBC/WotLK dungeons hit during 1-85 leveling (Cata Deadmines, Cata SFK, BRD, ScholoStrat, Mana-Tombs, AN, etc.). One paragraph per dungeon. Flag any non-tank-and-spank mechanic (kiting, dispel-required, vehicle/escort, multi-add CC); skip the rest.

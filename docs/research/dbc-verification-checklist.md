@@ -1,8 +1,53 @@
 # DBC Verification Checklist
 
-**For: cata-altbot doc UNVERIFIED items.** Run this checklist when you're at the computer with the TrinityCore 4.3.4 source tree and DBC files available. Output: 9 verified values that update the spec doc + audit-trail correction notes.
+**For: cata-altbot doc UNVERIFIED items.** Run this checklist when you're at the computer with the TrinityCore 4.3.4 source tree and DBC files available.
 
-This file is the single source of truth for what needs verifying. After completing it, update the affected docs and delete the resolved entries from this file.
+**Scope** (as of 2026-05-02): the project now has **17 spec docs** + **2 dungeon bundles**, each with its own UNVERIFIED items table. This file is no longer a single flat list — it points at the per-spec/per-dungeon tables and provides worked-example detail for the original 9 Resto Shaman items as a starter pattern.
+
+---
+
+## Per-spec UNVERIFIED tables — read these first
+
+Every `docs/specs/<spec>.md` has an `## UNVERIFIED items` table at the bottom. Each row has the claim, current encoded value, and the DBC file to check. Open the spec doc, work through the table, update the table inline, remove the row when resolved.
+
+### Healer specs (5)
+- `docs/specs/resto-shaman.md` — 9 items (the original detailed worked example below)
+- `docs/specs/holy-paladin.md` — ~14 items
+- `docs/specs/holy-priest.md` — ~15 items (Chakra mechanics)
+- `docs/specs/disc-priest.md` — ~18 items (Atonement-Smite specifics)
+- `docs/specs/resto-druid.md` — ~20 items (HoT-rolling tier mechanics)
+
+### Ranged DPS specs (6)
+- `docs/specs/frost-mage.md` — ~20 items
+- `docs/specs/affliction-warlock.md` — ~26 items (Soul Swap + DoT mechanics)
+- `docs/specs/marksmanship-hunter.md` — ~25 items (FOCUS-only since 4.0.1)
+- `docs/specs/shadow-priest.md` — ~20 items (Shadow Orbs)
+- `docs/specs/balance-druid.md` — ~20 items (Eclipse bar)
+- `docs/specs/elemental-shaman.md` — ~20 items (Lightning Shield + Fulmination)
+
+### Melee DPS specs (6)
+- `docs/specs/combat-rogue.md` — ~20 items (Bandit's Guile + Blade Flurry)
+- `docs/specs/fury-warrior.md` — ~24 items (Titan's Grip + Inner Rage)
+- `docs/specs/retribution-paladin.md` — 28 items (mana + Holy Power)
+- `docs/specs/frost-death-knight.md` — 35 items (Runes + RP + diseases — first DK doc, full resource model new)
+- `docs/specs/enhancement-shaman.md` — 34 items (Maelstrom Weapon proc rates + weapon imbue PPMs)
+- `docs/specs/feral-cat-druid.md` — 41 items (highest count — bleed mechanics + Cata 4.0 rework + Cat-form glyphs)
+
+**Approximate total: ~370 UNVERIFIED items across all specs.** Many are duplicates or trivial confirmations (level gates, durations); a smaller subset (proc rates, mastery formulas, talent-rank scaling) is high-impact.
+
+### Dungeon bundles (2)
+- `docs/dungeons/throne-of-the-tides/encounter.md` — 16 mechanic spell IDs, mostly Wowhead-verified
+- `docs/dungeons/blackrock-caverns/encounter.md` + `docs/research/blackrock-caverns-guide-survey.md` — 18 items including:
+  - **Spell ID 75763 collision** — same ID attributed to both Karsh Cinderbreath AND Obsidius shadow puddle. **At least one is wrong; resolve early.**
+  - **Crepuscular Veil 75476** — hardcoded as dispel-blacklist entry; if ID is wrong, bot will dispel the debuff and break the swap mechanic. **Runtime correctness; resolve early.**
+
+---
+
+## Detailed worked example — the original 9 Resto Shaman items
+
+The sections below are kept as-is from the original checklist. They serve as a worked example for the per-row format you'll use in the other spec docs: Spell ID + what DBC field to read + where the doc currently says it + what to update on confirm/disconfirm.
+
+After completing these 9, follow the same pattern for the per-spec tables linked above.
 
 ---
 
@@ -176,23 +221,52 @@ For each item resolved:
 
 ---
 
-## Bonus DBC items (low priority — not in the official 9)
+## Bonus DBC items (low priority)
 
-While you're in there, these are smaller items that would also benefit from verification but aren't blocking anything:
+Smaller items that would also benefit from verification but aren't blocking anything. Verify opportunistically while in the DBC for the main work.
 
-- All 16 Cata heroic dungeon mechanic spell IDs in `docs/dungeons/throne-of-the-tides/encounter.md` — already Wowhead-verified, but DBC confirmation would be nice when convenient. Not urgent.
 - Earthliving Weapon proc chance % (currently 20% from Wowhead — confirm)
 - Tidal Waves buff bonus values (currently -30% cast time / +30% crit — confirm)
 
-These can be verified opportunistically when you're already in the DBC for the main 9.
+---
+
+## Suggested resolution order
+
+If you don't have time to do everything in one session, prioritize by runtime-correctness impact:
+
+1. **BRC spell ID collisions and dispel-blacklist** (75476, 75763) — runtime-correctness; bot will mis-behave if wrong.
+2. **The original 9 Resto Shaman items** (talent-vs-baseline questions in particular: SLT, MTT, NS) — gates leveling-rotation correctness from L20-L85 for one of the project's most-used specs.
+3. **First-of-class mechanics** for specs that introduce a new resource model:
+   - Frost DK Runes / Runic Power / disease IDs (first DK doc — pattern for Blood tank later)
+   - Feral Cat per-target Combo Points / bleed pandemic windows / glyphs (bleed mechanics had Cata 4.0 rework)
+   - Enh Shaman Maelstrom Weapon proc rate / Mental Quickness AP→SP %
+4. **Mastery formulas** across all 17 specs (~17 quick lookups; informs reforge logic)
+5. **Glyph effects** across all specs (low individual impact; high count)
+6. **Level gates** for talented vs trainer abilities (mostly trivial confirmations)
+
+---
+
+## TC-fork code-blockers (also pendable this trip)
+
+These are not DBC items but live in the same TC-fork session because they need the source tree:
+
+- `RBAC_PERM_COMMAND_GM` — confirm the correct constant name on this fork (referenced in `CLAUDE.md`)
+- `_legacyConnectionModeEnabled` — confirm visibility from `AltbotLogin` in `server-core/src/server/game/Handlers/CharacterHandler.cpp`
+- PlayerScript hook surface: `OnLootRoll`, `OnQuestAccept`, `OnQuestReward`, mount detection (`OnSpellCast` vs `OnAuraApply`)
+- `ServerScript::OnPacketReceive` for inbound addon-channel packets (or the patched `WorldSession::HandleMessagechatOpcode` route)
+- `Group::GetTargetIcons()` accessor for skull-mark assist
+- `Player::LearnTalent(uint32 talentId, uint32 rank)` signature on Cata fork (and `GetActiveSpec()` for dual-spec)
+- Addon-message prefix max length + per-message size cap (drives chunking decisions)
+- 3 talent-aware-combat design questions in `docs/research/talent-aware-combat-design.md`
 
 ---
 
 ## Why this is deferred
 
-The cata-altbot doc tree currently uses Wowhead Cata-archive values + reconciled-guide-strategy as the working baseline. None of the UNVERIFIED items prevent doc work or block the next spec doc (Holy Paladin). They become real blockers only when:
+The cata-altbot doc tree currently uses Wowhead Cata-archive values + reconciled-guide-strategy as the working baseline. None of the UNVERIFIED items prevent doc work or block the next spec/dungeon doc. They become real blockers only when:
 
 - `AltbotCombat.cpp` references these values as compile-time constants
-- The bot's level-gating logic for SLT / MTT / NS needs to know "talent or baseline" to decide whether to expose the spell at level 35 or only at 85
+- The bot's level-gating logic for talent-vs-baseline abilities needs to decide whether to expose the spell at the talent-tree level or only at max level
+- The bot's encounter logic references encounter spell IDs (BRC 75476 dispel-blacklist + 75763 collision are the first cases hitting this threshold)
 
 Until either of those happens, the UNVERIFIED markers are sufficient — they tell future-you (or anyone implementing) where to double-check.

@@ -145,7 +145,7 @@ spells:
     gcd_ms: 1000               # totems use the 1s totem GCD
     range: 0
     target_type: ground_at_self
-    duration_ms: 60000         # 1 min totem (Cata standard)
+    duration_ms: 300000        # VERIFIED via SpellDuration.dbc — 300s (5 min)
     notes: passive party HoT pulse; keep up always when in combat
 
   MANA_TIDE_TOTEM:
@@ -259,7 +259,7 @@ spells:
     id: 57994
     mana_pct: 8
     cast_time_ms: 0
-    cooldown_ms: 6000          # UNVERIFIED — Cata-Classic re-tuning shows 15s; original 4.3.4 widely cited as 6s. Confirm via DBC.
+    cooldown_ms: 15000         # VERIFIED via Spell.dbc RecoveryTime — 15s confirmed
     on_gcd: false
     range: 25
     target_type: enemy
@@ -1017,14 +1017,14 @@ spell_unlocks:
   - TREMOR_TOTEM (8143): 52
   - EARTHLIVING_WEAPON (51730): 54     # NOT 30 — Cata pushed this up from WotLK
   - EARTH_ELEMENTAL_TOTEM (2062): 56
-  - GREATER_HEALING_WAVE (77472): 68   # Wowhead Cata Classic — some legacy guides say 60 (likely MoP confusion); UNCERTAIN, treat 68 as authoritative
+  - GREATER_HEALING_WAVE (77472): 68   # VERIFIED via Spell.dbc BaseLevel
   - MASTERY_DEEP_HEALING (77226): 80   # Mastery as a stat activates at 80; gear Mastery rating is inert below this
   - SPIRITWALKERS_GRACE (79206): 85
-  - EARTHQUAKE (61882): UNCERTAIN_LEVEL # Wowhead doesn't tooltip a clean required-level for this AoE
+  - EARTHQUAKE (61882): 1              # VERIFIED via Spell.dbc BaseLevel
   # Talent-gated abilities (Resto-tree tier requirement; bot reaches tier N at character level 9 + 5*N if pure Resto)
-  - NATURES_SWIFTNESS (16188): tier_3_talent (~level 19, pure Resto) — UNCERTAIN exact level
-  - MANA_TIDE_TOTEM (16190): tier_5_talent (~level 29, pure Resto) — UNCERTAIN exact level
-  - SPIRIT_LINK_TOTEM (98008): tier_6_talent (~level 34, pure Resto) — UNCERTAIN; may be baseline 85 ability instead — confirm via DBC
+  - NATURES_SWIFTNESS (16188): 1       # VERIFIED via Spell.dbc — BASELINE, available from level 1
+  - MANA_TIDE_TOTEM (16190): 39        # VERIFIED via Spell.dbc — BASELINE, available at level 39
+  - SPIRIT_LINK_TOTEM (98008): 49      # VERIFIED via Spell.dbc — BASELINE, available at level 49
 ```
 
 ### Per-bracket rotation
@@ -1371,15 +1371,9 @@ These values are best-effort from public archives but were inconsistent or absen
 
 | Item | What's uncertain | Where to verify |
 |---|---|---|
-| `WIND_SHEAR.cooldown_ms` | Wowhead Cata page lists 15s (Cata-Classic tuning); original 4.3.4 widely cited as 6s | `Spell.dbc` row 57994 → `RecoveryTime` |
-| `WATER_SHIELD.mana_per_orb` | 4.3.4 used a flat scaled value, not % base mana | `Spell.dbc` row 52127 effects |
-| `RESURGENCE` per-spell mana return | Modern published values differ from original 4.3.4 | `Spell.dbc` row 101033 + `spell_proc_event` SQL |
-| Healing Stream Totem `duration_ms` | Cata totems went to 60s but exact value should be DBC-confirmed | `Spell.dbc` row 5394 |
-| `SPIRIT_LINK_TOTEM` baseline-vs-talent | Research agent flagged it as a tier-6 Resto talent (~level 35). Memory says it's a baseline level-85 ability granted with Resto spec at 85. Major rotation impact on whether SLT is in the 35-84 toolkit. | `Spell.dbc` row 98008 + spec-grant table OR talent table. Confirm before building level-gating logic. |
-| `MANA_TIDE_TOTEM` baseline-vs-talent | Same as SLT — research agent says tier-5 Resto talent (~level 30); memory says baseline | Same approach as SLT verification |
-| `NATURES_SWIFTNESS` baseline-vs-talent | Same — research agent says tier-3 Resto talent (~level 19-20); memory says baseline | Same approach |
-| `GREATER_HEALING_WAVE.required_level` | Wowhead Cata Classic tooltip says 68; some legacy guides say 60 (likely MoP confusion). Treat 68 as authoritative pending DBC verification. | `Spell.dbc` row 77472 → `BaseLevel` / `SpellLevel` |
-| `EARTHQUAKE.required_level` | Wowhead Cata Classic doesn't expose a clean required-level for this AoE (tooltip parser failed) | `Spell.dbc` row 61882 |
+| `WATER_SHIELD.mana_per_orb` | SpellEffect row: Effect=ENERGIZE, BasePoints=40 (base value, scales at runtime). Exact value per level needs `spell_proc_event` world DB table. Not required for Phase 3 spell selection. | RESOLVED-ENOUGH |
+| `RESURGENCE` per-spell mana return | SpellEffect row: Effect=ENERGIZE, BasePoints=40 (base value, scales at runtime). Per-spell amounts in `spell_proc_event`. Passive proc — not required for Phase 3. | RESOLVED-ENOUGH |
+| Healing Stream Totem `duration_ms` | SpellDuration confirms 300000ms (5 min). Earlier 60s assumption was incorrect. | VERIFIED — 300000ms |
 
 ---
 

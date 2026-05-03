@@ -2,6 +2,7 @@
 #include "AltbotCombat.h"
 #include "AltbotFollow.h"
 #include "AltbotInvite.h"
+#include "AltbotLfg.h"
 #include "AltbotLoot.h"
 #include "AltbotMgr.h"
 #include "AltbotMount.h"
@@ -79,6 +80,9 @@ void AltbotAI::Update(uint32 diff)
 
         if (_state.autoLoot && bot->IsAlive())
             AltbotLoot::Tick(bot, master);
+
+        if (bot->IsAlive())
+            AltbotLfg::Tick(bot, this);
 
         if (_state.mode == AltbotMode::Follow && bot->IsAlive())
             AltbotFollow::Update(bot, master);

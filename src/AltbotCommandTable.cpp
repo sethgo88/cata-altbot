@@ -3,8 +3,12 @@
 #include "AltbotInventory.h"
 #include "AltbotInvite.h"
 #include "AltbotMgr.h"
+#include "AltbotRole.h"
 #include "AltbotTalents.h"
 #include "Chat.h"
+#include "Group.h"
+#include "LFG.h"
+#include "LFGMgr.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -300,6 +304,101 @@ static bool CmdSetSpec(Player* master, AltbotAI* ai, std::string_view args)
     return true;
 }
 
+static char const* RoleLabel(AltbotRoleOverride r)
+{
+    switch (r)
+    {
+        case AltbotRoleOverride::Tank:     return "Tank";
+        case AltbotRoleOverride::Healer:   return "Healer";
+        case AltbotRoleOverride::Damage:   return "DPS";
+        case AltbotRoleOverride::MainTank: return "Main Tank";
+        case AltbotRoleOverride::None:     return "auto (from spec)";
+    }
+    return "auto (from spec)";
+}
+
+static bool ParseRoleArg(std::string const& a, AltbotRoleOverride& out)
+{
+    if (a.empty() || a == "auto")
+    { out = AltbotRoleOverride::None; return true; }
+    if (a == "dps" || a == "damage" || a == "dmg")
+    { out = AltbotRoleOverride::Damage; return true; }
+    if (a == "healer" || a == "heal" || a == "heals" || a == "healing")
+    { out = AltbotRoleOverride::Healer; return true; }
+    if (a == "tank")
+    { out = AltbotRoleOverride::Tank; return true; }
+    if (a == "main tank" || a == "maintank" || a == "mt" || a == "main-tank")
+    { out = AltbotRoleOverride::MainTank; return true; }
+    return false;
+}
+
+// Apply MEMBER_FLAG_MAINTANK in raid groups so assist/healing logic can
+// identify the primary tank. No-op in 5-mans (only raid groups carry the flag).
+static void ApplyMainTankFlag(Player* bot, bool apply)
+{
+    if (!bot)
+        return;
+    Group* group = bot->GetGroup();
+    if (!group || !group->isRaidGroup())
+        return;
+    group->SetGroupMemberFlag(bot->GetGUID(), apply, MEMBER_FLAG_MAINTANK);
+}
+
+static bool CmdSetRole(Player* master, AltbotAI* ai, std::string_view args)
+{
+    Player* bot = BotOf(ai);
+    if (!bot) return true;
+
+    std::string a = Lower(Trim(args));
+
+    if (a.empty())
+    {
+        AltbotRoleOverride cur = ai->GetState().roleOverride;
+        Reply(master, std::string(bot->GetName()) + " role: " + RoleLabel(cur));
+        return true;
+    }
+
+    AltbotRoleOverride desired;
+    if (!ParseRoleArg(a, desired))
+    {
+        Reply(master, "Usage: role [auto|dps|healer|tank|main tank]");
+        return true;
+    }
+
+    // Validate Tank/Healer against class. Damage and None are always valid.
+    AltbotRole::Role lfgRole = AltbotRole::Role::None;
+    if (desired == AltbotRoleOverride::Tank || desired == AltbotRoleOverride::MainTank)
+        lfgRole = AltbotRole::Role::Tank;
+    else if (desired == AltbotRoleOverride::Healer)
+        lfgRole = AltbotRole::Role::Healer;
+
+    if (lfgRole != AltbotRole::Role::None)
+    {
+        uint8 mask = AltbotRole::ToLfgRoleMask(lfgRole);
+        if (!sLFGMgr->CanPerformSelectedRoles(bot->getClass(), mask))
+        {
+            Reply(master, std::string(bot->GetName()) + "'s class can't perform that role.");
+            return true;
+        }
+    }
+
+    AltbotRoleOverride prev = ai->GetState().roleOverride;
+    ai->MutateState([desired](AltbotState& s) { s.roleOverride = desired; });
+
+    // Re-arm the LFG latch so the next rolecheck submits the new role even if
+    // the bot was already in queue.
+    ai->ClearLfgRoleResponded();
+
+    // Manage MEMBER_FLAG_MAINTANK transitions only on actual change.
+    if (prev == AltbotRoleOverride::MainTank && desired != AltbotRoleOverride::MainTank)
+        ApplyMainTankFlag(bot, false);
+    if (prev != AltbotRoleOverride::MainTank && desired == AltbotRoleOverride::MainTank)
+        ApplyMainTankFlag(bot, true);
+
+    Reply(master, std::string(bot->GetName()) + " role set to: " + RoleLabel(desired) + ".");
+    return true;
+}
+
 static bool CmdSetAssist(Player* master, AltbotAI* ai, std::string_view args)
 {
     std::string mode = Lower(Trim(args));
@@ -330,6 +429,8 @@ static bool CmdHelp(Player* master, AltbotAI* /*ai*/, std::string_view)
     Reply(master,
         "  assist off|target|skull|both");
     Reply(master,
+        "  role [auto|dps|healer|tank|main tank]");
+    Reply(master,
         "  bags, equip <name|guid>, sell <name|guid>, drop <name|guid>, trade");
     Reply(master,
         "  talents, learn <talentId> <rank>");
@@ -355,6 +456,7 @@ static constexpr WhisperCommand kCommands[] = {
     {"release",     CmdToggleRelease},
     {"loot",        CmdToggleLoot},
     {"assist",      CmdSetAssist},
+    {"role",        CmdSetRole},
     // Phase 5
     {"pass",        CmdTogglePass},
     {"questtake",   CmdToggleQuestTake},

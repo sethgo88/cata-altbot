@@ -22,12 +22,14 @@ set(altbot_SOURCES
     src/AltbotFollow.cpp
     src/AltbotInventory.cpp
     src/AltbotInvite.cpp
+    src/AltbotLfg.cpp
     src/AltbotLoader.cpp
     src/AltbotLoot.cpp
     src/AltbotMgr.cpp
     src/AltbotMount.cpp
     src/AltbotQuest.cpp
     src/AltbotRelease.cpp
+    src/AltbotRole.cpp
     src/AltbotStrategyFactory.cpp
     src/AltbotTalents.cpp
     src/strategies/RestoShamanStrategy.cpp

@@ -110,24 +110,34 @@ bool Summon(Player* master, AltbotAI* ai)
     // immediately start walking back toward where it was.
     bot->GetMotionMaster()->Clear();
 
+    Position destPos(master->GetPositionX(),
+                     master->GetPositionY(),
+                     master->GetPositionZ(),
+                     master->GetOrientation());
+
     bool sameMap = (bot->GetMapId() == master->GetMapId());
 
     if (sameMap)
     {
-        // Same-map: NearTeleportTo skips the worldport-ack flow that requires
-        // a real client. The bot relocates immediately and visibility refreshes.
-        bot->NearTeleportTo(master->GetPositionX(),
-                            master->GetPositionY(),
-                            master->GetPositionZ(),
-                            master->GetOrientation());
+        // Player::NearTeleportTo only updates m_teleport_dest and waits for the
+        // client to send MSG_MOVE_TELEPORT_ACK before actually relocating. A bot
+        // session has no client to produce that ack, so the bot stays put and
+        // only the saved destination changes (which is why a logout/login
+        // appears to "summon" — SaveToDB picks up m_teleport_dest). Replicate
+        // the non-player branch of Unit::NearTeleportTo instead: announce the
+        // teleport to nearby observers, relocate server-side, refresh
+        // visibility for the new position.
+        bot->SendTeleportPacket(destPos);
+        bot->UpdatePosition(destPos, true);
+        bot->UpdateObjectVisibility();
     }
     else
     {
         bool ok = bot->TeleportTo(master->GetMapId(),
-                                  master->GetPositionX(),
-                                  master->GetPositionY(),
-                                  master->GetPositionZ(),
-                                  master->GetOrientation());
+                                  destPos.GetPositionX(),
+                                  destPos.GetPositionY(),
+                                  destPos.GetPositionZ(),
+                                  destPos.GetOrientation());
 
         if (!ok)
         {
@@ -137,12 +147,9 @@ bool Summon(Player* master, AltbotAI* ai)
         }
 
         // Cross-map: bot's session will never receive MSG_MOVE_WORLDPORT_ACK.
-        // Drive the ack handler directly so the teleport finalizes in-place.
+        // Drive the server-side overload directly so the map swap finalizes.
         if (bot->IsBeingTeleportedFar())
-        {
-            WorldPacket dummyPkt(MSG_MOVE_WORLDPORT_ACK);
-            bot->GetSession()->HandleMoveWorldportAckOpcode(dummyPkt);
-        }
+            bot->GetSession()->HandleMoveWorldportAck();
     }
 
     ChatHandler(master->GetSession()).PSendSysMessage("%s summoned to your location.",

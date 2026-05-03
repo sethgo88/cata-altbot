@@ -42,6 +42,12 @@ public:
     // AltbotInvite::Invite + AltbotInvite::Summon and clears the flag.
     void MarkPendingAutoInviteSummon() { _pendingAutoInviteSummon = true; }
 
+    // Latch flipped once per LFG rolecheck so AltbotLfg::Tick fires the
+    // UpdateRoleCheck call exactly once and resets when the rolecheck ends.
+    bool HasLfgRoleResponded() const { return _lfgRoleResponded; }
+    void MarkLfgRoleResponded()      { _lfgRoleResponded = true;  }
+    void ClearLfgRoleResponded()     { _lfgRoleResponded = false; }
+
 private:
     WorldSession* _botSession;    // non-owning; owned by World
     ObjectGuid    _masterGuid;
@@ -55,4 +61,5 @@ private:
     std::string _specOverride;
 
     bool        _pendingAutoInviteSummon = false;
+    bool        _lfgRoleResponded        = false;
 };

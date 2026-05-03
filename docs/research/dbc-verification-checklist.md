@@ -319,6 +319,40 @@ These are not DBC items but live in the same TC-fork session because they need t
 
 ---
 
+## Talent tree IDs hard-coded in `AltbotStrategyFactory.cpp`
+
+Added 2026-05-03 alongside the warlock / mage / hunter strategies. These are factory-dispatch constants, not spell data, but follow the same verify-via-WDBXEditor pattern that confirmed the shaman tree IDs (261/262/263).
+
+| Constant | Class | Tree | Encoded value | DBC field |
+|---|---|---|---|---|
+| `WARLOCK_TREE_AFFLICTION` | Warlock | Affliction | 302 | `TalentTab.dbc` row whose `ClassMask` matches CLASS_WARLOCK (8) and is the "Affliction" tab |
+| `WARLOCK_TREE_DEMONOLOGY` | Warlock | Demonology | 303 | same DBC, "Demonology" tab |
+| `WARLOCK_TREE_DESTRUCTION` | Warlock | Destruction | 301 | same DBC, "Destruction" tab |
+| `MAGE_TREE_ARCANE` | Mage | Arcane | 81 | `TalentTab.dbc` ClassMask CLASS_MAGE (4) |
+| `MAGE_TREE_FIRE` | Mage | Fire | 41 | same DBC |
+| `MAGE_TREE_FROST` | Mage | Frost | 61 | same DBC |
+| `HUNTER_TREE_BEAST` | Hunter | Beast Mastery | 50 | `TalentTab.dbc` ClassMask CLASS_HUNTER (32) |
+| `HUNTER_TREE_MARKSMANSHIP` | Hunter | Marksmanship | 51 | same DBC |
+| `HUNTER_TREE_SURVIVAL` | Hunter | Survival | 163 | same DBC |
+
+**Symptom if wrong:** the strategy factory will return `nullptr` for an affected bot and fall back to `AltbotCombat`'s generic heal/damage scan — the bot will still function but won't run its tier rotation.
+
+**How to verify (Windows):** open `<TC server build>/dbc/enUS/TalentTab.dbc` in WDBXEditor, filter rows by ClassMask, read the row IDs against the `Name_lang` column. Update the constants in `src/AltbotStrategyFactory.cpp` if any diverge.
+
+---
+
+## Spell-name match assumption (warlock / mage / hunter strategies)
+
+`StrategyUtil::FindSpellByFamilyName` resolves each cached spell by exact match against `SpellInfo::SpellName`. This is the canonical English string from `Spell.dbc`. **Server installs running a non-enUS DBC pack will silently fail to populate the cache** — the bot will load with all spell IDs at 0 and fall back to filler-only behavior.
+
+**Symptom:** strategy logs `cache for '<name>': ... <Spell>=0 ...` for every entry on first tick; rotation never advances past the maintenance/filler line.
+
+**Resolution path (only if non-enUS support becomes a requirement):** swap `SpellInfo::SpellName` lookup for a SpellFamilyFlags-based lookup (TC's `flag96` per-class flag table) — locale-stable but requires baking flag values per spell.
+
+Not currently a blocker; the project targets enUS data per the spec docs.
+
+---
+
 ## Why this is deferred
 
 The cata-altbot doc tree currently uses Wowhead Cata-archive values + reconciled-guide-strategy as the working baseline. None of the UNVERIFIED items prevent doc work or block the next spec/dungeon doc. They become real blockers only when:

@@ -50,10 +50,14 @@ end
 -- Mimics the look of a built-in action-bar button (square frame + icon) without
 -- pulling in ActionButtonTemplate, which expects action-slot wiring we don't
 -- have. The visual is good enough that it docks naturally next to Bartender.
+--
+-- Shift+drag on any button moves the parent action bar — same idiom as
+-- Bartender/Dominos. Plain click fires the bound action.
 local function MakeIconButton(parent, name, iconPath)
     local b = CreateFrame("Button", name, parent)
     b:SetSize(BUTTON_SIZE, BUTTON_SIZE)
     b:RegisterForClicks("AnyUp")
+    b:RegisterForDrag("LeftButton")
 
     b.icon = b:CreateTexture(nil, "BACKGROUND")
     b.icon:SetAllPoints()
@@ -68,6 +72,17 @@ local function MakeIconButton(parent, name, iconPath)
 
     b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
     b:SetPushedTexture  ("Interface\\Buttons\\UI-Quickslot-Depress")
+
+    b:SetScript("OnDragStart", function(self)
+        if IsShiftKeyDown() then self:GetParent():StartMoving() end
+    end)
+    b:SetScript("OnDragStop", function(self)
+        local p = self:GetParent()
+        p:StopMovingOrSizing()
+        if not CataAltbotDB then return end
+        local point, _, relPoint, x, y = p:GetPoint()
+        CataAltbotDB.position = { point = point, relPoint = relPoint, x = x, y = y }
+    end)
 
     return b
 end

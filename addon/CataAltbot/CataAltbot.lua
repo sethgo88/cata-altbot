@@ -215,7 +215,7 @@ f:SetScript("OnEvent", function(self, event, arg1, ...)
     if event == "ADDON_LOADED" and arg1 == addonName then
         InitDB()
     elseif event == "PLAYER_LOGIN" then
-        if addon.MainFrame then addon.MainFrame:Show() end
+        if addon.Launcher then addon.Launcher:Show() end
         addon:RefreshAlts()
     elseif event == "CHAT_MSG_WHISPER" then
         local msg, sender = arg1, ...
@@ -232,7 +232,11 @@ SLASH_CATAALTBOT2 = "/cataaltbot"
 SlashCmdList["CATAALTBOT"] = function(msg)
     if msg == "refresh" then
         addon:RefreshAlts()
-    elseif addon.MainFrame then
-        if addon.MainFrame:IsShown() then addon.MainFrame:Hide() else addon.MainFrame:Show() end
+    elseif msg == "icon" then
+        if addon.Launcher then addon.Launcher:Show() end
+    elseif addon.ToggleMainFrame then
+        addon.ToggleMainFrame()
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r addon load failed; check /console scriptErrors 1 then /reload.")
     end
 end

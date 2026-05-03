@@ -13,4 +13,5 @@ UI/AltRow.lua
 UI/LinksTab.lua
 UI/BagsModal.lua
 UI/TalentsModal.lua
+UI/Launcher.lua
 locales/enUS.lua

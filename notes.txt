@@ -1,0 +1,16 @@
+AltbotLfg: 'Shamanone' lfg state 0 -> 1
+AltbotLfg: 'Shamanone' auto-accepting rolecheck with role mask 0x4
+AltbotLfg: 'Mageone' lfg state 0 -> 1
+AltbotLfg: 'Mageone' auto-accepting rolecheck with role mask 0x8
+AltbotLfg: 'Hunterone' lfg state 0 -> 1
+AltbotLfg: 'Hunterone' auto-accepting rolecheck with role mask 0x8
+AltbotLfg: 'Warlockone' lfg state 0 -> 1
+AltbotLfg: 'Warlockone' auto-accepting rolecheck with role mask 0x8
+AltbotLfg: 'Shamanone' lfg state 1 -> 3
+Altbot Shamanone auto-accepting proposal 2
+AltbotLfg: 'Mageone' lfg state 1 -> 3
+Altbot Mageone auto-accepting proposal 2
+AltbotLfg: 'Hunterone' lfg state 1 -> 3
+Altbot Hunterone auto-accepting proposal 2
+AltbotLfg: 'Warlockone' lfg state 1 -> 3
+Altbot Warlockone auto-accepting proposal 2

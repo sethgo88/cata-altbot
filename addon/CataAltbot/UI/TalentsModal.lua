@@ -82,6 +82,5 @@ function TM:Show(botName)
             return
         end
         addon:LearnTalent(botName, talentId, rank)
-        addon:Send(botName, "TALENTS|" .. botName) -- request refresh
     end)
 end

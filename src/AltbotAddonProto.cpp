@@ -9,10 +9,12 @@
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
+#include "Unit.h"
 #include "WorldSession.h"
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
+#include <functional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -93,6 +95,24 @@ static void SendVia(Player* master, std::string const& payload)
     ChatHandler(master->GetSession()).PSendSysMessage("[CATABOT] %s", payload.c_str());
 }
 
+// Iterate every active bot owned by `master` and call `fn(ai, bot)` once per
+// bot. Used by the broadcast (`*_ALL`) verbs so the UI can drive the whole
+// roster with a single click.
+static void ForEachActiveBot(Player* master, std::function<void(AltbotAI*, Player*)> const& fn)
+{
+    auto* mgr = sAltbotMgr;
+    if (!mgr) return;
+
+    for (auto const& reg : mgr->ListRegistered(master->GetGUID()))
+    {
+        AltbotAI* ai = mgr->FindBotAI(master->GetGUID(), reg.guid);
+        if (!ai) continue;
+        Player* bot = ai->GetSession()->GetPlayer();
+        if (!bot || !bot->IsInWorld()) continue;
+        fn(ai, bot);
+    }
+}
+
 void PushState(AltbotAI const& ai)
 {
     Player* master = ObjectAccessor::FindPlayer(ai.GetMasterGuid());
@@ -103,6 +123,9 @@ void PushState(AltbotAI const& ai)
         return;
 
     AltbotState const& s = ai.GetState();
+    std::string spec = ai.GetSpecOverride();
+    if (spec.empty()) spec = "auto";
+
     std::ostringstream out;
     out << "STATE|" << ai.GetBotGuid().GetCounter()
         << "|mode="    << uint32(s.mode)
@@ -112,7 +135,8 @@ void PushState(AltbotAI const& ai)
         << ";mount="   << (s.autoMount        ? 1 : 0)
         << ";release=" << (s.autoRelease      ? 1 : 0)
         << ";qtake="   << (s.autoQuestTake    ? 1 : 0)
-        << ";qturn="   << (s.autoQuestTurnIn  ? 1 : 0);
+        << ";qturn="   << (s.autoQuestTurnIn  ? 1 : 0)
+        << ";spec="    << spec;
 
     Send(bot, master, out.str());
 }
@@ -147,6 +171,15 @@ static void DoList(Player* master, Player* bot)
     std::ostringstream done;
     done << "LIST_DONE|" << alts.size();
     Send(bot, master, done.str());
+
+    // Push current STATE for each active bot so the addon UI shows live values
+    // immediately on open instead of waiting for the first toggle change.
+    for (auto const& a : alts)
+    {
+        if (!a.active) continue;
+        if (AltbotAI* ai = sAltbotMgr->FindBotAI(master->GetGUID(), a.guid))
+            PushState(*ai);
+    }
 }
 
 static void DoLinks(Player* master, Player* bot)
@@ -299,6 +332,87 @@ static void DoLearnTalent(Player* master, std::vector<std::string> const& parts)
     AltbotTalents::Learn(master, bot, talentId, rank);
 }
 
+// `auto` reverts to talent-tree detection; any other slug is forwarded as-is.
+// AltbotStrategyFactory falls back to the generic combat loop on unknown slugs,
+// so the server doesn't need to validate the dropdown's contents.
+static void DoSetSpec(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 3) return;
+    AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
+    if (!targetAi) return;
+
+    std::string slug = parts[2];
+    if (slug == "auto") slug = "";
+    sAltbotMgr->SetBotSpec(master->GetGUID(), targetAi->GetBotGuid(), slug);
+    PushState(*targetAi);
+}
+
+// ---- broadcast (`*_ALL`) handlers — drive every active bot at once ----
+
+static void DoSetModeAll(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 2) return;
+    AltbotMode mode = (parts[1] == "stay") ? AltbotMode::Stay : AltbotMode::Follow;
+
+    ForEachActiveBot(master, [mode](AltbotAI* ai, Player*)
+    {
+        ai->SetMode(mode);
+        PushState(*ai);
+    });
+}
+
+static void DoSetAssistAll(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 2) return;
+    AltbotAssistMode m;
+    if      (parts[1] == "off")    m = AltbotAssistMode::Off;
+    else if (parts[1] == "target") m = AltbotAssistMode::MasterTarget;
+    else if (parts[1] == "skull")  m = AltbotAssistMode::SkullOnly;
+    else                            m = AltbotAssistMode::Both;
+
+    ForEachActiveBot(master, [m](AltbotAI* ai, Player*)
+    {
+        ai->MutateState([m](AltbotState& s) { s.assist = m; });
+        PushState(*ai);
+    });
+}
+
+static void DoSetToggleAll(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 3) return;
+    std::string key   = parts[1];
+    bool        value = (parts[2] == "on" || parts[2] == "1");
+
+    ForEachActiveBot(master, [&key, value](AltbotAI* ai, Player*)
+    {
+        ApplyToggleByKey(ai, key, value);
+        PushState(*ai);
+    });
+}
+
+static void DoAttackAll(Player* master)
+{
+    Unit* target = ObjectAccessor::GetUnit(*master, master->GetTarget());
+    if (!target || !target->IsAlive())
+        return;
+
+    ForEachActiveBot(master, [target](AltbotAI*, Player* bot)
+    {
+        if (bot->IsValidAttackTarget(target))
+            bot->Attack(target, true);
+    });
+}
+
+static void DoInviteAll(Player* master, std::string const& verb)
+{
+    ForEachActiveBot(master, [&verb, master](AltbotAI* ai, Player*)
+    {
+        if      (verb == "INVITE_ALL")   AltbotInvite::Invite  (master, ai);
+        else if (verb == "UNINVITE_ALL") AltbotInvite::Uninvite(master, ai);
+        else if (verb == "SUMMON_ALL")   AltbotInvite::Summon  (master, ai);
+    });
+}
+
 // ---- entry point ----
 
 bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
@@ -339,6 +453,18 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoInventoryVerb(master, verb, parts);
     else if (verb == "LEARN_TALENT")
         DoLearnTalent(master, parts);
+    else if (verb == "SET_SPEC")
+        DoSetSpec(master, parts);
+    else if (verb == "SET_MODE_ALL")
+        DoSetModeAll(master, parts);
+    else if (verb == "SET_ASSIST_ALL")
+        DoSetAssistAll(master, parts);
+    else if (verb == "SET_TOGGLE_ALL")
+        DoSetToggleAll(master, parts);
+    else if (verb == "ATTACK_ALL")
+        DoAttackAll(master);
+    else if (verb == "INVITE_ALL" || verb == "UNINVITE_ALL" || verb == "SUMMON_ALL")
+        DoInviteAll(master, verb);
     else
     {
         std::ostringstream err;

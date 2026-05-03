@@ -147,24 +147,61 @@ function addon:Invite(botName)   self:Send(botName, "INVITE|"   .. botName) end
 function addon:Uninvite(botName) self:Send(botName, "UNINVITE|" .. botName) end
 function addon:Summon(botName)   self:Send(botName, "SUMMON|"   .. botName) end
 
-function addon:SetMode(botName, mode)
-    self:Send(botName, "SET_MODE|" .. botName .. "|" .. mode)
-end
-
-function addon:SetToggle(botName, key, on)
-    self:Send(botName, "SET_TOGGLE|" .. botName .. "|" .. key .. "|" .. (on and "on" or "off"))
-end
-
-function addon:SetAssist(botName, mode)
-    self:Send(botName, "SET_ASSIST|" .. botName .. "|" .. mode)
-end
-
 function addon:RequestBags(botName)
     self:Send(botName, "BAGS|" .. botName)
 end
 
 function addon:LearnTalent(botName, talentId, rank)
     self:Send(botName, "LEARN_TALENT|" .. botName .. "|" .. talentId .. "|" .. rank)
+end
+
+function addon:SetSpec(botName, slug)
+    self:Send(botName, "SET_SPEC|" .. botName .. "|" .. slug)
+end
+
+-- ---- Broadcast verbs (drive every active bot in one click) ----
+-- Routed through any one active bot's whisper channel; the server fans out
+-- across the master's whole roster, so the choice of transport bot is
+-- irrelevant.
+
+function addon:SetModeAll(mode)
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "SET_MODE_ALL|" .. mode)
+end
+
+function addon:SetAssistAll(mode)
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "SET_ASSIST_ALL|" .. mode)
+end
+
+function addon:SetToggleAll(key, on)
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "SET_TOGGLE_ALL|" .. key .. "|" .. (on and "on" or "off"))
+end
+
+function addon:AttackAll()
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "ATTACK_ALL")
+end
+
+function addon:InviteAll()
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "INVITE_ALL")
+end
+
+function addon:UninviteAll()
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "UNINVITE_ALL")
+end
+
+function addon:SummonAll()
+    local target = self:AnyActiveBotName(); if not target then return end
+    self:Send(target, "SUMMON_ALL")
+end
+
+-- True if at least one bot is active. UI uses this to gate broadcast buttons.
+function addon:HasActiveBot()
+    return self:AnyActiveBotName() ~= nil
 end
 
 -- ---- Event wiring ----

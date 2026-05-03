@@ -7,9 +7,9 @@
 ## SavedVariablesPerCharacter: CataAltbotCharDB
 
 CataAltbot.lua
+UI/SpecMenu.lua
 UI/MainFrame.lua
 UI/AltRow.lua
-UI/SettingsTab.lua
 UI/LinksTab.lua
 UI/BagsModal.lua
 UI/TalentsModal.lua

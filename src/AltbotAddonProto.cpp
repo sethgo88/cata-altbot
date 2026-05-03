@@ -70,8 +70,19 @@ void Send(Player* sender, Player* master, std::string const& payload)
     if (!sender || !master)
         return;
 
-    std::string text = std::string(PREFIX) + payload;
-    sender->Whisper(text, LANG_UNIVERSAL, master);
+    // Escape literal `|` as `||` so the receiving client's chat-format parser
+    // sees only valid escape sequences. The addon's Parse function reverses
+    // this. Without escaping, `|ALT_ROW` looks like an invalid escape (`|A`)
+    // and some clients reject the incoming whisper before it reaches Lua.
+    std::string raw = std::string(PREFIX) + payload;
+    std::string escaped;
+    escaped.reserve(raw.size() + 16);
+    for (char c : raw)
+    {
+        escaped.push_back(c);
+        if (c == '|') escaped.push_back('|');
+    }
+    sender->Whisper(escaped, LANG_UNIVERSAL, master);
 }
 
 // Send via any of the master's active bots (first available). Used for
@@ -451,7 +462,21 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
     if (msg.compare(0, PREFIX_LEN, PREFIX) != 0)
         return false;
 
-    std::string_view payload = msg.substr(PREFIX_LEN);
+    // Normalize `||` → `|`: the WoW client escapes literal pipes that way for
+    // SendChatMessage's chat-format parser, and some client builds preserve
+    // the escape on the wire while others collapse it. Handle both — without
+    // this, our split-on-`|` would receive `["", "LIST"]` for `CATABOT||LIST`.
+    std::string normalized(msg);
+    {
+        size_t pos = 0;
+        while ((pos = normalized.find("||", pos)) != std::string::npos)
+        {
+            normalized.erase(pos, 1);
+            ++pos;
+        }
+    }
+
+    std::string_view payload = std::string_view(normalized).substr(PREFIX_LEN);
     auto parts = Split(payload, '|');
     if (parts.empty())
         return true;   // matched prefix; handled (as a no-op).

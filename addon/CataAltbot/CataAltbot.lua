@@ -48,7 +48,11 @@ function addon:AnyActiveBotName()
 end
 
 function addon:Parse(msg)
-    if not msg or string.sub(msg, 1, #self.PREFIX) ~= self.PREFIX then
+    if not msg then return nil end
+    -- Server escapes literal `|` to `||` for the chat-format parser; reverse
+    -- that here so the prefix check and field split see clean delimiters.
+    msg = msg:gsub("||", "|")
+    if string.sub(msg, 1, #self.PREFIX) ~= self.PREFIX then
         return nil
     end
     local payload = string.sub(msg, #self.PREFIX + 1)

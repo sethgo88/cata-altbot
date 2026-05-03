@@ -157,6 +157,10 @@ function SM:OpenFor(botButton, alt)
             else                   addon:Add  (alt.name) end
             alt.active = true
         end
+        -- Immediate repaint of the just-toggled bot's icon — don't wait for the
+        -- LIST round-trip. The eventual LIST_DONE will reconcile if the server
+        -- disagreed with the optimistic flip.
+        if addon.RosterPopout then addon.RosterPopout:Refresh() end
         addon:RefreshAlts()
         SM:Hide()
     end)

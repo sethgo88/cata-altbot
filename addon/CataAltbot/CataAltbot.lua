@@ -133,16 +133,20 @@ function addon:RefreshLinks()
     self:Send(self:AnyActiveBotName(), "LINKS")
 end
 
--- Per-bot lifecycle / actions. The server resolves the bot by name argument,
--- so the whisper target only matters as transport — we use the same self-
--- whisper fallback everywhere.
-function addon:Login(botName)    self:Send(self:AnyActiveBotName(), "LOGIN|"   .. botName) end
-function addon:Logout(botName)   self:Send(self:AnyActiveBotName(), "LOGOUT|"  .. botName) end
-function addon:Add(botName)      self:Send(self:AnyActiveBotName(), "ADD|"     .. botName) end
-function addon:Remove(botName)   self:Send(self:AnyActiveBotName(), "REMOVE|"  .. botName) end
-function addon:Invite(botName)   self:Send(self:AnyActiveBotName(), "INVITE|"  .. botName) end
-function addon:Uninvite(botName) self:Send(self:AnyActiveBotName(), "UNINVITE|".. botName) end
-function addon:Summon(botName)   self:Send(self:AnyActiveBotName(), "SUMMON|"  .. botName) end
+-- Per-bot lifecycle / actions. Lifecycle verbs are pinned to master self-
+-- whisper so the server never tears down the bot whose chat handler is on the
+-- call stack — that path is a guaranteed use-after-free in Player::Whisper
+-- (the post-script BuildChatPacket dereferences the now-freed Player).
+-- INVITE/UNINVITE/SUMMON don't destroy anything, so any transport works.
+local function selfTarget() return UnitName("player") end
+
+function addon:Login(botName)    self:Send(selfTarget(),               "LOGIN|"   .. botName) end
+function addon:Logout(botName)   self:Send(selfTarget(),               "LOGOUT|"  .. botName) end
+function addon:Add(botName)      self:Send(selfTarget(),               "ADD|"     .. botName) end
+function addon:Remove(botName)   self:Send(selfTarget(),               "REMOVE|"  .. botName) end
+function addon:Invite(botName)   self:Send(self:AnyActiveBotName(),    "INVITE|"  .. botName) end
+function addon:Uninvite(botName) self:Send(self:AnyActiveBotName(),    "UNINVITE|".. botName) end
+function addon:Summon(botName)   self:Send(self:AnyActiveBotName(),    "SUMMON|"  .. botName) end
 
 function addon:RequestBags(botName)
     self:Send(self:AnyActiveBotName(), "BAGS|" .. botName)
@@ -168,6 +172,24 @@ function addon:AttackAll()              self:Send(self:AnyActiveBotName(), "ATTA
 function addon:InviteAll()              self:Send(self:AnyActiveBotName(), "INVITE_ALL")             end
 function addon:UninviteAll()            self:Send(self:AnyActiveBotName(), "UNINVITE_ALL")           end
 function addon:SummonAll()              self:Send(self:AnyActiveBotName(), "SUMMON_ALL")             end
+
+-- ---- Chat filter — swallow our own protocol traffic ----
+--
+-- Affects display only; the addon's CHAT_MSG_WHISPER event still fires for
+-- both inbound and outbound (WHISPER_INFORM) so the protocol isn't broken.
+-- Without this, the master's chat window fills up with `CATABOT|...` lines
+-- on every refresh / state push.
+
+local function ChatFilter(_, _, msg)
+    if not msg then return false end
+    -- The display layer may have collapsed `||` to `|` already; check both.
+    if msg:sub(1, #addon.PREFIX) == addon.PREFIX then return true end
+    if msg:gsub("||", "|"):sub(1, #addon.PREFIX) == addon.PREFIX then return true end
+    return false
+end
+
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER",        ChatFilter)
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", ChatFilter)
 
 -- ---- Event wiring ----
 

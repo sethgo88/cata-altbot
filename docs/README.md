@@ -84,7 +84,7 @@ For each new doc:
 
 ---
 
-## Current coverage (last updated 2026-05-01)
+## Current coverage (last updated 2026-05-03)
 
 | Tier | Doc | Status |
 |---|---|---|
@@ -109,11 +109,19 @@ For each new doc:
 | specs/ | DPS specs | NOT STARTED (ranged before melee per project ordering) |
 | specs/ | tank specs | NOT STARTED (last per project ordering — see memory) |
 | dungeons/ | leveling.md | complete (cross-class era-by-era + per-role progression + mechanic catalog + LFD specifics + open module gaps) |
-| dungeons/ | throne-of-the-tides/ (encounter + 4 role docs) | complete |
-| dungeons/ | launch Cata 5-mans (BRC, Stonecore, VP, Lost City, HoO, Grim Batol) | NOT STARTED — full ToT-style treatment per dungeon (5 files + survey). 6 dungeons backlog. |
-| dungeons/ | 4.1 troll heroics (Zul'Aman, Zul'Gurub) | NOT STARTED — full ToT-style treatment. |
-| dungeons/ | 4.3 troll heroics (End Time, Hour of Twilight, Well of Eternity) | NOT STARTED — full ToT-style treatment. |
-| dungeons/ | leveling-revamps-supplement.md (vanilla/TBC/WotLK dungeons hit during leveling) | NOT STARTED — single quick-coverage supplement, flag non-tank-and-spank only. |
+| dungeons/ | **throne-of-the-tides/** | complete (encounter + 4 role docs) |
+| dungeons/ | **blackrock-caverns/** | complete 2026-05-02 (4 bosses + Beauty optional; canonical post-ToT template) |
+| dungeons/ | **the-stonecore/** | complete 2026-05-03 (4 bosses; Ozruk Paralyze→Shatter combo + Azil interrupt-rotation; 32 UNVERIFIED) |
+| dungeons/ | **the-vortex-pinnacle/** | complete 2026-05-03 (3 bosses; Slipstream traversal + fall-recovery flagged for bot impl; 20 UNVERIFIED) |
+| dungeons/ | **lost-city-of-the-tolvir/** | complete 2026-05-03 (4 bosses; Lockmaw poison-dispel canonical mana test + Barim spirit-realm split flagged; 24 UNVERIFIED) |
+| dungeons/ | **halls-of-origination/** | complete 2026-05-03 (7 bosses, longest dungeon; Setesh untankable + canonical OOM check; Vault of Lights gauntlet treated as combined block; 46 UNVERIFIED) |
+| dungeons/ | **grim-batol/** | complete 2026-05-03 (4 bosses; Erudax Shadow Gale = stand-IN-center reversal of "fire = avoid" rule; 21 UNVERIFIED) |
+| dungeons/ | **zul-aman/** | complete 2026-05-03 (heroic-only; 6 bosses; Hex Lord runtime ability detection + Daakara 5-form state machine; 34 UNVERIFIED) |
+| dungeons/ | **zul-gurub/** | complete 2026-05-03 (heroic-only; 5 bosses + Cache of Madness optional; 3 framework gaps: Mandokir Decapitate trigger, Zanzil cauldrons, Jin'do Phase 2 zone teleport; 35 UNVERIFIED) |
+| dungeons/ | **end-time/** | complete 2026-05-03 (heroic-only; 4-of-2 random echo pool + Murozond; Hourglass-of-Time CD pacing flag; 34 UNVERIFIED) |
+| dungeons/ | **hour-of-twilight/** | complete 2026-05-03 (heroic-only; 3 bosses + Thrall escort throughout; resto-shaman/druid Magic-dispel limitation may gate group comp; 26 UNVERIFIED) |
+| dungeons/ | **well-of-eternity/** | complete 2026-05-03 (heroic-only; 3 bosses + Illidan escort; Peroth'arn LoS-pillar pathfinding + Mannoroth-tanked-by-Illidan + Azshara dance phase; 36 UNVERIFIED) |
+| dungeons/ | **leveling-revamps-supplement.md** | complete 2026-05-03 (~500 lines; vanilla/BC/WotLK per-dungeon mechanic flags only; consolidated bot-impl gaps table for vehicle/escort/MC/form-change phases) |
 | raids/ | T11 (Baradin Hold, BWD, BoT, ToFW), T12 (Firelands), T13 (Dragon Soul) | NOT STARTED — per-zone bundles (encounter.md with H2 boss sections + 4 role response docs + survey). 10/25 + N/H differences inline per boss, NOT separate docs. |
 | research/ | resto-shaman-guide-survey.md | complete (max-level reconciliation + leveling-rotation reconciliation + Telluric Currents correction note) |
 | research/ | **holy-paladin-guide-survey.md** | complete (9 sources reconciled, Prot 5 split locked, Beacon-bounce flagged for DBC verify) |
@@ -131,6 +139,17 @@ For each new doc:
 | research/ | **retribution-paladin-guide-survey.md** | complete (10 sources, no spec-selection needed (only Paladin DPS spec), 31/7/3 build locked, cross-refs holy-paladin survey for shared mechanics) |
 | research/ | leveling-dungeons-guide-survey.md | complete |
 | research/ | throne-of-the-tides-guide-survey.md | complete |
+| research/ | **blackrock-caverns-guide-survey.md** | complete 2026-05-02 (5 sources, 9 disagreements, 18 UNVERIFIED items) |
+| research/ | **the-stonecore-guide-survey.md** | complete 2026-05-03 (8 sources, 10 disagreements, 32 UNVERIFIED) |
+| research/ | **the-vortex-pinnacle-guide-survey.md** | complete 2026-05-03 (10 sources, 9 disagreements, 20 UNVERIFIED) |
+| research/ | **lost-city-of-the-tolvir-guide-survey.md** | complete 2026-05-03 (7 sources, 9 disagreements, 24 UNVERIFIED) |
+| research/ | **halls-of-origination-guide-survey.md** | complete 2026-05-03 (10 sources, 10 disagreements, 46 UNVERIFIED) |
+| research/ | **grim-batol-guide-survey.md** | complete 2026-05-03 (6 sources, 9 disagreements, 21 UNVERIFIED) |
+| research/ | **zul-aman-guide-survey.md** | complete 2026-05-03 (7 sources, 10 disagreements, 34 UNVERIFIED) |
+| research/ | **zul-gurub-guide-survey.md** | complete 2026-05-03 (9 sources, 10 disagreements, 35 UNVERIFIED) |
+| research/ | **end-time-guide-survey.md** | complete 2026-05-03 (6 sources, 7 disagreements, 34 UNVERIFIED; corrected Murozond Hourglass-of-Time mechanic) |
+| research/ | **hour-of-twilight-guide-survey.md** | complete 2026-05-03 (8 sources, 9 disagreements, 26 UNVERIFIED) |
+| research/ | **well-of-eternity-guide-survey.md** | complete 2026-05-03 (12 sources, 10 disagreements, 36 UNVERIFIED) |
 
 ---
 
@@ -168,14 +187,28 @@ Listed in suggested execution order. Each item names what to do AND why it's the
 
 **Survey-first rule (added 2026-05-01):** every spec doc is preceded by a `docs/research/{spec}-guide-survey.md` that reconciles 4-5 sources. For specs where the role has multiple competitive specs (Mage Arcane/Fire/Frost, Warlock Aff/Demo/Destro, Hunter BM/MM/SV, Rogue Combat/Assn/Sub, Warrior Arms/Fury, DK Frost/Unholy), the survey opens with a **Spec selection** section that picks the winning spec for 4.3.4 PVE. The chosen spec is what the spec doc covers.
 
-### Cata 5-man dungeons (in scope as of 2026-05-01)
+### Cata 5-man dungeons — COMPLETE 2026-05-03
 
-Each dungeon: write `docs/research/{slug}-guide-survey.md` first, then full `docs/dungeons/{slug}/` bundle (encounter.md + 4 role response docs) per the throne-of-the-tides template.
+All 11 Cata 5-man bundles + supplement done. Each bundle is `docs/research/{slug}-guide-survey.md` + `docs/dungeons/{slug}/{encounter,healer,ranged-dps,melee-dps,tank}.md`.
 
-8. **Launch Cata 7** (ToT done): ~~blackrock-caverns~~ DONE 2026-05-02 → **the-stonecore** NEXT → the-vortex-pinnacle → lost-city-of-the-tolvir → halls-of-origination → grim-batol.
-9. **Patch 4.1 troll heroics**: zul-aman → zul-gurub.
-10. **Patch 4.3 troll heroics** (gate Dragon Soul): end-time → hour-of-twilight → well-of-eternity.
-11. **`docs/dungeons/leveling-revamps-supplement.md`** — single supplement covering vanilla/TBC/WotLK dungeons hit during 1-85 leveling (Cata Deadmines, Cata SFK, BRD, ScholoStrat, Mana-Tombs, AN, etc.). One paragraph per dungeon. Flag any non-tank-and-spank mechanic (kiting, dispel-required, vehicle/escort, multi-add CC); skip the rest.
+8. **Launch Cata 7**: ~~throne-of-the-tides~~ ~~blackrock-caverns~~ ~~the-stonecore~~ ~~the-vortex-pinnacle~~ ~~lost-city-of-the-tolvir~~ ~~halls-of-origination~~ ~~grim-batol~~ — ALL DONE.
+9. **Patch 4.1 troll heroics**: ~~zul-aman~~ ~~zul-gurub~~ — ALL DONE 2026-05-03.
+10. **Patch 4.3 troll heroics** (gate Dragon Soul): ~~end-time~~ ~~hour-of-twilight~~ ~~well-of-eternity~~ — ALL DONE 2026-05-03.
+11. ~~`docs/dungeons/leveling-revamps-supplement.md`~~ — DONE 2026-05-03. Vanilla/BC/WotLK per-dungeon mechanic flags + consolidated bot-impl gaps table.
+
+**CATA 5-MAN PHASE COMPLETE 2026-05-03** — 12 dungeons covered (ToT + BRC + 5 launch + 2 4.1 troll + 3 4.3 troll) + 1 supplement = 73 doc files, ~37k lines.
+
+**Aggregate bot-implementation gaps surfaced across the 5-man corpus** (extends `dungeons/leveling.md` Open Issues):
+- Slipstream / vehicle traversal (VP, Oculus, HoT/WoE/Skadi/Ionar)
+- NPC-follow / escort (Thrall in HoT, Illidan in WoE, Brann in HoS, Arthas in CoS, Old Hillsbrad Thrall, Black Morass Medivh) — `AltbotFollow.cpp` needs `FollowNPCTarget(guid)`
+- GameObject interaction (ZG cauldrons, ET Hourglass, Anhuur door event levers, ZA Strange Gong)
+- Zone-state mid-encounter (ZG Jin'do spirit realm, Barim Phase 2 — defensive against private-server scripts)
+- Stand-IN-hazard reversal (Karsh lava plume, Erudax Shadow Gale center, Setesh Seed of Chaos)
+- Random boss rolls / runtime ability detection (Hex Lord, End Time echoes, Violet Hold)
+- Player form-change phases (Drak'Tharon Tharon'ja, Ahn'kahet Volazj)
+- Untankable bosses with snare-uptime add-tank (Setesh)
+- Dispel-blacklist per fight (Crepuscular Veil, Fel Decay)
+- Group-comp gating: Resto Shaman + Resto Druid cannot Magic-dispel in 4.3.4 (HoT may need composition gate)
 
 ### Cata raids (in scope as of 2026-05-01)
 

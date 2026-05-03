@@ -40,16 +40,15 @@ function addon:Send(botName, verbAndArgs)
 end
 
 -- Pick any active bot's name to use as the whisper target for stateless verbs.
+-- Final fallback is the master themselves (self-whisper) — the server hooks
+-- master→master whispers carrying the CATABOT prefix the same as bot whispers,
+-- which makes bootstrapping (LIST/ADD/LOGIN with zero bots online) work without
+-- any chat-command priming.
 function addon:AnyActiveBotName()
     for _, alt in pairs(self.alts) do
         if alt.active then return alt.name end
     end
-    -- Fallback: any registered bot (even if offline; the whisper will fail but
-    -- the user will see the error and know to log a bot in first).
-    for _, alt in pairs(self.alts) do
-        if alt.registered then return alt.name end
-    end
-    return nil
+    return UnitName("player")
 end
 
 -- Parse a whisper. Returns (verb, args[]) if it's an addon message, else nil.
@@ -157,6 +156,10 @@ end
 
 function addon:SetSpec(botName, slug)
     self:Send(botName, "SET_SPEC|" .. botName .. "|" .. slug)
+end
+
+function addon:SetRole(botName, slug)
+    self:Send(botName, "SET_ROLE|" .. botName .. "|" .. slug)
 end
 
 -- ---- Broadcast verbs (drive every active bot in one click) ----

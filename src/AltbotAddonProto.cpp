@@ -59,13 +59,18 @@ static AltbotAI* ResolveBotByGuidOrName(Player* master, std::string const& token
     return sAltbotMgr->FindBotByName(master->GetGUID(), token);
 }
 
-void Send(Player* bot, Player* master, std::string const& payload)
+void Send(Player* sender, Player* master, std::string const& payload)
 {
-    if (!bot || !master)
+    // `sender` is whichever Player object delivers the whisper; usually one of
+    // master's bots, but during bootstrap (no bots online) it's the master
+    // themselves self-whispering. WoW's chat layer accepts master->Whisper(self),
+    // so the message round-trips through CHAT_MSG_WHISPER on the master's
+    // client and the addon parses it the same way.
+    if (!sender || !master)
         return;
 
     std::string text = std::string(PREFIX) + payload;
-    bot->Whisper(text, LANG_UNIVERSAL, master);
+    sender->Whisper(text, LANG_UNIVERSAL, master);
 }
 
 // Send via any of the master's active bots (first available). Used for
@@ -131,6 +136,7 @@ void PushState(AltbotAI const& ai)
     out << "STATE|" << ai.GetBotGuid().GetCounter()
         << "|mode="    << uint32(s.mode)
         << ";assist="  << uint32(s.assist)
+        << ";role="    << uint32(s.roleOverride)
         << ";loot="    << (s.autoLoot         ? 1 : 0)
         << ";pass="    << (s.autoPass         ? 1 : 0)
         << ";mount="   << (s.autoMount        ? 1 : 0)
@@ -348,6 +354,27 @@ static void DoSetSpec(Player* master, std::vector<std::string> const& parts)
     PushState(*targetAi);
 }
 
+// Slug → AltbotRoleOverride. Mirrors AltbotCommandTable::ParseRoleArg so the
+// addon dropdown and the .altbot role slash command accept the same vocabulary.
+static void DoSetRole(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 3) return;
+    AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
+    if (!targetAi) return;
+
+    std::string slug = parts[2];
+    AltbotRoleOverride r = AltbotRoleOverride::None;
+    if      (slug == "tank")                                     r = AltbotRoleOverride::Tank;
+    else if (slug == "healer")                                   r = AltbotRoleOverride::Healer;
+    else if (slug == "dps" || slug == "damage")                  r = AltbotRoleOverride::Damage;
+    else if (slug == "main-tank" || slug == "maintank" || slug == "mt") r = AltbotRoleOverride::MainTank;
+    else                                                          r = AltbotRoleOverride::None;
+
+    targetAi->MutateState([r](AltbotState& s) { s.roleOverride = r; });
+    targetAi->ClearLfgRoleResponded();
+    PushState(*targetAi);
+}
+
 // ---- broadcast (`*_ALL`) handlers — drive every active bot at once ----
 
 static void DoSetModeAll(Player* master, std::vector<std::string> const& parts)
@@ -430,32 +457,38 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
 
     std::string const& verb = parts[0];
 
-    Player* bot = ai ? ai->GetSession()->GetPlayer() : nullptr;
+    // Reply transport: prefer the bot we received from, fall back to the master
+    // self-whispering (bootstrap path — no bots online yet). Either way the
+    // payload arrives at the master client through CHAT_MSG_WHISPER.
+    Player* transport = (ai && ai->GetSession()) ? ai->GetSession()->GetPlayer() : nullptr;
+    if (!transport) transport = master;
 
-    if (verb == "HELLO" && bot)
-        DoHello(master, bot);
-    else if (verb == "LIST" && bot)
-        DoList(master, bot);
-    else if (verb == "LINKS" && bot)
-        DoLinks(master, bot);
-    else if (verb == "BAGS" && bot)
-        DoBags(master, bot, parts);
+    if (verb == "HELLO")
+        DoHello(master, transport);
+    else if (verb == "LIST")
+        DoList(master, transport);
+    else if (verb == "LINKS")
+        DoLinks(master, transport);
+    else if (verb == "BAGS")
+        DoBags(master, transport, parts);
     else if (verb == "ADD" || verb == "REMOVE" || verb == "LOGIN" || verb == "LOGOUT")
         DoLifecycle(master, verb, parts);
     else if (verb == "INVITE" || verb == "UNINVITE" || verb == "SUMMON")
         DoInviteVerb(master, verb, parts);
-    else if (verb == "SET_MODE" && bot)
-        DoSetMode(master, bot, parts);
-    else if (verb == "SET_TOGGLE" && bot)
-        DoSetToggle(master, bot, parts);
-    else if (verb == "SET_ASSIST" && bot)
-        DoSetAssist(master, bot, parts);
+    else if (verb == "SET_MODE")
+        DoSetMode(master, transport, parts);
+    else if (verb == "SET_TOGGLE")
+        DoSetToggle(master, transport, parts);
+    else if (verb == "SET_ASSIST")
+        DoSetAssist(master, transport, parts);
     else if (verb == "EQUIP" || verb == "SELL" || verb == "DROP" || verb == "TRADE")
         DoInventoryVerb(master, verb, parts);
     else if (verb == "LEARN_TALENT")
         DoLearnTalent(master, parts);
     else if (verb == "SET_SPEC")
         DoSetSpec(master, parts);
+    else if (verb == "SET_ROLE")
+        DoSetRole(master, parts);
     else if (verb == "SET_MODE_ALL")
         DoSetModeAll(master, parts);
     else if (verb == "SET_ASSIST_ALL")
@@ -470,8 +503,7 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
     {
         std::ostringstream err;
         err << "ERR|UNKNOWN_VERB|" << verb;
-        if (bot) Send(bot, master, err.str());
-        else     SendVia(master, err.str());
+        Send(transport, master, err.str());
     }
 
     return true;

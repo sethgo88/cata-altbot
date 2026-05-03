@@ -18,6 +18,17 @@ public:
         if (type != CHAT_MSG_WHISPER || !receiver)
             return;
 
+        // Addon protocol: master self-whisper carries the CATABOT prefix when no
+        // bot is online to act as transport. This is the bootstrap path — the
+        // addon can fetch a roster, ADD, and LOGIN with zero bots active.
+        // Dispatched with ai = nullptr; TryDispatch uses master as both sender
+        // and reply transport.
+        if (receiver == player)
+        {
+            if (AltbotAddonProto::TryDispatch(player, nullptr, msg))
+                return;
+        }
+
         AltbotAI* ai = sAltbotMgr->FindBotAI(player->GetGUID(), receiver->GetGUID());
         if (!ai)
             return;

@@ -48,7 +48,7 @@ static void HandleRoleCheck(Player* bot, AltbotAI* ai)
     // UpdateRoleCheck with a non-zero role mask both submits the role and
     // accepts the rolecheck — Cata uses a single CMSG_LFG_SET_ROLES packet
     // for the combined "choose + accept" step.
-    TC_LOG_ERROR("altbot", "AltbotLfg: '%s' auto-accepting rolecheck with role mask 0x%x",
+    TC_LOG_INFO("altbot", "AltbotLfg: '%s' auto-accepting rolecheck with role mask 0x%x",
                 bot->GetName().c_str(), mask);
     sLFGMgr->UpdateRoleCheck(group->GetGUID(), bot->GetGUID(), mask);
     ai->MarkLfgRoleResponded();
@@ -62,12 +62,12 @@ static void HandleProposal(Player* bot, AltbotAI* ai)
     uint32 proposalId = sLFGMgr->GetPendingProposalIdForPlayer(bot->GetGUID());
     if (!proposalId)
     {
-        TC_LOG_ERROR("altbot", "Altbot %s state=PROPOSAL but no pending proposal id found",
-                    bot->GetName().c_str());
+        TC_LOG_ERROR("altbot", "AltbotLfg: '%s' state=PROPOSAL but no pending proposal id found",
+                     bot->GetName().c_str());
         return;
     }
 
-    TC_LOG_ERROR("altbot", "Altbot %s auto-accepting proposal %u",
+    TC_LOG_INFO("altbot", "AltbotLfg: '%s' auto-accepting proposal %u",
                 bot->GetName().c_str(), proposalId);
     sLFGMgr->UpdateProposal(proposalId, bot->GetGUID(), true);
     ai->MarkLfgProposalResponded();
@@ -80,14 +80,13 @@ void Tick(Player* bot, AltbotAI* ai)
 
     lfg::LfgState state = sLFGMgr->GetState(bot->GetGUID());
 
-    // TEMP DIAGNOSTIC: log every state transition so we can see why bots are
-    // (or aren't) entering the rolecheck/proposal branches. Promoted to ERROR
-    // so the default Logger.root=Error config surfaces it without conf edits.
+    // Log state transitions on the "altbot" channel — visible when the user
+    // configures Logger.altbot=3,Console Server. Hidden under default config.
     if (state != ai->GetLastLfgState())
     {
-        TC_LOG_ERROR("altbot", "AltbotLfg: '%s' lfg state %u -> %u",
-                     bot->GetName().c_str(),
-                     uint32(ai->GetLastLfgState()), uint32(state));
+        TC_LOG_INFO("altbot", "AltbotLfg: '%s' lfg state %u -> %u",
+                    bot->GetName().c_str(),
+                    uint32(ai->GetLastLfgState()), uint32(state));
         ai->SetLastLfgState(state);
     }
 

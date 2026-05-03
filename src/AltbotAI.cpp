@@ -41,9 +41,19 @@ void AltbotAI::SetSpecOverride(std::string const& spec)
 
 void AltbotAI::Update(uint32 diff)
 {
-    // Bot player may still be loading from DB — wait until it's in the world
     Player* bot = _botSession->GetPlayer();
-    if (!bot || !bot->IsInWorld())
+    if (!bot)
+        return;
+
+    // Bots have no client to send teleport acks. If anything (LFG dungeon
+    // teleport, .tele, scripted teleport, etc.) put the bot into a far-port
+    // semaphore state, we drive the ack ourselves so the map swap completes
+    // and IsInWorld() flips back to true.
+    if (bot->IsBeingTeleportedFar())
+        _botSession->HandleMoveWorldportAck();
+
+    // Bot player may still be loading from DB — wait until it's in the world
+    if (!bot->IsInWorld())
         return;
 
     Player* master = ObjectAccessor::FindPlayer(_masterGuid);

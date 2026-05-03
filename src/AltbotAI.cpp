@@ -1,6 +1,7 @@
 #include "AltbotAI.h"
 #include "AltbotCombat.h"
 #include "AltbotFollow.h"
+#include "AltbotInvite.h"
 #include "AltbotLoot.h"
 #include "AltbotMgr.h"
 #include "AltbotMount.h"
@@ -47,6 +48,16 @@ void AltbotAI::Update(uint32 diff)
     Player* master = ObjectAccessor::FindPlayer(_masterGuid);
     if (!master || !master->IsInWorld())
         return;
+
+    // Run the post-spawn auto invite + summon once both ends are loaded.
+    // This is what makes a freshly logged-in bot land in your group at your
+    // feet without you having to whisper invite/come.
+    if (_pendingAutoInviteSummon)
+    {
+        _pendingAutoInviteSummon = false;
+        AltbotInvite::Invite(master, this);
+        AltbotInvite::Summon(master, this);
+    }
 
     if (!_strategyResolved)
     {

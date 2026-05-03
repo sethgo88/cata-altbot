@@ -4,6 +4,7 @@
 #include "Group.h"
 #include "GroupMgr.h"
 #include "Log.h"
+#include "MotionMaster.h"
 #include "Player.h"
 #include "WorldSession.h"
 
@@ -95,17 +96,50 @@ bool Summon(Player* master, AltbotAI* ai)
         return false;
     }
 
-    bool ok = bot->TeleportTo(master->GetMapId(),
-                              master->GetPositionX(),
-                              master->GetPositionY(),
-                              master->GetPositionZ(),
-                              master->GetOrientation());
-
-    if (!ok)
+    // Bots have no real client to ack teleports. A previous TeleportTo can
+    // leave the bot stuck in semaphore-teleport state — every subsequent call
+    // then bails out with "already being teleported" and the bot never moves.
+    // Forcibly clear the stuck state before attempting a fresh teleport.
+    if (bot->IsBeingTeleported())
     {
-        ChatHandler(master->GetSession()).PSendSysMessage("Failed to summon %s.",
-            bot->GetName().c_str());
-        return false;
+        bot->SetSemaphoreTeleportNear(false);
+        bot->SetSemaphoreTeleportFar(false);
+    }
+
+    // Drop any in-flight motion (follow path, chase, etc.) so the bot doesn't
+    // immediately start walking back toward where it was.
+    bot->GetMotionMaster()->Clear();
+
+    bool sameMap = (bot->GetMapId() == master->GetMapId());
+
+    if (sameMap)
+    {
+        // Same-map: NearTeleportTo skips the worldport-ack flow that requires
+        // a real client. The bot relocates immediately and visibility refreshes.
+        bot->NearTeleportTo(master->GetPositionX(),
+                            master->GetPositionY(),
+                            master->GetPositionZ(),
+                            master->GetOrientation());
+    }
+    else
+    {
+        bool ok = bot->TeleportTo(master->GetMapId(),
+                                  master->GetPositionX(),
+                                  master->GetPositionY(),
+                                  master->GetPositionZ(),
+                                  master->GetOrientation());
+
+        if (!ok)
+        {
+            ChatHandler(master->GetSession()).PSendSysMessage("Failed to summon %s.",
+                bot->GetName().c_str());
+            return false;
+        }
+
+        // Cross-map: bot's session will never receive MSG_MOVE_WORLDPORT_ACK.
+        // Drive the ack handler directly so the teleport finalizes in-place.
+        if (bot->IsBeingTeleportedFar())
+            bot->GetSession()->HandleMoveWorldportAckOpcode();
     }
 
     ChatHandler(master->GetSession()).PSendSysMessage("%s summoned to your location.",

@@ -232,11 +232,28 @@ SLASH_CATAALTBOT2 = "/cataaltbot"
 SlashCmdList["CATAALTBOT"] = function(msg)
     if msg == "refresh" then
         addon:RefreshAlts()
+        return
     elseif msg == "icon" then
         if addon.Launcher then addon.Launcher:Show() end
-    elseif addon.ToggleMainFrame then
-        addon.ToggleMainFrame()
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r addon load failed; check /console scriptErrors 1 then /reload.")
+        return
     end
+
+    -- Toggle the main panel. We don't depend on Launcher.lua loading — using
+    -- addon.MainFrame directly means /cab still works even if the launcher
+    -- file errored out for some reason.
+    local mf = addon.MainFrame
+    if mf and mf.Show and mf.Hide and mf.IsShown then
+        if mf:IsShown() then mf:Hide() else mf:Show() end
+        return
+    end
+
+    -- Fallback diagnostic. List which UI submodules registered themselves so
+    -- the user can tell which file failed to load.
+    local loaded = {}
+    for _, k in ipairs({ "MainFrame", "AltRow", "SpecMenu", "BagsModal", "TalentsModal", "LinksTab", "Launcher" }) do
+        if addon[k] then table.insert(loaded, k) end
+    end
+    DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot]|r MainFrame missing. Loaded modules: " ..
+        (next(loaded) and table.concat(loaded, ", ") or "(none)") ..
+        ". Run '/console scriptErrors 1' then '/reload' and watch chat as the addon loads.")
 end

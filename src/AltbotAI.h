@@ -37,6 +37,11 @@ public:
     void SetSpecOverride(std::string const& spec);
     std::string const& GetSpecOverride() const { return _specOverride; }
 
+    // Set by AltbotMgr after a fresh spawn (AddAltbot / LoginBot). On the
+    // first Update tick where both bot and master are in-world, the AI runs
+    // AltbotInvite::Invite + AltbotInvite::Summon and clears the flag.
+    void MarkPendingAutoInviteSummon() { _pendingAutoInviteSummon = true; }
+
 private:
     WorldSession* _botSession;    // non-owning; owned by World
     ObjectGuid    _masterGuid;
@@ -48,4 +53,6 @@ private:
     std::unique_ptr<AltbotStrategy> _strategy;
     bool        _strategyResolved = false;
     std::string _specOverride;
+
+    bool        _pendingAutoInviteSummon = false;
 };

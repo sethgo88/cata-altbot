@@ -62,6 +62,12 @@ bool AltbotMgr::SpawnBot(ObjectGuid masterGuid, ObjectGuid botGuid)
     auto ai = std::make_unique<AltbotAI>(botSession, masterGuid, botGuid);
     LoadState(*ai);
 
+    // Auto invite + summon on the bot's first in-world tick. Triggered for
+    // every fresh spawn (Add and Login both flow through here) so the master
+    // doesn't have to chase down a bot that just logged in halfway across
+    // the map.
+    ai->MarkPendingAutoInviteSummon();
+
     // Apply persisted spec override (if any) so the strategy resolves correctly
     // on the bot's first combat tick instead of falling back to talent-tree auto-detect.
     if (QueryResult specRow = CharacterDatabase.Query(

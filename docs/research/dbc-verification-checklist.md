@@ -284,13 +284,38 @@ These are not DBC items but live in the same TC-fork session because they need t
 - ~~`_legacyConnectionModeEnabled`~~ — private member of `WorldSession` (`WorldSession.h:1428`); `AltbotLogin` is a member function so it has full access. No fix needed.
 - ~~3 talent-aware-combat design questions~~ — all answered. See `docs/research/talent-aware-combat-design.md`. Phase 3 work can begin.
 
-### Still pending
+### ✅ Resolved 2026-05-02 (source tree search)
 
-- PlayerScript hook surface: `OnLootRoll`, `OnQuestAccept`, `OnQuestReward`, mount detection (`OnSpellCast` vs `OnAuraApply`)
-- `ServerScript::OnPacketReceive` for inbound addon-channel packets (or the patched `WorldSession::HandleMessagechatOpcode` route)
-- `Group::GetTargetIcons()` accessor for skull-mark assist
-- `Player::LearnTalent(uint32 talentId, uint32 rank)` signature on Cata fork (and `GetActiveSpec()` for dual-spec)
-- Addon-message prefix max length + per-message size cap (drives chunking decisions)
+- **PlayerScript hook surface** — Searched `server-core/src/server/game/Scripting/ScriptMgr.h:616`.
+  - `OnLootRoll` ❌ does not exist — no loot-roll hook in CPP TC.
+  - `OnQuestAccept` ❌ does not exist — use `OnQuestStatusChange(Player*, uint32)` which fires on any status change; filter by `QUEST_STATUS_REWARDED` for reward events.
+  - `OnQuestReward` ❌ does not exist — same workaround as above.
+  - `OnSpellCast(Player*, Spell*, bool)` ✅ exists — use for mount detection. Alternatively poll `player->IsMounted()` in Update().
+  - `OnAuraApply` ❌ does not exist — use `OnSpellCast` or poll auras each tick.
+  - Full available hook list: OnPVPKill, OnCreatureKill, OnPlayerKilledByCreature, OnLevelChanged, OnFreeTalentPointsChanged, OnTalentsReset, OnMoneyChanged, OnMoneyLimit, OnGiveXP, OnReputationChange, OnDuelRequest, OnDuelStart, OnDuelEnd, OnChat (×5 overloads), OnClearEmote, OnTextEmote, **OnSpellCast**, OnLogin, OnLogout, OnCreate, OnDelete, OnFailedDelete, OnSave, OnBindToInstance, OnUpdateZone, OnMapChanged, **OnQuestStatusChange**, OnPlayerRepop.
+
+- **`ServerScript::OnPacketReceive`** ✅ confirmed at `ScriptMgr.h:242`:
+  ```cpp
+  virtual void OnPacketReceive(WorldSession* /*session*/, WorldPacket& /*packet*/) { }
+  ```
+  Subclass `ServerScript`, override `OnPacketReceive`, filter by opcode (`CMSG_MESSAGECHAT`) to intercept addon-channel whispers. ScriptMgr callback confirmed at `ScriptMgr.h:893`.
+
+- **`Group::GetTargetIcons()`** ❌ no such method — member is public direct access:
+  ```cpp
+  // Group.h:424
+  ObjectGuid m_targetIcons[TARGETICONCOUNT];
+  ```
+  Access as `group->m_targetIcons[i]`. Skull = index 7 (`RAID_TARGET_SKULL = 7`).
+
+- **`Player::LearnTalent` signature** ✅ confirmed at `Player.h:1590`:
+  ```cpp
+  bool LearnTalent(uint32 talentId, uint32 talentRank);
+  ```
+  `talentId` is the `Talent.dbc` row ID; `talentRank` is 0-based rank index.
+  Talent/spec query API also confirmed: `GetActiveSpec()` (Player.h:1580) + `GetPrimaryTalentTree(uint8 spec)` (Player.h:1578).
+
+- **Addon-message prefix max length + per-message size cap** ⚠️ partially resolved:
+  `MaxSecureAddons = 35` (WorldSession.h:1402) = max number of *registered* addon prefixes, not message payload length. Actual `CHAT_MSG_ADDON` payload cap not found in source grep — likely follows standard WoW 255-char limit. Confirm with in-game `.send` test or grep `CHAT_MSG_ADDON` in WorldSession.cpp before designing Phase 4 chunking. Not blocking current work.
 
 ---
 

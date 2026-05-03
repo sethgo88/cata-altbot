@@ -37,6 +37,7 @@ AltbotMgr::AddAltbot()
 - **`RBAC_PERM_COMMAND_GM`** — constant confirmed at `server-core/src/server/game/Accounts/RBAC.h:279`, value 371. Name is correct as written.
 - **`_legacyConnectionModeEnabled`** — private member of `WorldSession` (`WorldSession.h:1428`); `AltbotLogin` is a `WorldSession` member function so it has full access. No fix needed.
 - **Talent-aware combat design** — all 3 open questions answered. See `docs/research/talent-aware-combat-design.md`. Phase 3 work can now begin.
+- **Talent / Spec API** — `GetPrimaryTalentTree(uint8 spec)` returns tree ID (Player.h:1578); `GetActiveSpec()` returns active spec index (Player.h:1580). Usage: `uint32 treeId = bot->GetPrimaryTalentTree(bot->GetActiveSpec())`. Phase 4 APIs (PlayerScript hooks, ServerScript::OnPacketReceive, Group::m_targetIcons, Player::LearnTalent) documented in `docs/porting-notes.md` Phase 4 section.
 
 ## Reference Counterparts (mod-playerbots)
 | Our file | Maps from |

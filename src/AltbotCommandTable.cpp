@@ -2,6 +2,7 @@
 #include "AltbotAI.h"
 #include "AltbotInventory.h"
 #include "AltbotInvite.h"
+#include "AltbotMgr.h"
 #include "AltbotTalents.h"
 #include "Chat.h"
 #include "MotionMaster.h"
@@ -258,6 +259,47 @@ static bool CmdLearnTalent(Player* master, AltbotAI* ai, std::string_view args)
     return true;
 }
 
+static bool CmdSetSpec(Player* master, AltbotAI* ai, std::string_view args)
+{
+    Player* bot = BotOf(ai);
+    if (!bot) return true;
+
+    std::string a = Lower(Trim(args));
+
+    std::string slug;
+    std::string display;
+
+    if (a.empty() || a == "auto")
+    {
+        slug    = "";
+        display = "auto-detect";
+    }
+    else if (a == "resto" || a == "restoration" || a == "resto-shaman")
+    {
+        slug    = "resto-shaman";
+        display = "Restoration Shaman";
+    }
+    else if (a == "elemental" || a == "ele")
+    {
+        slug    = "elemental";
+        display = "Elemental";
+    }
+    else if (a == "enhance" || a == "enhancement")
+    {
+        slug    = "enhancement";
+        display = "Enhancement";
+    }
+    else
+    {
+        Reply(master, "Usage: spec [auto|resto|elemental|enhancement]");
+        return true;
+    }
+
+    sAltbotMgr->SetBotSpec(master->GetGUID(), bot->GetGUID(), slug);
+    Reply(master, "Altbot spec set to: " + display + " (applies on next combat tick).");
+    return true;
+}
+
 static bool CmdSetAssist(Player* master, AltbotAI* ai, std::string_view args)
 {
     std::string mode = Lower(Trim(args));
@@ -291,6 +333,8 @@ static bool CmdHelp(Player* master, AltbotAI* /*ai*/, std::string_view)
         "  bags, equip <name|guid>, sell <name|guid>, drop <name|guid>, trade");
     Reply(master,
         "  talents, learn <talentId> <rank>");
+    Reply(master,
+        "  spec [auto|resto|elemental|enhancement]");
     return true;
 }
 
@@ -323,6 +367,7 @@ static constexpr WhisperCommand kCommands[] = {
     {"trade",       CmdOpenTrade},
     {"talents",     CmdShowTalents},
     {"learn",       CmdLearnTalent},
+    {"spec",        CmdSetSpec},
 };
 
 } // namespace

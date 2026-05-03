@@ -30,6 +30,13 @@ void AltbotAI::SetMode(AltbotMode mode)
     MutateState([mode](AltbotState& s) { s.mode = mode; });
 }
 
+void AltbotAI::SetSpecOverride(std::string const& spec)
+{
+    _specOverride      = spec;
+    _strategy.reset();
+    _strategyResolved  = false;
+}
+
 void AltbotAI::Update(uint32 diff)
 {
     // Bot player may still be loading from DB — wait until it's in the world
@@ -40,6 +47,12 @@ void AltbotAI::Update(uint32 diff)
     Player* master = ObjectAccessor::FindPlayer(_masterGuid);
     if (!master || !master->IsInWorld())
         return;
+
+    if (!_strategyResolved)
+    {
+        _strategy         = AltbotStrategyFactory::Create(bot, _specOverride);
+        _strategyResolved = true;
+    }
 
     _followTimer = (_followTimer > diff) ? _followTimer - diff : 0;
     if (_followTimer == 0)
@@ -65,6 +78,6 @@ void AltbotAI::Update(uint32 diff)
     {
         _combatTimer = COMBAT_INTERVAL_MS;
         if (bot->IsAlive())
-            AltbotCombat::Update(bot, master, _state);
+            AltbotCombat::Update(bot, master, _state, _strategy.get());
     }
 }

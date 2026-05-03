@@ -64,6 +64,11 @@ public:
     void PersistState(AltbotAI const& ai);
     void LoadState   (AltbotAI& ai);
 
+    // Sets the spec override slug on the live AI and persists it to the
+    // character_altbot row keyed by (masterGuid, botGuid). Empty string
+    // reverts to auto-detect.
+    void SetBotSpec(ObjectGuid masterGuid, ObjectGuid botGuid, std::string const& spec);
+
 private:
     AltbotMgr() = default;
 

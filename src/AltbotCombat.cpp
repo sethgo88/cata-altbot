@@ -1,5 +1,6 @@
 #include "AltbotCombat.h"
 #include "AltbotAssist.h"
+#include "AltbotStrategy.h"
 #include "Log.h"
 #include "Player.h"
 #include "SharedDefines.h"
@@ -98,11 +99,19 @@ static uint32 FindBestDamageSpell(Player* bot)
     return bestSpell;
 }
 
-void Update(Player* bot, Player* master, AltbotState const& state)
+void Update(Player* bot, Player* master, AltbotState const& state, AltbotStrategy* strategy)
 {
     // Only act when master is in combat
     if (!master->IsInCombat())
         return;
+
+    // A spec-specific strategy fully owns the tick when present; the generic
+    // scan below is the fallback for specs without a strategy yet.
+    if (strategy)
+    {
+        strategy->Update(bot, master);
+        return;
+    }
 
     // Heal master if health is low
     if (master->GetHealthPct() < HEAL_THRESHOLD_PCT)

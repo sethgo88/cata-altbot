@@ -61,6 +61,20 @@ bool AltbotMgr::SpawnBot(ObjectGuid masterGuid, ObjectGuid botGuid)
 
     auto ai = std::make_unique<AltbotAI>(botSession, masterGuid, botGuid);
     LoadState(*ai);
+
+    // Apply persisted spec override (if any) so the strategy resolves correctly
+    // on the bot's first combat tick instead of falling back to talent-tree auto-detect.
+    if (QueryResult specRow = CharacterDatabase.Query(
+            ("SELECT spec_override FROM character_altbot WHERE master_guid = " +
+             std::to_string(masterGuid.GetCounter()) +
+             " AND bot_guid = " +
+             std::to_string(botGuid.GetCounter())).c_str()))
+    {
+        std::string slug = specRow->Fetch()[0].GetString();
+        if (!slug.empty())
+            ai->SetSpecOverride(slug);
+    }
+
     bots.push_back(std::move(ai));
 
     TC_LOG_INFO("altbot", "AltbotMgr::SpawnBot: bot guid %s (account %u) queued for master %s.",
@@ -300,6 +314,26 @@ void AltbotMgr::PersistState(AltbotAI const& ai)
          "auto_release       = VALUES(auto_release), "
          "auto_quest_take    = VALUES(auto_quest_take), "
          "auto_quest_turn_in = VALUES(auto_quest_turn_in)").c_str());
+}
+
+void AltbotMgr::SetBotSpec(ObjectGuid masterGuid, ObjectGuid botGuid, std::string const& spec)
+{
+    if (AltbotAI* ai = FindBotAI(masterGuid, botGuid))
+        ai->SetSpecOverride(spec);
+
+    // Escape single quotes in the slug to keep the UPDATE statement well-formed.
+    std::string escaped;
+    escaped.reserve(spec.size());
+    for (char c : spec)
+    {
+        if (c == '\'') escaped += "''";
+        else           escaped += c;
+    }
+
+    CharacterDatabase.Execute(
+        ("UPDATE character_altbot SET spec_override = '" + escaped + "' "
+         "WHERE master_guid = " + std::to_string(masterGuid.GetCounter()) +
+         " AND bot_guid = "    + std::to_string(botGuid.GetCounter())).c_str());
 }
 
 void AltbotMgr::LoadState(AltbotAI& ai)

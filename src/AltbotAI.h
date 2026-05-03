@@ -1,8 +1,12 @@
 #pragma once
 #include "AltbotState.h"
+#include "AltbotStrategy.h"
+#include "AltbotStrategyFactory.h"
 #include "ObjectGuid.h"
 #include <cstdint>
 #include <functional>
+#include <memory>
+#include <string>
 
 class WorldSession;
 
@@ -27,6 +31,12 @@ public:
     AltbotMode GetMode() const          { return _state.mode; }
     void       SetMode(AltbotMode mode);
 
+    // Force a spec slug (e.g. "resto-shaman") instead of auto-detecting from
+    // the talent tree. Empty string reverts to auto-detect. The strategy is
+    // re-resolved on the next combat tick.
+    void SetSpecOverride(std::string const& spec);
+    std::string const& GetSpecOverride() const { return _specOverride; }
+
 private:
     WorldSession* _botSession;    // non-owning; owned by World
     ObjectGuid    _masterGuid;
@@ -34,4 +44,8 @@ private:
     uint32        _followTimer;   // ms remaining until next follow check
     uint32        _combatTimer;   // ms remaining until next combat check
     AltbotState   _state;
+
+    std::unique_ptr<AltbotStrategy> _strategy;
+    bool        _strategyResolved = false;
+    std::string _specOverride;
 };

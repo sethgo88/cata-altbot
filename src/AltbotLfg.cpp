@@ -48,7 +48,7 @@ static void HandleRoleCheck(Player* bot, AltbotAI* ai)
     // UpdateRoleCheck with a non-zero role mask both submits the role and
     // accepts the rolecheck — Cata uses a single CMSG_LFG_SET_ROLES packet
     // for the combined "choose + accept" step.
-    TC_LOG_INFO("altbot", "AltbotLfg: '%s' auto-accepting rolecheck with role mask 0x%x",
+    TC_LOG_ERROR("altbot", "AltbotLfg: '%s' auto-accepting rolecheck with role mask 0x%x",
                 bot->GetName().c_str(), mask);
     sLFGMgr->UpdateRoleCheck(group->GetGUID(), bot->GetGUID(), mask);
     ai->MarkLfgRoleResponded();
@@ -67,7 +67,7 @@ static void HandleProposal(Player* bot, AltbotAI* ai)
         return;
     }
 
-    TC_LOG_INFO("altbot", "AltbotLfg: '%s' auto-accepting proposal %u",
+    TC_LOG_ERROR("altbot", "AltbotLfg: '%s' auto-accepting proposal %u",
                 bot->GetName().c_str(), proposalId);
     sLFGMgr->UpdateProposal(proposalId, bot->GetGUID(), true);
     ai->MarkLfgProposalResponded();
@@ -84,7 +84,7 @@ void Tick(Player* bot, AltbotAI* ai)
     // configures Logger.altbot=3,Console Server. Hidden under default config.
     if (state != ai->GetLastLfgState())
     {
-        TC_LOG_INFO("altbot", "AltbotLfg: '%s' lfg state %u -> %u",
+        TC_LOG_ERROR("altbot", "AltbotLfg: '%s' lfg state %u -> %u",
                     bot->GetName().c_str(),
                     uint32(ai->GetLastLfgState()), uint32(state));
         ai->SetLastLfgState(state);

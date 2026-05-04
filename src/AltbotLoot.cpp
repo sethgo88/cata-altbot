@@ -36,7 +36,7 @@ static void TickAutoLoot(Player* /*bot*/, Player* /*master*/)
 // Iteration safety: CountRollVote may call CountTheRoll which can erase the
 // matching entry from the RollId list if our vote completes the roll.
 // Snapshot the (itemGUID, vote) pairs first, then dispatch — so the live
-// iteration over GetRollIdList() never observes a mutated container.
+// iteration over GetRolls() never observes a mutated container.
 static void TickRollVote(Player* bot, AltbotLootRollMode mode)
 {
     Group* group = bot->GetGroup();

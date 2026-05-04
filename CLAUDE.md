@@ -60,7 +60,7 @@ cata-altbot/src/
 - `server-core/src/server/game/Handlers/CharacterHandler.cpp` line ~766 — `AltbotLogin` implemented
 - `server-core/src/server/game/DungeonFinding/LFGMgr.h` near `GetTicket` — `GetPendingProposalIdForPlayer(ObjectGuid)` declared (public). Scans `ProposalsStore` so bots can auto-accept LFG proposals via `UpdateProposal`.
 - `server-core/src/server/game/DungeonFinding/LFGMgr.cpp` after `GetTicket` impl — implementation of the above.
-- `server-core/src/server/game/Groups/Group.h` near `GetRoll`/`CountRollVote` — `GetRollIdList()` public read-only accessor for `RollId` (the `Rolls` typedef is `protected`, so the return type is spelled inline). Lets `AltbotLoot::Tick` find pending rolls and auto-vote PASS / DISENCHANT.
+- `server-core/src/server/game/Groups/Group.h` near `GetRoll`/`CountRollVote` — `GetRolls()` public read-only accessor for `RollId` (the `Rolls` typedef is `protected`, so the return type is spelled inline). Lets `AltbotLoot::Tick` find pending rolls and auto-vote PASS / DISENCHANT.
 
 ## AltbotLogin Flow
 ```

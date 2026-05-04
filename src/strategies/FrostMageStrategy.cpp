@@ -181,7 +181,13 @@ bool FrostMageStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    bot->CastSpell(target, id, false);
+    SpellCastResult result = bot->CastSpell(target, id, false);
+    if (result != SPELL_CAST_OK)
+    {
+        TC_LOG_INFO("altbot", "FrostMage[%s] CastSpell %u failed: SpellCastResult=%u",
+                    bot->GetName().c_str(), id, uint32(result));
+        return false;
+    }
     return true;
 }
 

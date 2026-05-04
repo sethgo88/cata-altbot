@@ -1,6 +1,33 @@
 #include "AltbotConfig.h"
 #include "Config.h"
 #include "Log.h"
+#include <boost/filesystem/path.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+namespace bfs = boost::filesystem;
+namespace bpt = boost::property_tree;
+
+static bpt::ptree LoadAltbotTree()
+{
+    bfs::path altbotConf =
+        bfs::path(sConfigMgr->GetFilename()).parent_path() / "altbot.conf";
+
+    bpt::ptree fullTree;
+    try
+    {
+        bpt::ini_parser::read_ini(altbotConf.string(), fullTree);
+        // TC ini files wrap keys in a single section; strip the wrapper.
+        if (!fullTree.empty())
+            return fullTree.begin()->second;
+    }
+    catch (bpt::ini_parser::ini_parser_error const& e)
+    {
+        TC_LOG_WARN("altbot", "AltbotConfig: could not read altbot.conf (%s) — using defaults.",
+            e.what());
+    }
+    return {};
+}
 
 AltbotConfig* AltbotConfig::instance()
 {
@@ -10,15 +37,23 @@ AltbotConfig* AltbotConfig::instance()
 
 void AltbotConfig::Reload()
 {
-    // TC uses GetBoolDefault / GetIntDefault. AzerothCore-style GetOption<T> is
-    // not used here — the TC fork verification step in CLAUDE.md confirms the
-    // sConfigMgr API shape on this codebase.
-    _autoEquip        = sConfigMgr->GetBoolDefault("Altbot.AutoEquip",                  false);
-    _autoTalent       = sConfigMgr->GetBoolDefault("Altbot.AutoTalent",                 false);
-    _addonRateLimit   = sConfigMgr->GetIntDefault ("Altbot.AddonProtocol.RateLimit",    10);
-    _linkPasswordTtl  = sConfigMgr->GetIntDefault ("Altbot.LinkPasswordTtlSeconds",     60);
-    _followIntervalMs = sConfigMgr->GetIntDefault ("Altbot.UpdateInterval.Follow",      1000);
-    _combatIntervalMs = sConfigMgr->GetIntDefault ("Altbot.UpdateInterval.Combat",      1500);
+    bpt::ptree const tree = LoadAltbotTree();
+
+    auto getBool = [&](char const* key, bool def) -> bool
+    {
+        return tree.get<bool>(bpt::ptree::path_type(key, '/'), def);
+    };
+    auto getInt = [&](char const* key, int def) -> int
+    {
+        return tree.get<int>(bpt::ptree::path_type(key, '/'), def);
+    };
+
+    _autoEquip        = getBool("Altbot.AutoEquip",               false);
+    _autoTalent       = getBool("Altbot.AutoTalent",              false);
+    _addonRateLimit   = getInt ("Altbot.AddonProtocol.RateLimit", 10);
+    _linkPasswordTtl  = getInt ("Altbot.LinkPasswordTtlSeconds",  60);
+    _followIntervalMs = getInt ("Altbot.UpdateInterval.Follow",   1000);
+    _combatIntervalMs = getInt ("Altbot.UpdateInterval.Combat",   1500);
 
     if (_autoEquip)
         TC_LOG_WARN("altbot", "Altbot.AutoEquip is enabled but the auto-equip module is WIP — no-op.");

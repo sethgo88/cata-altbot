@@ -29,6 +29,32 @@ namespace
     constexpr int   AOE_MIN_TARGETS     = 3;
 }
 
+namespace
+{
+    // Look up bot's aura by name (lazy resolution for proc auras whose IDs
+    // weren't in the spellbook scan). Returns the aura if present.
+    Aura* FindBotAuraByName(Player* bot, char const* name)
+    {
+        for (auto const& [spellId, app] : bot->GetAppliedAuras())
+        {
+            Aura* a = app->GetBase();
+            if (!a)
+                continue;
+            SpellInfo const* info = a->GetSpellInfo();
+            if (!info || !info->SpellName)
+                continue;
+            if (info->SpellFamilyName != SPELLFAMILY_MAGE)
+                continue;
+            if (std::strcmp(info->SpellName, name) == 0)
+                return a;
+        }
+        return nullptr;
+    }
+
+    bool HasFingersOfFrost(Player* bot) { return FindBotAuraByName(bot, "Fingers of Frost") != nullptr; }
+    bool HasBrainFreeze   (Player* bot) { return FindBotAuraByName(bot, "Brain Freeze")    != nullptr; }
+}
+
 void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext const& ctx)
 {
     if (!_cacheResolved)
@@ -92,6 +118,9 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
         HasFingersOfFrost(bot) ? 1 : 0, HasBrainFreeze(bot) ? 1 : 0,
         GetSpell(Spell::Frostbolt), GetSpell(Spell::IceLance),
         GetSpell(Spell::FrostfireBolt));
+
+    if (casting)
+        return;
 
     if (Tier_DeepFreeze(bot, target))      { TC_LOG_DEBUG("altbot", "  -> DeepFreeze");    return; }
     if (Tier_FFB_BothProcs(bot, target))   { TC_LOG_DEBUG("altbot", "  -> FFB+BothProcs"); return; }
@@ -235,32 +264,6 @@ bool FrostMageStrategy::DoDefensives(Player* bot)
     }
 
     return false;
-}
-
-namespace
-{
-    // Look up bot's aura by name (lazy resolution for proc auras whose IDs
-    // weren't in the spellbook scan). Returns the aura if present.
-    Aura* FindBotAuraByName(Player* bot, char const* name)
-    {
-        for (auto const& [spellId, app] : bot->GetAppliedAuras())
-        {
-            Aura* a = app->GetBase();
-            if (!a)
-                continue;
-            SpellInfo const* info = a->GetSpellInfo();
-            if (!info || !info->SpellName)
-                continue;
-            if (info->SpellFamilyName != SPELLFAMILY_MAGE)
-                continue;
-            if (std::strcmp(info->SpellName, name) == 0)
-                return a;
-        }
-        return nullptr;
-    }
-
-    bool HasFingersOfFrost(Player* bot) { return FindBotAuraByName(bot, "Fingers of Frost") != nullptr; }
-    bool HasBrainFreeze   (Player* bot) { return FindBotAuraByName(bot, "Brain Freeze")    != nullptr; }
 }
 
 bool FrostMageStrategy::Tier_DeepFreeze(Player* bot, Unit* target) const

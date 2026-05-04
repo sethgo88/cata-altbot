@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 
-// Typed accessors for altbot.conf.dist values. All lookups go through
-// sConfigMgr so users can hot-reload via the standard TC reload command.
+// Typed accessors for altbot.conf values. Reads altbot.conf from the same
+// directory as worldserver.conf; hot-reloaded on the standard TC config reload.
 class AltbotConfig
 {
 public:

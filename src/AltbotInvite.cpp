@@ -130,8 +130,7 @@ bool Summon(Player* master, AltbotAI* ai)
     // the master along the old path instead of snapping. This is the
     // same recipe Unit::NearTeleportTo uses for non-players.
     bot->GetMotionMaster()->Clear();
-    bot->StopMoving();
-    bot->DisableSpline();
+    bot->StopMoving(); // StopMoving() calls DisableSpline() internally
 
     Position destPos(master->GetPositionX(),
                      master->GetPositionY(),

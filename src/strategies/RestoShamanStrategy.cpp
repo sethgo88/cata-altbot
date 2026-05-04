@@ -68,6 +68,16 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
     if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
         return;
 
+    // Skip while the GCD is active — every tier would otherwise attempt
+    // CastSpell and reject with SPELL_FAILED_NOT_READY (69). Probe with
+    // Healing Wave (always known on a resto shaman; standard GCD category).
+    if (uint32 hw = GetSpell(Spell::HealingWave))
+    {
+        SpellInfo const* hwInfo = sSpellMgr->GetSpellInfo(hw);
+        if (hwInfo && bot->GetSpellHistory()->HasGlobalCooldown(hwInfo))
+            return;
+    }
+
     if (Tier1_SelfEmergency(bot))                     return;
     if (Tier2_TankEmergency(bot, master, mode))       return;
     if (Tier3_Riptide(bot, master))                   return;

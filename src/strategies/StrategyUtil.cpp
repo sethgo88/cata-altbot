@@ -159,6 +159,14 @@ uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name)
         if (!info->SpellName || std::strcmp(info->SpellName, name) != 0)
             continue;
 
+        // Skip passive helpers that share the cast spell's name — e.g.
+        // Molten Armor 34913 (the SPELL_ATTR0_PASSIVE on-attacker fire damage)
+        // colliding with 30482 (the player-castable buff). The two-pass
+        // "prefer castable" filter below doesn't disambiguate when neither has
+        // mana cost or cooldown (Cata armor self-buffs are free toggles).
+        if (info->IsPassive())
+            continue;
+
         Cand c;
         c.spellId     = spellId;
         c.spellLevel  = info->SpellLevel;

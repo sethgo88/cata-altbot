@@ -101,6 +101,16 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
     if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
         return;
 
+    // Skip while the GCD is active — every tier would otherwise attempt
+    // CastSpell and reject with SPELL_FAILED_NOT_READY (69). Probe with
+    // Steady Shot (always known on a hunter; standard GCD category).
+    if (uint32 ss = GetSpell(Spell::SteadyShot))
+    {
+        SpellInfo const* ssInfo = sSpellMgr->GetSpellInfo(ss);
+        if (ssInfo && bot->GetSpellHistory()->HasGlobalCooldown(ssInfo))
+            return;
+    }
+
     if (Tier_AimedShotProc(bot, target))    return;
     if (Tier_SerpentSting(bot, target))     return;
     if (Tier_ChimeraShot(bot, target))      return;

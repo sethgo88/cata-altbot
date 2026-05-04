@@ -99,6 +99,16 @@ void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext c
     if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
         return;
 
+    // Skip while the GCD is active — every tier would otherwise attempt
+    // CastSpell and reject with SPELL_FAILED_NOT_READY (69). Probe with
+    // Shadow Bolt (always known on a warlock; standard GCD category).
+    if (uint32 sb = GetSpell(Spell::ShadowBolt))
+    {
+        SpellInfo const* sbInfo = sSpellMgr->GetSpellInfo(sb);
+        if (sbInfo && bot->GetSpellHistory()->HasGlobalCooldown(sbInfo))
+            return;
+    }
+
     ManaMode mode = GetManaMode(bot);
 
     if (Tier_Haunt(bot, target))               return;

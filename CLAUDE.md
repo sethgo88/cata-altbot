@@ -31,11 +31,15 @@ cata-altbot/src/
 2. Use `StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_X, "Spell Name")` for caches when
    effect-introspection can't disambiguate (warlock DoTs, mage school overlap, etc.).
    Resto-shaman-style effect signatures are fine when each ability has a unique effect shape.
-   **Name collisions to watch for**: some spells exist as both a player-castable cast and a
-   triggered damage helper sharing the same `SpellName` and `SpellFamilyName` (e.g. Deep Freeze
-   = 44572 cast vs. 71757 damage). `FindSpellByFamilyName` already handles this with a two-pass
-   "prefer castable (has mana cost or cooldown)" filter — if a new strategy resolves to a
-   helper ID and `IsOnCooldown` keeps reading false, that's the cause.
+   **Name collisions the matcher already handles**:
+   - cast-vs-damage-trigger (e.g. Deep Freeze 44572 cast vs. 71757 damage) — disambiguated by
+     the two-pass "prefer castable (has mana cost or cooldown)" filter.
+   - cast-vs-passive-helper (e.g. Molten Armor 30482 cast vs. 34913 on-attacker fire damage,
+     where neither has mana cost or cooldown so the castable filter doesn't fire) —
+     disambiguated by skipping `info->IsPassive()` candidates outright.
+   If a new strategy resolves to a helper ID and `IsOnCooldown` keeps reading false (or
+   `bot->HasAura(<cached-id>)` keeps reading false despite the buff being active), that's the
+   collision class to investigate.
 3. Add the `TalentTab.dbc` ID + slug to `AltbotStrategyFactory.cpp` (verify ID with WDBXEditor;
    tracked in `docs/research/dbc-verification-checklist.md`).
 4. DPS strategies: gate the rotation on `ctx.combatElapsedMs >= 2000` (tank threat window) but
@@ -100,7 +104,26 @@ are the reference.
    `IsNonMeleeSpellCast(false)` covers channels (Drain Soul, Mind Flay-style);
    `UNIT_STATE_CASTING` covers regular casts. Use both.
 
-4. **`MaintainRange` is idempotent only when guarded.**
+4. **Skip the rotation while the GCD is active.** Insert immediately after
+   the cast-in-progress guard:
+   ```cpp
+   if (uint32 fillerId = GetSpell(Spell::Frostbolt))   // or strategy's filler
+   {
+       SpellInfo const* fillerInfo = sSpellMgr->GetSpellInfo(fillerId);
+       if (fillerInfo && bot->GetSpellHistory()->HasGlobalCooldown(fillerInfo))
+           return;
+   }
+   ```
+   `IsCasting` only catches the cast itself; the 1-1.5s GCD that follows is
+   invisible to it. Without this guard, every tier would call `CastSpell`
+   during the GCD and reject with `SPELL_FAILED_NOT_READY` (69), producing the
+   cascade of failure log lines (one per tier) on every post-cast tick.
+   `HasGlobalCooldown` is keyed by `StartRecoveryCategory`, so any rotation
+   spell from the standard GCD bucket works as the probe — pick the strategy's
+   filler (Frostbolt / ShadowBolt / SteadyShot / HealingWave) since it's
+   always present once the spec is selected.
+
+5. **`MaintainRange` is idempotent only when guarded.**
    `MotionMaster::MoveChase` always `Mutate`s a fresh `ChaseMovementGenerator`
    (re-initializes pathing, flips `UNIT_STATE_CHASE`). Calling it every tick
    produces `SPELL_FAILED_MOVING` (53) mid-cast even when the bot is already

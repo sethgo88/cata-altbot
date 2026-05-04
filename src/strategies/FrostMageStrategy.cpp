@@ -128,6 +128,16 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
     if (casting)
         return;
 
+    // Skip the rotation while the GCD is active — every tier would otherwise
+    // attempt CastSpell and reject with SPELL_FAILED_NOT_READY (69). Probe
+    // with Frostbolt (always known on a frost mage; standard GCD category).
+    if (uint32 fb = GetSpell(Spell::Frostbolt))
+    {
+        SpellInfo const* fbInfo = sSpellMgr->GetSpellInfo(fb);
+        if (fbInfo && bot->GetSpellHistory()->HasGlobalCooldown(fbInfo))
+            return;
+    }
+
     if (Tier_DeepFreeze(bot, target))      { TC_LOG_DEBUG("altbot", "  -> DeepFreeze");    return; }
     if (Tier_FFB_BothProcs(bot, target))   { TC_LOG_DEBUG("altbot", "  -> FFB+BothProcs"); return; }
     if (Tier_FFB_BrainFreeze(bot, target)) { TC_LOG_DEBUG("altbot", "  -> FFB+BF");        return; }

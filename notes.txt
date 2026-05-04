@@ -1,35 +1,13 @@
-AffWarlockStrategy cache for 'Warlockone': FelArmor=28176 DemonArmor=687 CoE=1490 Haunt=48181 BaneDoom=603 BaneAgony=980 Corruption=172 UA=30108 SB=686 DrainSoul=1120 DrainLife=689 LifeTap=1454 SoC=27243 DCSummon=48018 DCTeleport=48020 HoT=5484 DeathCoil=6789 Felhunter=691 HealthFunnel=755
-RestoShamanStrategy cache for 'Shamanone': HSurge=8004 HW=331 GHW=77472 Riptide=61295 ChainHeal=1064 EarthShield=61295 WaterShield=79206 SpiritLinkTotem=0 ManaTideTotem=0 LightningBolt=45297
-FrostMageStrategy cache for 'Mageone': MoltenArmor=34913 MageArmor=6117 FrostArmor=7302 Frostbolt=116 FFB=44614 Fireball=133 IceLance=30455 DeepFreeze=44572 FrostNova=122 CoC=120 Blizzard=10 Pet=31687 IceBlock=45438 MageWard=543 Blink=1953
-FrostMage[Mageone] tick: threat-window (831<2000)
-MmHunterStrategy cache for 'Hunterone': Hawk=13165 Mark=1130 Serpent=1978 Chimera=53209 Aimed=19434 Kill=53351 Arcane=3044 Steady=56641 Multi=2643 Misdirection=34477 MendPet=136 CallPet=0 Disengage=781 FeignDeath=5384 Deterrence=19263
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=19.8 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=16.5 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=16.5 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=15.7 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=16.5 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=16.5 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=16.5 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=16.5 casting=0 FoF=1 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-  -> DeepFreeze
+>	ntdll.dll!00007fff3e7f7555()	Unknown
+ 	ntdll.dll!00007fff3e77d929()	Unknown
+ 	ntdll.dll!00007fff3e7067b2()	Unknown
+ 	ntdll.dll!00007fff3e7fd91a()	Unknown
+ 	ntdll.dll!00007fff3e6fed9b()	Unknown
+ 	ntdll.dll!00007fff3e75927a()	Unknown
+ 	ucrtbase.dll!00007fff3b0fe0fb()	Unknown
+ 	libmysql.dll!00007ffe817a0e68()	Unknown
+ 	libmysql.dll!00007ffe8173d03a()	Unknown
+ 	libmysql.dll!00007ffe8173314f()	Unknown
+ 	libmysql.dll!00007ffe81744eba()	Unknown
+ 	libmysql.dll!00007ffe817449a8()	Unknown
+ 	libmysql.dll!00007ffe81749744()	Unknown

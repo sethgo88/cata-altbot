@@ -15,6 +15,7 @@ set(altbot_SOURCES
     src/AltbotAddonProto.cpp
     src/AltbotAI.cpp
     src/AltbotAssist.cpp
+    src/AltbotPosition.cpp
     src/AltbotCombat.cpp
     src/AltbotCommands.cpp
     src/AltbotCommandTable.cpp
@@ -32,7 +33,11 @@ set(altbot_SOURCES
     src/AltbotRole.cpp
     src/AltbotStrategyFactory.cpp
     src/AltbotTalents.cpp
+    src/strategies/AffWarlockStrategy.cpp
+    src/strategies/FrostMageStrategy.cpp
+    src/strategies/MmHunterStrategy.cpp
     src/strategies/RestoShamanStrategy.cpp
+    src/strategies/StrategyUtil.cpp
 )
 
 target_sources(scripts PRIVATE ${altbot_SOURCES})

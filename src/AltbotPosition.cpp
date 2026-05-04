@@ -6,6 +6,7 @@
 #include "MotionMaster.h"
 #include "Player.h"
 #include "Unit.h"
+#include <cmath>
 #include <list>
 
 namespace AltbotPosition
@@ -70,6 +71,32 @@ int CountHostilesNearUnit(Player* bot, Unit* anchor, float radius)
         ++count;
     }
     return count;
+}
+
+void BackUpToRange(Player* bot, Unit* anchor, float desiredRange)
+{
+    if (!bot || !anchor)
+        return;
+
+    // Direction anchor → bot, normalized.
+    float dx = bot->GetPositionX() - anchor->GetPositionX();
+    float dy = bot->GetPositionY() - anchor->GetPositionY();
+    float currentDist = std::sqrt(dx * dx + dy * dy);
+    if (currentDist < 0.01f)
+    {
+        // Bot is directly on top of the anchor — pick a stable backward
+        // direction from the bot's facing instead of dividing by ~zero.
+        dx = std::cos(bot->GetOrientation() + float(M_PI));
+        dy = std::sin(bot->GetOrientation() + float(M_PI));
+        currentDist = 1.0f;
+    }
+    float scale = desiredRange / currentDist;
+    float destX = anchor->GetPositionX() + dx * scale;
+    float destY = anchor->GetPositionY() + dy * scale;
+    float destZ = bot->GetPositionZ();
+    bot->UpdateAllowedPositionZ(destX, destY, destZ);
+
+    bot->GetMotionMaster()->MovePoint(0, destX, destY, destZ);
 }
 
 } // namespace AltbotPosition

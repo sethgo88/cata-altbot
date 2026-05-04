@@ -41,6 +41,15 @@ namespace
 
     constexpr float HUNTERS_MARK_HP_FLOOR = 1000000.0f;
 
+    // Hunter ranged shots return SPELL_FAILED_TOO_CLOSE (130) when target is
+    // closer than ~8y on this server. If we're inside the dead-zone, back up
+    // along the target→bot vector so we can fire — but only when the master
+    // is also at range, so stack mechanics (Bronjahm Soulstorm, etc.) aren't
+    // broken by the bot running away from a melee group.
+    constexpr float SHOT_DEAD_ZONE          = 8.0f;
+    constexpr float SHOT_DEAD_ZONE_BACKUP   = 11.0f;
+    constexpr float MASTER_STACK_RANGE      = 10.0f;
+
     constexpr char const* SPEC_LABEL = "MmHunter";
 }
 
@@ -78,7 +87,22 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
         return;
 
     if (target)
+    {
+        // Dead-zone escape: hunter shots reject with SPELL_FAILED_TOO_CLOSE
+        // (130) inside ~8y on this server. Back up along the target→bot
+        // vector so we can fire. Skip if the master is also in melee range
+        // (stack mechanic — don't break formation just to fire shots; the
+        // auto-attack will keep ticking damage in the meantime).
+        float distToTarget = bot->GetDistance(target);
+        if (distToTarget < SHOT_DEAD_ZONE
+            && master->GetDistance(target) > MASTER_STACK_RANGE)
+        {
+            AltbotPosition::BackUpToRange(bot, target, SHOT_DEAD_ZONE_BACKUP);
+            return;   // skip rotation this tick — moving
+        }
+
         AltbotPosition::MaintainRange(bot, target, CASTER_RANGE);
+    }
 
     // Misdirection on tank fires regardless of threat-window gate — it's
     // exactly the tool meant for this window. Defensives also pre-empt

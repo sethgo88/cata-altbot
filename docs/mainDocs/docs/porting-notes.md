@@ -378,6 +378,74 @@ Fix candidates (when we get to it):
 - Or: per-strategy override that explicitly picks an ID by attribute
   shape for armor self-buffs (since they're a known-shape category).
 
+### Bot teleport — `SendTeleportPacket` takes the wrong branch
+**Status:** Resolved.
+
+`Unit::SendTeleportPacket` (`Unit.cpp:13018-13049`) branches on
+`IsMovedByClient()`. For player-typed bots — which have a session even
+without a real client — the predicate is true, so the helper sends
+`SMSG_MOVE_TELEPORT` *only to the bot's own session* and expects a
+client `MOVE_TELEPORT_ACK` to come back. That ack never arrives, so
+surrounding observers (master, party, anyone else on the grid) get
+zero packets — they keep rendering the bot at the old position until
+their own grid scan reconciles, which can take many seconds (in the
+field: until combat ends and the bot's chase generator stops issuing
+splines, then the next visibility update finally shows the new
+location).
+
+`AltbotInvite::Summon`'s same-map branch must NOT call
+`SendTeleportPacket`. Instead, manually emit the creature-branch
+packet that `SendTeleportPacket` would emit for non-players:
+
+```cpp
+bot->m_movementInfo.pos.Relocate(destPos);
+bot->m_movementInfo.guid = bot->GetGUID();
+bot->m_movementInfo.time = GameTime::GetGameTimeMS();
+WorldPackets::Movement::MoveUpdateTeleport moveUpdateTeleport;
+moveUpdateTeleport.Status = &bot->m_movementInfo;
+bot->SendMessageToSet(moveUpdateTeleport.Write(), false);
+```
+
+After this, `UpdatePosition(destPos, true)` and `UpdateObjectVisibility()`
+land the server-side state, and the master's client actually sees
+the relocate.
+
+### Hunter ranged shots — `SPELL_FAILED_TOO_CLOSE` (130) at melee range
+**Status:** Resolved (positional fix in `MmHunterStrategy`).
+
+Cata 4.0.1 reduced/removed the hunter ranged dead-zone in retail data,
+but this server's spell data still rejects ranged shots inside ~8y
+with `SPELL_FAILED_TOO_CLOSE` (130). The strategy must reposition out
+of the dead-zone before the rotation tier dispatch — otherwise the
+hunter stands at melee, every shot rejects with 130, and the bot does
+nothing.
+
+`AltbotPosition::BackUpToRange(bot, anchor, desiredRange)` issues a
+`MovePoint` along the anchor→bot vector to a point at `desiredRange`
+yards from the anchor. `MmHunterStrategy::Update` invokes it when
+`bot->GetDistance(target) < 8y` *and* `master->GetDistance(target) > 10y`
+— the master-stack guard prevents breaking Bronjahm-style stack
+mechanics. When master is also in melee, the bot stays put and lets
+auto-attack carry the damage.
+
+### Dead-zone backup: hostile-density check at destination
+**Status:** Pending — current backup is formation-aware but not danger-aware.
+
+Today the dead-zone backup only checks "is master at range" before
+moving. It does NOT check whether the destination point has additional
+mobs aggroed nearby, so in trash-dense corridors a 3-4y back-step can
+pull a second pack. Cliffs, AoE, healer-LoS aren't checked either, but
+those are lower-impact (the backup is small, terrain is Z-clamped, and
+3-4y rarely breaks healer LoS).
+
+Fix candidate: new helper
+`AltbotPosition::CountHostilesNearPosition(bot, x, y, z, radius)`
+mirroring `CountHostilesNearUnit` but anchored on a `Position` instead
+of a `Unit`. Compute the prospective backup destination first, count
+hostiles near it, abort the backup if `>= 2`. Take the dead-zone
+shots-fail that tick and try again next tick (target may have moved /
+master may have repositioned).
+
 ### Summon All: run to master on same map
 **Status:** Pending — ship-as-teleport for now.
 

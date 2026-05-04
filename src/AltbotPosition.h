@@ -21,4 +21,11 @@ namespace AltbotPosition
     // the bot, which always reads 0 for casters standing back from the cluster.
     // Faction reference is the bot.
     int CountHostilesNearUnit(Player* bot, Unit* anchor, float radius);
+
+    // Move the bot to `desiredRange` yards from `anchor`, along the line
+    // anchor→bot (i.e. away from anchor). Used by ranged DPS to escape the
+    // melee dead-zone — hunter shots fail with SPELL_FAILED_TOO_CLOSE (130)
+    // on this server when the target is within ~8y. Issued via MovePoint,
+    // replacing any active chase generator.
+    void BackUpToRange(Player* bot, Unit* anchor, float desiredRange);
 }

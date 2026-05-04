@@ -1,10 +1,12 @@
 #include "AltbotInvite.h"
 #include "AltbotAI.h"
 #include "Chat.h"
+#include "GameTime.h"
 #include "Group.h"
 #include "GroupMgr.h"
 #include "Log.h"
 #include "MotionMaster.h"
+#include "MovementPackets.h"
 #include "Player.h"
 #include "WorldSession.h"
 
@@ -149,7 +151,24 @@ bool Summon(Player* master, AltbotAI* ai)
         // the non-player branch of Unit::NearTeleportTo instead: announce the
         // teleport to nearby observers, relocate server-side, refresh
         // visibility for the new position.
-        bot->SendTeleportPacket(destPos);
+        //
+        // CRITICAL: do NOT call bot->SendTeleportPacket(destPos). That helper
+        // branches on IsMovedByClient() (Unit.cpp:13022), and player-typed
+        // bots have a session so the predicate is true. The "moved by client"
+        // branch sends MSG_MOVE_TELEPORT *only to the bot's own session* —
+        // expecting a client ACK that bot sessions never produce. Surrounding
+        // observers (including the master) get nothing, and the master sees
+        // the bot frozen in place client-side until the next grid recompute.
+        // Manually issue the SMSG_MOVE_UPDATE_TELEPORT broadcast that the
+        // creature branch sends, so the master's client sees the relocate
+        // immediately even though the bot is TYPEID_PLAYER.
+        bot->m_movementInfo.pos.Relocate(destPos);
+        bot->m_movementInfo.guid = bot->GetGUID();
+        bot->m_movementInfo.time = GameTime::GetGameTimeMS();
+        WorldPackets::Movement::MoveUpdateTeleport moveUpdateTeleport;
+        moveUpdateTeleport.Status = &bot->m_movementInfo;
+        bot->SendMessageToSet(moveUpdateTeleport.Write(), false);
+
         bot->UpdatePosition(destPos, true);
         bot->UpdateObjectVisibility();
     }

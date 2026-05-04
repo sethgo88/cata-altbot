@@ -65,18 +65,18 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
     if (target)
         AltbotPosition::MaintainRange(bot, target, CASTER_RANGE);
 
-    if (DoDefensives(bot)) { TC_LOG_DEBUG("altbot", "FrostMage[%s] tick: defensive", bot->GetName().c_str()); return; }
+    if (DoDefensives(bot)) { TC_LOG_INFO("altbot", "FrostMage[%s] tick: defensive", bot->GetName().c_str()); return; }
 
     if (ctx.combatElapsedMs < THREAT_WINDOW_MS)
     {
-        TC_LOG_DEBUG("altbot", "FrostMage[%s] tick: threat-window (%u<%u)",
-                     bot->GetName().c_str(), ctx.combatElapsedMs, THREAT_WINDOW_MS);
+        TC_LOG_INFO("altbot", "FrostMage[%s] tick: threat-window (%u<%u)",
+                    bot->GetName().c_str(), ctx.combatElapsedMs, THREAT_WINDOW_MS);
         return;
     }
 
     if (!target)
     {
-        TC_LOG_DEBUG("altbot", "FrostMage[%s] tick: no target", bot->GetName().c_str());
+        TC_LOG_INFO("altbot", "FrostMage[%s] tick: no target", bot->GetName().c_str());
         return;
     }
 
@@ -84,7 +84,7 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
         bot->Attack(target, false);
 
     bool casting = bot->HasUnitState(UNIT_STATE_CASTING);
-    TC_LOG_DEBUG("altbot",
+    TC_LOG_INFO("altbot",
         "FrostMage[%s] tick: tgt='%s' dist=%.1f casting=%d FoF=%d BF=%d "
         "FB-id=%u IL-id=%u FFB-id=%u",
         bot->GetName().c_str(), target->GetName().c_str(),
@@ -93,14 +93,14 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
         GetSpell(Spell::Frostbolt), GetSpell(Spell::IceLance),
         GetSpell(Spell::FrostfireBolt));
 
-    if (Tier_DeepFreeze(bot, target))      { TC_LOG_DEBUG("altbot", "  -> DeepFreeze");    return; }
-    if (Tier_FFB_BothProcs(bot, target))   { TC_LOG_DEBUG("altbot", "  -> FFB+BothProcs"); return; }
-    if (Tier_FFB_BrainFreeze(bot, target)) { TC_LOG_DEBUG("altbot", "  -> FFB+BF");        return; }
-    if (Tier_IceLance(bot, target))        { TC_LOG_DEBUG("altbot", "  -> IceLance");     return; }
-    if (Tier_AoE(bot, target))             { TC_LOG_DEBUG("altbot", "  -> AoE");          return; }
-    if (Tier_Frostbolt(bot, target))       { TC_LOG_DEBUG("altbot", "  -> Frostbolt");    return; }
+    if (Tier_DeepFreeze(bot, target))      { TC_LOG_INFO("altbot", "  -> DeepFreeze");    return; }
+    if (Tier_FFB_BothProcs(bot, target))   { TC_LOG_INFO("altbot", "  -> FFB+BothProcs"); return; }
+    if (Tier_FFB_BrainFreeze(bot, target)) { TC_LOG_INFO("altbot", "  -> FFB+BF");        return; }
+    if (Tier_IceLance(bot, target))        { TC_LOG_INFO("altbot", "  -> IceLance");     return; }
+    if (Tier_AoE(bot, target))             { TC_LOG_INFO("altbot", "  -> AoE");          return; }
+    if (Tier_Frostbolt(bot, target))       { TC_LOG_INFO("altbot", "  -> Frostbolt");    return; }
 
-    TC_LOG_DEBUG("altbot", "  -> NO TIER FIRED");
+    TC_LOG_INFO("altbot", "  -> NO TIER FIRED");
 }
 
 void FrostMageStrategy::ResolveSpellCache(Player* bot)

@@ -8,7 +8,9 @@
 #include "AltbotMount.h"
 #include "AltbotRelease.h"
 #include "AltbotTickContext.h"
+#include "Log.h"
 #include "Map.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "WorldSession.h"
@@ -76,6 +78,21 @@ void AltbotAI::Update(uint32 diff)
     {
         _strategy         = AltbotStrategyFactory::Create(bot, _specOverride);
         _strategyResolved = true;
+
+        if (_strategy)
+            TC_LOG_INFO("altbot",
+                "AltbotAI: '%s' strategy='%s' (class=%u tree=%u override='%s')",
+                bot->GetName().c_str(), _strategy->GetName(),
+                bot->getClass(),
+                bot->GetPrimaryTalentTree(bot->GetActiveSpec()),
+                _specOverride.c_str());
+        else
+            TC_LOG_INFO("altbot",
+                "AltbotAI: '%s' no strategy match (class=%u tree=%u override='%s'); "
+                "falling back to generic damage scan",
+                bot->GetName().c_str(), bot->getClass(),
+                bot->GetPrimaryTalentTree(bot->GetActiveSpec()),
+                _specOverride.c_str());
     }
 
     // Track combat enter/elapsed so the threat-window gate and follow gating
@@ -128,6 +145,16 @@ void AltbotAI::Update(uint32 diff)
         // starts so ranged casters don't get cleaved sitting on the master's
         // back. Out of instance, follow always (existing behavior).
         bool followGated = ctx.InInstance() && master->IsInCombat();
+
+        // Rising edge: a MoveFollow was queued before the gate tripped and
+        // MotionMaster keeps it active until something replaces it. Drop to
+        // idle once so the bot stops chasing master toward the tank pile;
+        // strategies with MaintainRange (casters/hunters) immediately push
+        // their own MoveChase, healers/melee stay put until combat ends.
+        if (followGated && !_followGatedLast && bot->IsAlive())
+            bot->GetMotionMaster()->MoveIdle();
+        _followGatedLast = followGated;
+
         if (_state.mode == AltbotMode::Follow && bot->IsAlive() && !followGated)
             AltbotFollow::Update(bot, master);
     }

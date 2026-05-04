@@ -81,4 +81,9 @@ private:
     // of combat). _wasInCombat detects the rising edge so we reset elapsed.
     bool   _wasInCombat     = false;
     uint32 _combatElapsedMs = 0;
+
+    // Tracks the previous tick's follow-gated state. On the rising edge we
+    // break the active MoveFollow so the bot stops trailing master into the
+    // tank's pile; strategies that maintain range take over from there.
+    bool   _followGatedLast = false;
 };

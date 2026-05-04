@@ -27,8 +27,6 @@ namespace
 
     constexpr float AOE_RADIUS          = 10.0f;
     constexpr int   AOE_MIN_TARGETS     = 3;
-
-    constexpr int32 BRAIN_FREEZE_LOW_MS = 3000;
 }
 
 void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext const& ctx)
@@ -67,24 +65,42 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
     if (target)
         AltbotPosition::MaintainRange(bot, target, CASTER_RANGE);
 
-    if (DoDefensives(bot))
-        return;
+    if (DoDefensives(bot)) { TC_LOG_DEBUG("altbot", "FrostMage[%s] tick: defensive", bot->GetName().c_str()); return; }
 
     if (ctx.combatElapsedMs < THREAT_WINDOW_MS)
+    {
+        TC_LOG_DEBUG("altbot", "FrostMage[%s] tick: threat-window (%u<%u)",
+                     bot->GetName().c_str(), ctx.combatElapsedMs, THREAT_WINDOW_MS);
         return;
+    }
 
     if (!target)
+    {
+        TC_LOG_DEBUG("altbot", "FrostMage[%s] tick: no target", bot->GetName().c_str());
         return;
+    }
 
     if (!bot->IsInCombat())
         bot->Attack(target, false);
 
-    if (Tier_DeepFreeze(bot, target))         return;
-    if (Tier_FFB_BothProcs(bot, target))      return;
-    if (Tier_FFB_BrainFreeze(bot, target))    return;
-    if (Tier_IceLance(bot, target))           return;
-    if (Tier_AoE(bot, target))                return;
-    Tier_Frostbolt(bot, target);
+    bool casting = bot->HasUnitState(UNIT_STATE_CASTING);
+    TC_LOG_DEBUG("altbot",
+        "FrostMage[%s] tick: tgt='%s' dist=%.1f casting=%d FoF=%d BF=%d "
+        "FB-id=%u IL-id=%u FFB-id=%u",
+        bot->GetName().c_str(), target->GetName().c_str(),
+        bot->GetDistance(target), casting ? 1 : 0,
+        HasFingersOfFrost(bot) ? 1 : 0, HasBrainFreeze(bot) ? 1 : 0,
+        GetSpell(Spell::Frostbolt), GetSpell(Spell::IceLance),
+        GetSpell(Spell::FrostfireBolt));
+
+    if (Tier_DeepFreeze(bot, target))      { TC_LOG_DEBUG("altbot", "  -> DeepFreeze");    return; }
+    if (Tier_FFB_BothProcs(bot, target))   { TC_LOG_DEBUG("altbot", "  -> FFB+BothProcs"); return; }
+    if (Tier_FFB_BrainFreeze(bot, target)) { TC_LOG_DEBUG("altbot", "  -> FFB+BF");        return; }
+    if (Tier_IceLance(bot, target))        { TC_LOG_DEBUG("altbot", "  -> IceLance");     return; }
+    if (Tier_AoE(bot, target))             { TC_LOG_DEBUG("altbot", "  -> AoE");          return; }
+    if (Tier_Frostbolt(bot, target))       { TC_LOG_DEBUG("altbot", "  -> Frostbolt");    return; }
+
+    TC_LOG_DEBUG("altbot", "  -> NO TIER FIRED");
 }
 
 void FrostMageStrategy::ResolveSpellCache(Player* bot)
@@ -245,11 +261,6 @@ namespace
 
     bool HasFingersOfFrost(Player* bot) { return FindBotAuraByName(bot, "Fingers of Frost") != nullptr; }
     bool HasBrainFreeze   (Player* bot) { return FindBotAuraByName(bot, "Brain Freeze")    != nullptr; }
-    int32 BrainFreezeLeft (Player* bot)
-    {
-        Aura* a = FindBotAuraByName(bot, "Brain Freeze");
-        return a ? a->GetDuration() : 0;
-    }
 }
 
 bool FrostMageStrategy::Tier_DeepFreeze(Player* bot, Unit* target) const
@@ -273,10 +284,11 @@ bool FrostMageStrategy::Tier_FFB_BothProcs(Player* bot, Unit* target) const
 
 bool FrostMageStrategy::Tier_FFB_BrainFreeze(Player* bot, Unit* target) const
 {
-    int32 left = BrainFreezeLeft(bot);
-    if (left <= 0 || left > BRAIN_FREEZE_LOW_MS)
+    if (!HasBrainFreeze(bot))
         return false;
     // Prefer FFB; fall back to Fireball if FFB unknown (Brain Freeze allows both).
+    // Consume the proc as soon as it's up — sitting on Brain Freeze is a flat
+    // DPS loss, the proc has no special-case timing.
     if (GetSpell(Spell::FrostfireBolt))
         return TryCast(bot, target, Spell::FrostfireBolt);
     if (GetSpell(Spell::Fireball))
@@ -295,7 +307,10 @@ bool FrostMageStrategy::Tier_IceLance(Player* bot, Unit* target) const
 
 bool FrostMageStrategy::Tier_AoE(Player* bot, Unit* target) const
 {
-    int nearCount = AltbotPosition::CountHostilesNear(bot, AOE_RADIUS);
+    // Count clusters around the target — at 25y range, the bot's own
+    // neighborhood is empty, so an around-bot count never trips on a
+    // ranged caster.
+    int nearCount = AltbotPosition::CountHostilesNearUnit(bot, target, AOE_RADIUS);
     if (nearCount < AOE_MIN_TARGETS)
         return false;
 

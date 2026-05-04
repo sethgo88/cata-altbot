@@ -41,4 +41,24 @@ int CountHostilesNear(Player* bot, float radius)
     return count;
 }
 
+int CountHostilesNearUnit(Player* bot, Unit* anchor, float radius)
+{
+    if (!bot || !anchor)
+        return 0;
+
+    std::list<Unit*> units;
+    Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(anchor, bot, radius);
+    Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(anchor, units, check);
+    Cell::VisitAllObjects(anchor, searcher, radius);
+
+    int count = 0;
+    for (Unit* u : units)
+    {
+        if (!u || u->IsTotem() || u->IsCritter())
+            continue;
+        ++count;
+    }
+    return count;
+}
+
 } // namespace AltbotPosition

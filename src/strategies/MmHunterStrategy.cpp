@@ -300,7 +300,9 @@ bool MmHunterStrategy::Tier_KillShot(Player* bot, Unit* target) const
 
 bool MmHunterStrategy::Tier_AoE(Player* bot, Unit* target) const
 {
-    int nearCount = AltbotPosition::CountHostilesNear(bot, AOE_RADIUS);
+    // Cluster check is around the target — at 30y shot range the bot's own
+    // neighborhood is empty, so an around-bot count never trips on a ranged DPS.
+    int nearCount = AltbotPosition::CountHostilesNearUnit(bot, target, AOE_RADIUS);
     if (nearCount < AOE_MIN_TARGETS)
         return false;
     if (bot->GetPower(POWER_FOCUS) < MULTI_SHOT_FOCUS)

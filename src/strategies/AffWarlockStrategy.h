@@ -44,6 +44,12 @@ private:
     std::array<uint32, size_t(Spell::Count)> _cache{};
     bool _cacheResolved = false;
 
+    // Tracks last Seed of Corruption cast (getMSTime() result, monotonic per-tick).
+    // SoC explodes after ~1518 absorbed damage — with a multi-DPS group hitting
+    // a 3-pack the seed pops in 2-4 seconds, which would otherwise cause us to
+    // recast SoC the very next tick and starve the single-target DoT rotation.
+    uint32 _lastSoCMs = 0;
+
     uint32 GetSpell(Spell s) const { return _cache[size_t(s)]; }
     void   ResolveSpellCache(Player* bot);
 
@@ -61,7 +67,7 @@ private:
     bool Tier_BaneOfDoom(Player* bot, Unit* target) const;
     bool Tier_Corruption(Player* bot, Unit* target) const;
     bool Tier_UnstableAffliction(Player* bot, Unit* target) const;
-    bool Tier_AoE(Player* bot, Unit* target) const;
+    bool Tier_AoE(Player* bot, Unit* target);
     bool Tier_DrainSoul(Player* bot, Unit* target) const;
     bool Tier_ShadowBolt(Player* bot, Unit* target, ManaMode mode) const;
 };

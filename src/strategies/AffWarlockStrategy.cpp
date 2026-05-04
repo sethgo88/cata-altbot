@@ -11,11 +11,13 @@
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "StrategyUtil.h"
+#include "Timer.h"
 #include "Unit.h"
 
 namespace
 {
     constexpr uint32 THREAT_WINDOW_MS = 2000;
+    constexpr uint32 SOC_REUSE_MS     = 12 * IN_MILLISECONDS;
 
     constexpr float MANA_NORMAL_THRESHOLD = 50.0f;
     constexpr float MANA_CRISIS_THRESHOLD = 25.0f;
@@ -311,7 +313,7 @@ bool AffWarlockStrategy::Tier_UnstableAffliction(Player* bot, Unit* target) cons
     return TryCast(bot, target, Spell::UnstableAffliction);
 }
 
-bool AffWarlockStrategy::Tier_AoE(Player* bot, Unit* target) const
+bool AffWarlockStrategy::Tier_AoE(Player* bot, Unit* target)
 {
     uint32 seed = GetSpell(Spell::SeedOfCorruption);
     if (!seed)
@@ -319,11 +321,24 @@ bool AffWarlockStrategy::Tier_AoE(Player* bot, Unit* target) const
     if (target->HasAura(seed, bot->GetGUID()))
         return false;
 
-    int nearCount = AltbotPosition::CountHostilesNear(bot, AOE_RADIUS);
+    // Cluster check is around the target, not the bot — at 25y caster range
+    // the bot's own neighborhood is empty even when the tank is sitting in a
+    // 4-mob pull.
+    int nearCount = AltbotPosition::CountHostilesNearUnit(bot, target, AOE_RADIUS);
     if (nearCount < AOE_MIN_TARGETS)
         return false;
 
-    return TryCast(bot, target, Spell::SeedOfCorruption);
+    // Don't immediately recast after the seed explodes. Without this gate the
+    // bot loops SoC every 2-3s on the same pack and never gets back to BoD /
+    // Corruption / UA before the mobs die.
+    uint32 now = getMSTime();
+    if (_lastSoCMs && getMSTimeDiff(_lastSoCMs, now) < SOC_REUSE_MS)
+        return false;
+
+    if (!TryCast(bot, target, Spell::SeedOfCorruption))
+        return false;
+    _lastSoCMs = now;
+    return true;
 }
 
 bool AffWarlockStrategy::Tier_DrainSoul(Player* bot, Unit* target) const

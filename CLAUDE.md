@@ -34,6 +34,15 @@ cata-altbot/src/
    *encouraged*, not gated. Healers gate only their support-DPS tier.
 5. Ranged casters call `AltbotPosition::MaintainRange(bot, target, 25.0f)` once combat is up.
    Healers don't (they stay near master / party for AoE-heal radius).
+6. **AoE cluster checks (ranged DPS only): anchor on the target, not the bot.**
+   Use `AltbotPosition::CountHostilesNearUnit(bot, target, radius)` — never
+   `CountHostilesNear(bot, radius)` for the AoE-threshold check. The bot stands
+   at 25y caster range, so the area around it is empty even when the tank is
+   in a 5-pack; an around-bot check effectively disables AoE for ranged DPS.
+   `CountHostilesNear(bot, ...)` is reserved for *self-anchored* defensives
+   (Frost Nova / Disengage / Howl of Terror — "is something meleeing me?").
+   Self-anchored cone effects (Cone of Cold, etc.) gate on `bot->GetDistance(target) <= cone_range`
+   *after* the around-target cluster check passes.
 
 ## Build Integration (how this gets compiled)
 1. Junction at `server-core/src/server/scripts/Custom/cata-altbot/` → this directory

@@ -153,6 +153,26 @@ For each new doc:
 
 ---
 
+## Code implementation status (last updated 2026-05-03)
+
+Distinct from doc status. A "complete" doc says the rotation has been researched and written
+down; a strategy class in `src/strategies/` is what actually drives a bot in-game.
+
+| Spec | Strategy class | Spell-cache pattern |
+|---|---|---|
+| resto-shaman | `src/strategies/RestoShamanStrategy.cpp` | effect introspection (heal-effect signatures) |
+| affliction-warlock | `src/strategies/AffWarlockStrategy.cpp` | name match (`SPELLFAMILY_WARLOCK` + `SpellName`) |
+| frost-mage | `src/strategies/FrostMageStrategy.cpp` | name match + applied-aura name walk for Brain Freeze / Fingers of Frost |
+| marksmanship-hunter | `src/strategies/MmHunterStrategy.cpp` | name match + focus rotation + Misdirection-on-tank |
+| (all other docs/specs/*) | not implemented | falls back to `AltbotCombat`'s generic FindBest{Heal,Damage}Spell scan |
+
+Combat infrastructure landed alongside the warlock/mage/hunter strategies (2026-05-03):
+`AltbotTickContext` (`combatElapsedMs` + `inDungeon` / `inRaid`), `AltbotPosition::MaintainRange` (MoveChase wrapper), 2s tank threat-window gate inside DPS strategies, follow gating in instances during master-in-combat (`AltbotAI::Update`).
+
+See `CLAUDE.md` "Adding a new spec" for the recipe; see `docs/research/dbc-verification-checklist.md` for the talent-tree IDs and English-name-match assumption flagged for verify.
+
+---
+
 ## Backlog
 
 Listed in suggested execution order. Each item names what to do AND why it's the next priority.

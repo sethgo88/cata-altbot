@@ -3,13 +3,37 @@
 ## Structure
 ```
 cata-altbot/src/
-├── AltbotMgr.h/.cpp      ← singleton, AddAltbot(), session creation
-├── AltbotAI.h/.cpp       ← per-bot update loop (Phase 2+)
-├── AltbotFollow.cpp      ← follow/movement (Phase 2)
-├── AltbotCombat.cpp      ← spell selection, combat assist (Phase 3)
-├── AltbotCommands.cpp    ← chat command parsing (Phase 4)
-└── AltbotLoader.cpp      ← AddSC_AltbotLoader() registration
+├── AltbotMgr.h/.cpp           ← singleton, AddAltbot(), session creation
+├── AltbotAI.h/.cpp            ← per-bot update loop; combat-elapsed + instance-aware follow gating
+├── AltbotFollow.cpp           ← follow/movement (idle); not called during instance combat
+├── AltbotPosition.h/.cpp      ← combat positioning (MoveChase) + nearby-hostile counter
+├── AltbotCombat.cpp           ← combat-tick dispatcher: routes to strategy, falls back to generic scan
+├── AltbotStrategy.h           ← interface: Update(bot, master, ctx) + GetName()
+├── AltbotStrategyFactory.cpp  ← spec dispatch: class + talent-tree → strategy slug → instance
+├── AltbotTickContext.h        ← per-tick state (combatElapsedMs, inDungeon, inRaid)
+├── AltbotCommands.cpp         ← chat command parsing
+├── AltbotLoader.cpp           ← AddSC_AltbotLoader() registration
+└── strategies/                ← per-spec rotation classes
+    ├── StrategyUtil.h/.cpp    ← shared: FindTank / FindLowestHpAlly / CountInjured /
+    │                             AllAtFullHp / FindSpellByFamilyName
+    ├── RestoShamanStrategy.*  ← effect-introspection cache (heal-effect signatures)
+    ├── AffWarlockStrategy.*   ← name-match cache (SPELLFAMILY_WARLOCK + SpellName)
+    ├── FrostMageStrategy.*    ← name-match cache + applied-aura name walk for Brain Freeze / FoF
+    └── MmHunterStrategy.*     ← name-match cache + focus rotation + Misdirection-on-tank
 ```
+
+## Adding a new spec
+1. Create `src/strategies/{Spec}Strategy.{h,cpp}` inheriting `AltbotStrategy`.
+2. Use `StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_X, "Spell Name")` for caches when
+   effect-introspection can't disambiguate (warlock DoTs, mage school overlap, etc.).
+   Resto-shaman-style effect signatures are fine when each ability has a unique effect shape.
+3. Add the `TalentTab.dbc` ID + slug to `AltbotStrategyFactory.cpp` (verify ID with WDBXEditor;
+   tracked in `docs/research/dbc-verification-checklist.md`).
+4. DPS strategies: gate the rotation on `ctx.combatElapsedMs >= 2000` (tank threat window) but
+   keep maintenance / pet / defensives running. Misdirection on tank during the window is
+   *encouraged*, not gated. Healers gate only their support-DPS tier.
+5. Ranged casters call `AltbotPosition::MaintainRange(bot, target, 25.0f)` once combat is up.
+   Healers don't (they stay near master / party for AoE-heal radius).
 
 ## Build Integration (how this gets compiled)
 1. Junction at `server-core/src/server/scripts/Custom/cata-altbot/` → this directory
@@ -47,5 +71,8 @@ AltbotMgr::AddAltbot()
 | AltbotMgr | PlayerbotMgr |
 | AltbotAI | PlayerbotAI |
 | AltbotFollow | strategy/actions/FollowMasterAction |
-| AltbotCombat | strategy/actions/CastHealAction + DPS equivalents |
+| AltbotPosition | strategy/actions/MoveToTargetAction + DistanceCheck helpers |
+| AltbotCombat | strategy/StrategyContext (dispatcher only — owns nothing) |
+| strategies/{Spec}Strategy | strategy/specs/{class}/{spec}/Strategy.cpp |
+| AltbotStrategyFactory | strategy/StrategyFactory |
 | AltbotCommands | PlayerbotCommandHandler + ChatHelper |

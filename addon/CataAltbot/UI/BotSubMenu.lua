@@ -3,9 +3,10 @@
 -- Triggered by right-click on a BotButton. Anchored to the right of the
 -- triggering button so it visually extends out of the bot icon.
 --
--- Buttons: [Bags] [Talents] [Spec] [Role] [Summon] [Login/Logout] [Remove].
+-- Buttons: [Bags] [Talents] [Spec] [Role] [LootRoll] [Summon] [Login/Logout] [Remove].
 -- Spec opens the existing class-aware UIDropDown; Role opens RoleMenu (a
--- vertical 3-icon popout for tank/healer/dps); the rest are direct actions.
+-- vertical 3-icon popout for tank/healer/dps); LootRoll opens LootRollMenu
+-- (wait/pass/disenchant); the rest are direct actions.
 --
 -- Single-instance; OpenFor(botButton, alt) repositions and rebinds.
 
@@ -61,18 +62,25 @@ local ICON_LOGIN   = "Interface\\Icons\\Spell_Holy_Resurrection"
 local ICON_LOGOUT  = "Interface\\Icons\\Spell_Magic_LesserInvisibilty"
 local ICON_REMOVE  = "Interface\\Icons\\Spell_Shadow_DeathPact"
 
--- Build all 7 children once; OpenFor binds them to the active alt.
+-- Loot-roll mode icons. The button on the strip swaps between these to reflect
+-- the bot's current state (mirrors btnToggle's login/logout swap).
+local ICON_ROLL_WAIT = "Interface\\Icons\\Inv_Misc_PocketWatch_01"
+local ICON_ROLL_PASS = "Interface\\Icons\\Inv_Misc_GroupLooking"
+local ICON_ROLL_DE   = "Interface\\Icons\\Inv_Enchant_Disenchant"
 
-SM.btnBags    = MakeIconButton(frame, ICON_BAGS);   SetTip(SM.btnBags,    "Bags")
-SM.btnTalents = MakeIconButton(frame, ICON_TALENT); SetTip(SM.btnTalents, "Talents")
-SM.btnSpec    = MakeIconButton(frame, ICON_SPEC);   SetTip(SM.btnSpec,    "Spec")
-SM.btnRole    = MakeIconButton(frame, ICON_ROLE);   SetTip(SM.btnRole,    "Role")
-SM.btnSummon  = MakeIconButton(frame, ICON_SUMMON); SetTip(SM.btnSummon,  "Summon")
-SM.btnToggle  = MakeIconButton(frame, ICON_LOGIN);  SetTip(SM.btnToggle,  "Login")
-SM.btnRemove  = MakeIconButton(frame, ICON_REMOVE); SetTip(SM.btnRemove,  "Remove")
+-- Build all 8 children once; OpenFor binds them to the active alt.
+
+SM.btnBags     = MakeIconButton(frame, ICON_BAGS);      SetTip(SM.btnBags,     "Bags")
+SM.btnTalents  = MakeIconButton(frame, ICON_TALENT);    SetTip(SM.btnTalents,  "Talents")
+SM.btnSpec     = MakeIconButton(frame, ICON_SPEC);      SetTip(SM.btnSpec,     "Spec")
+SM.btnRole     = MakeIconButton(frame, ICON_ROLE);      SetTip(SM.btnRole,     "Role")
+SM.btnLootRoll = MakeIconButton(frame, ICON_ROLL_WAIT); SetTip(SM.btnLootRoll, "Loot Roll")
+SM.btnSummon   = MakeIconButton(frame, ICON_SUMMON);    SetTip(SM.btnSummon,   "Summon")
+SM.btnToggle   = MakeIconButton(frame, ICON_LOGIN);     SetTip(SM.btnToggle,   "Login")
+SM.btnRemove   = MakeIconButton(frame, ICON_REMOVE);    SetTip(SM.btnRemove,   "Remove")
 
 -- Layout left → right.
-local children = { SM.btnBags, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnSummon, SM.btnToggle, SM.btnRemove }
+local children = { SM.btnBags, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLootRoll, SM.btnSummon, SM.btnToggle, SM.btnRemove }
 for i, b in ipairs(children) do
     if i == 1 then
         b:SetPoint("LEFT", frame, "LEFT", 0, 0)
@@ -90,7 +98,8 @@ local specDropdown
 
 function SM:Hide()
     frame:Hide()
-    if addon.RoleMenu then addon.RoleMenu:Hide() end
+    if addon.RoleMenu     then addon.RoleMenu:Hide()     end
+    if addon.LootRollMenu then addon.LootRollMenu:Hide() end
 end
 
 -- Anchor to the right of the bot icon and rebind every button to `alt`.
@@ -119,6 +128,14 @@ function SM:OpenFor(botButton, alt)
         SetTip(self.btnToggle, "Login")
     end
 
+    -- Loot-roll icon reflects the bot's current mode (Wait=0, Pass=1, DE=2).
+    -- state may be nil before the first STATE push; default to Wait.
+    local rollMode = tonumber(alt.state and alt.state.roll) or 0
+    if     rollMode == 2 then self.btnLootRoll.icon:SetTexture(ICON_ROLL_DE);   SetTip(self.btnLootRoll, "Loot Roll: Disenchant")
+    elseif rollMode == 1 then self.btnLootRoll.icon:SetTexture(ICON_ROLL_PASS); SetTip(self.btnLootRoll, "Loot Roll: Pass")
+    else                       self.btnLootRoll.icon:SetTexture(ICON_ROLL_WAIT); SetTip(self.btnLootRoll, "Loot Roll: Wait")
+    end
+
     -- Bind all action buttons to this alt.
     self.btnBags:SetScript("OnClick", function()
         if addon.BagsModal then addon.BagsModal:Open(alt.name, alt.guidLow) end
@@ -142,6 +159,10 @@ function SM:OpenFor(botButton, alt)
 
     self.btnRole:SetScript("OnClick", function()
         if addon.RoleMenu then addon.RoleMenu:OpenFor(self.btnRole, alt) end
+    end)
+
+    self.btnLootRoll:SetScript("OnClick", function()
+        if addon.LootRollMenu then addon.LootRollMenu:OpenFor(self.btnLootRoll, alt) end
     end)
 
     self.btnSummon:SetScript("OnClick", function()

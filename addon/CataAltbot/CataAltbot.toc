@@ -11,6 +11,7 @@ UI\SpecMenu.lua
 UI\BagsModal.lua
 UI\TalentsModal.lua
 UI\RoleMenu.lua
+UI\LootRollMenu.lua
 UI\BotSubMenu.lua
 UI\BotButton.lua
 UI\RosterPopout.lua

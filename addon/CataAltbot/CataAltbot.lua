@@ -164,6 +164,10 @@ function addon:SetRole(botName, slug)
     self:Send(self:AnyActiveBotName(), "SET_ROLE|" .. botName .. "|" .. slug)
 end
 
+function addon:SetRoll(botName, slug)
+    self:Send(self:AnyActiveBotName(), "SET_ROLL|" .. botName .. "|" .. slug)
+end
+
 -- Broadcast verbs — server fans out across all active bots.
 function addon:SetModeAll(mode)         self:Send(self:AnyActiveBotName(), "SET_MODE_ALL|"   .. mode) end
 function addon:SetAssistAll(mode)       self:Send(self:AnyActiveBotName(), "SET_ASSIST_ALL|" .. mode) end
@@ -223,7 +227,7 @@ SlashCmdList["CATAALTBOT"] = function()
 
     -- Diagnostic when the action bar didn't register — almost always means
     -- one or more UI/*.lua files didn't reach the WoW client.
-    local expected = { "ActionBar", "RosterPopout", "BotButton", "BotSubMenu", "RoleMenu", "SpecMenu", "BagsModal", "TalentsModal" }
+    local expected = { "ActionBar", "RosterPopout", "BotButton", "BotSubMenu", "RoleMenu", "LootRollMenu", "SpecMenu", "BagsModal", "TalentsModal" }
     local loaded, missing = {}, {}
     for _, k in ipairs(expected) do
         if addon[k] then table.insert(loaded, k) else table.insert(missing, k) end

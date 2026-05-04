@@ -123,29 +123,53 @@ uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name)
     if (!bot || !name)
         return 0;
 
-    uint32 bestId  = 0;
-    uint32 bestLvl = 0;
-
-    for (auto const& [spellId, playerSpell] : bot->GetSpellMap())
+    // Two-pass: first try to find a "real" cast (has mana cost or cooldown).
+    // If nothing matches, fall back to any match — handles free toggles like
+    // Aspect of the Hawk (Cata: no mana, no cooldown, no cast time).
+    //
+    // Why: spells like "Deep Freeze" exist as both 44572 (the cast — 30s CD,
+    // mana cost, applies stun) and 71757 (the damage trigger — no CD, no mana,
+    // fired by 44572's script). Both are family MAGE, both named "Deep Freeze",
+    // both can end up in the player's spellmap. Without this filter the
+    // higher-SpellLevel one (the trigger) wins and IsOnCooldown reads false
+    // every tick, so the rotation loops forever on the wrong ID.
+    auto pickBest = [&](bool requireCastable) -> uint32
     {
-        if (playerSpell.state == PLAYERSPELL_REMOVED || !playerSpell.active)
-            continue;
-
-        SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId);
-        if (!info)
-            continue;
-        if (info->SpellFamilyName != family)
-            continue;
-        if (!info->SpellName || std::strcmp(info->SpellName, name) != 0)
-            continue;
-
-        if (info->SpellLevel > bestLvl)
+        uint32 bestId  = 0;
+        uint32 bestLvl = 0;
+        for (auto const& [spellId, playerSpell] : bot->GetSpellMap())
         {
-            bestLvl = info->SpellLevel;
-            bestId  = spellId;
+            if (playerSpell.state == PLAYERSPELL_REMOVED || !playerSpell.active)
+                continue;
+
+            SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId);
+            if (!info)
+                continue;
+            if (info->SpellFamilyName != family)
+                continue;
+            if (!info->SpellName || std::strcmp(info->SpellName, name) != 0)
+                continue;
+
+            if (requireCastable)
+            {
+                bool hasMana     = info->ManaCost > 0 || info->ManaCostPercentage > 0;
+                bool hasCooldown = info->RecoveryTime > 0 || info->CategoryRecoveryTime > 0;
+                if (!hasMana && !hasCooldown)
+                    continue;
+            }
+
+            if (info->SpellLevel > bestLvl)
+            {
+                bestLvl = info->SpellLevel;
+                bestId  = spellId;
+            }
         }
-    }
-    return bestId;
+        return bestId;
+    };
+
+    if (uint32 id = pickBest(true))
+        return id;
+    return pickBest(false);
 }
 
 } // namespace StrategyUtil

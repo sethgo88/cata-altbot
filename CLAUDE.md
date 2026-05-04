@@ -27,6 +27,11 @@ cata-altbot/src/
 2. Use `StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_X, "Spell Name")` for caches when
    effect-introspection can't disambiguate (warlock DoTs, mage school overlap, etc.).
    Resto-shaman-style effect signatures are fine when each ability has a unique effect shape.
+   **Name collisions to watch for**: some spells exist as both a player-castable cast and a
+   triggered damage helper sharing the same `SpellName` and `SpellFamilyName` (e.g. Deep Freeze
+   = 44572 cast vs. 71757 damage). `FindSpellByFamilyName` already handles this with a two-pass
+   "prefer castable (has mana cost or cooldown)" filter — if a new strategy resolves to a
+   helper ID and `IsOnCooldown` keeps reading false, that's the cause.
 3. Add the `TalentTab.dbc` ID + slug to `AltbotStrategyFactory.cpp` (verify ID with WDBXEditor;
    tracked in `docs/research/dbc-verification-checklist.md`).
 4. DPS strategies: gate the rotation on `ctx.combatElapsedMs >= 2000` (tank threat window) but

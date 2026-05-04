@@ -27,6 +27,8 @@ namespace
 
     constexpr float AOE_RADIUS          = 10.0f;
     constexpr int   AOE_MIN_TARGETS     = 3;
+
+    constexpr char const* SPEC_LABEL = "FrostMage";
 }
 
 namespace
@@ -197,14 +199,7 @@ bool FrostMageStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    SpellCastResult result = bot->CastSpell(target, id, false);
-    if (result != SPELL_CAST_OK)
-    {
-        TC_LOG_INFO("altbot", "FrostMage[%s] CastSpell %u failed: SpellCastResult=%u",
-                    bot->GetName().c_str(), id, uint32(result));
-        return false;
-    }
-    return true;
+    return StrategyUtil::CastWithLog(bot, target, id, SPEC_LABEL) == SPELL_CAST_OK;
 }
 
 void FrostMageStrategy::PetMaintenance(Player* bot)
@@ -218,7 +213,7 @@ void FrostMageStrategy::PetMaintenance(Player* bot)
         return;
     if (bot->IsInCombat())
         return;
-    bot->CastSpell(bot, summon, false);
+    StrategyUtil::CastWithLog(bot, bot, summon, SPEC_LABEL);
 }
 
 void FrostMageStrategy::DoMaintenance(Player* bot)
@@ -239,13 +234,13 @@ void FrostMageStrategy::DoMaintenance(Player* bot)
     {
         uint32 prefer = molten ? molten : (mage ? mage : frost);
         if (prefer)
-            bot->CastSpell(bot, prefer, false);
+            StrategyUtil::CastWithLog(bot, bot, prefer, SPEC_LABEL);
     }
 
     // Mage Ward: kept up always (30s CD, always-better damage absorption).
     uint32 ward = GetSpell(Spell::MageWard);
     if (ward && !bot->HasAura(ward) && !IsOnCooldown(bot, ward))
-        bot->CastSpell(bot, ward, false);
+        StrategyUtil::CastWithLog(bot, bot, ward, SPEC_LABEL);
 }
 
 bool FrostMageStrategy::DoDefensives(Player* bot)
@@ -254,7 +249,7 @@ bool FrostMageStrategy::DoDefensives(Player* bot)
     uint32 ib = GetSpell(Spell::IceBlock);
     if (ib && bot->GetHealthPct() < ICE_BLOCK_HP_PCT && !IsOnCooldown(bot, ib))
     {
-        bot->CastSpell(bot, ib, false);
+        StrategyUtil::CastWithLog(bot, bot, ib, SPEC_LABEL);
         return true;
     }
 
@@ -267,9 +262,9 @@ bool FrostMageStrategy::DoDefensives(Player* bot)
     uint32 blink = GetSpell(Spell::Blink);
     if (fn && !IsOnCooldown(bot, fn))
     {
-        bot->CastSpell(bot, fn, false);
+        StrategyUtil::CastWithLog(bot, bot, fn, SPEC_LABEL);
         if (blink && !IsOnCooldown(bot, blink))
-            bot->CastSpell(bot, blink, false);
+            StrategyUtil::CastWithLog(bot, bot, blink, SPEC_LABEL);
         return true;
     }
 
@@ -281,7 +276,7 @@ bool FrostMageStrategy::DoDefensives(Player* bot)
         // Picks any frontal hostile in cone — pass bot itself for self-cast
         // origin; CoC applies to nearby enemies in front automatically.
         if (Unit* victim = bot->GetVictim())
-            bot->CastSpell(victim, coc, false);
+            StrategyUtil::CastWithLog(bot, victim, coc, SPEC_LABEL);
         return true;
     }
 
@@ -339,21 +334,16 @@ bool FrostMageStrategy::Tier_AoE(Player* bot, Unit* target) const
     if (nearCount < AOE_MIN_TARGETS)
         return false;
 
-    // Cone of Cold prefers melee-range cluster
-    uint32 coc = GetSpell(Spell::ConeOfCold);
-    if (coc && !IsOnCooldown(bot, coc) && bot->GetDistance(target) <= CONE_RANGE)
-    {
-        bot->CastSpell(target, coc, false);
+    // Cone of Cold prefers melee-range cluster. Use TryCast so a failure
+    // (LoS, target moved out of cone) falls through to Blizzard / Frostbolt
+    // instead of consuming the tier.
+    if (bot->GetDistance(target) <= CONE_RANGE && TryCast(bot, target, Spell::ConeOfCold))
         return true;
-    }
 
     // Blizzard channel for sustained AoE
-    uint32 blz = GetSpell(Spell::Blizzard);
-    if (blz && !IsOnCooldown(bot, blz))
-    {
-        bot->CastSpell(target, blz, false);
+    if (TryCast(bot, target, Spell::Blizzard))
         return true;
-    }
+
     return false;
 }
 

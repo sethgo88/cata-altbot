@@ -74,23 +74,25 @@ are the reference.
    When in doubt, prefer cataloging the actual proc spell ID directly over
    name-matching.
 
-2. **`TryCast` must propagate `SpellCastResult`.** `Unit::CastSpell` returns
-   the result code; discarding it makes failures silent and the rotation
-   acts as if the cast fired — so the tier chain stops descending and the
-   lower-priority tier never gets its turn. Capture the result, log on
-   failure, return `false`:
+2. **Every `CastSpell` call routes through `StrategyUtil::CastWithLog`.**
+   `Unit::CastSpell` returns `SpellCastResult`; discarding it makes failures
+   silent and the rotation acts as if the cast fired — so the tier chain
+   stops descending and the lower-priority tier never gets its turn. The
+   helper handles the cast + log centrally; each strategy declares a
+   `constexpr char const* SPEC_LABEL` in its anonymous namespace ("FrostMage",
+   "AffWarlock", "MmHunter", "RestoShaman") for the log prefix.
    ```cpp
-   SpellCastResult result = bot->CastSpell(target, id, false);
-   if (result != SPELL_CAST_OK)
-   {
-       TC_LOG_INFO("altbot", "{Spec}[%s] CastSpell %u failed: SpellCastResult=%u",
-                   bot->GetName().c_str(), id, uint32(result));
-       return false;
-   }
+   // Tier dispatch (TryCast adds cooldown precheck + bool return):
+   if (TryCast(bot, target, Spell::Frostbolt))
+       return true;
+
+   // Maintenance / defensives (caller already pre-checked preconditions):
+   StrategyUtil::CastWithLog(bot, bot, ward, SPEC_LABEL);
    ```
-   Numeric codes worth memorizing: 49 = LINE_OF_SIGHT, 53 = MOVING,
-   107 = SPELL_IN_PROGRESS, 113 = TARGET_AURASTATE (e.g. Deep Freeze
-   needs a frozen target).
+   Never call `bot->CastSpell(...)` directly from a strategy — failures will
+   be invisible. Numeric codes worth memorizing: 49 = LINE_OF_SIGHT,
+   53 = MOVING, 69 = NOT_READY (GCD), 107 = SPELL_IN_PROGRESS,
+   113 = TARGET_AURASTATE (e.g. Deep Freeze needs a frozen target).
 
 3. **Skip the rotation while a cast is in progress.** Insert *after*
    maintenance / defensives, *before* the tier dispatch:

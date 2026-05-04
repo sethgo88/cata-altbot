@@ -39,6 +39,8 @@ namespace
     constexpr int32 STEADY_SHOT_FOCUS   = 0;
 
     constexpr float HUNTERS_MARK_HP_FLOOR = 1000000.0f;
+
+    constexpr char const* SPEC_LABEL = "MmHunter";
 }
 
 void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext const& ctx)
@@ -165,14 +167,7 @@ bool MmHunterStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    SpellCastResult result = bot->CastSpell(target, id, false);
-    if (result != SPELL_CAST_OK)
-    {
-        TC_LOG_INFO("altbot", "MmHunter[%s] CastSpell %u failed: SpellCastResult=%u",
-                    bot->GetName().c_str(), id, uint32(result));
-        return false;
-    }
-    return true;
+    return StrategyUtil::CastWithLog(bot, target, id, SPEC_LABEL) == SPELL_CAST_OK;
 }
 
 void MmHunterStrategy::PetMaintenance(Player* bot)
@@ -185,20 +180,20 @@ void MmHunterStrategy::PetMaintenance(Player* bot)
             return;
         uint32 call = GetSpell(Spell::CallPet1);
         if (call && !IsOnCooldown(bot, call))
-            bot->CastSpell(bot, call, false);
+            StrategyUtil::CastWithLog(bot, bot, call, SPEC_LABEL);
         return;
     }
 
     uint32 mend = GetSpell(Spell::MendPet);
     if (mend && pet->GetHealthPct() < float(PET_MEND_HP_PCT) && !IsOnCooldown(bot, mend))
-        bot->CastSpell(pet, mend, false);
+        StrategyUtil::CastWithLog(bot, pet, mend, SPEC_LABEL);
 }
 
 void MmHunterStrategy::DoMaintenance(Player* bot, Player* /*master*/, Unit* target)
 {
     uint32 hawk = GetSpell(Spell::AspectOfTheHawk);
     if (hawk && !bot->HasAura(hawk))
-        bot->CastSpell(bot, hawk, false);
+        StrategyUtil::CastWithLog(bot, bot, hawk, SPEC_LABEL);
 
     // Hunter's Mark on bosses (heuristic: very high max HP). Not on trash —
     // would clip GCD on every pull for no benefit.
@@ -206,7 +201,7 @@ void MmHunterStrategy::DoMaintenance(Player* bot, Player* /*master*/, Unit* targ
     {
         uint32 mark = GetSpell(Spell::HuntersMark);
         if (mark && !target->HasAura(mark) && target->GetMaxHealth() > HUNTERS_MARK_HP_FLOOR)
-            bot->CastSpell(target, mark, false);
+            StrategyUtil::CastWithLog(bot, target, mark, SPEC_LABEL);
     }
 }
 
@@ -221,7 +216,7 @@ void MmHunterStrategy::DoMisdirection(Player* bot, Player* master)
         return;
     if (tank->HasAura(md, bot->GetGUID()))
         return;
-    bot->CastSpell(tank, md, false);
+    StrategyUtil::CastWithLog(bot, tank, md, SPEC_LABEL);
 }
 
 bool MmHunterStrategy::DoDefensives(Player* bot)
@@ -229,14 +224,14 @@ bool MmHunterStrategy::DoDefensives(Player* bot)
     uint32 deter = GetSpell(Spell::Deterrence);
     if (deter && bot->GetHealthPct() < DETERRENCE_HP_PCT && !IsOnCooldown(bot, deter))
     {
-        bot->CastSpell(bot, deter, false);
+        StrategyUtil::CastWithLog(bot, bot, deter, SPEC_LABEL);
         return true;
     }
 
     uint32 fd = GetSpell(Spell::FeignDeath);
     if (fd && bot->GetHealthPct() < FEIGN_DEATH_HP_PCT && !IsOnCooldown(bot, fd))
     {
-        bot->CastSpell(bot, fd, false);
+        StrategyUtil::CastWithLog(bot, bot, fd, SPEC_LABEL);
         return true;
     }
 
@@ -244,7 +239,7 @@ bool MmHunterStrategy::DoDefensives(Player* bot)
     uint32 dis = GetSpell(Spell::Disengage);
     if (dis && meleeNear >= DISENGAGE_TRIGGER && !IsOnCooldown(bot, dis))
     {
-        bot->CastSpell(bot, dis, false);
+        StrategyUtil::CastWithLog(bot, bot, dis, SPEC_LABEL);
         return true;
     }
 

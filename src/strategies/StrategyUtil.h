@@ -1,6 +1,9 @@
 #pragma once
 
+#include "SharedDefines.h"
+
 class Player;
+class Unit;
 
 namespace StrategyUtil
 {
@@ -25,5 +28,16 @@ namespace StrategyUtil
     // equals `name` exactly. Returns 0 if not known. Used by warlock/mage/hunter
     // caches where effect-introspection alone can't disambiguate (e.g. all
     // shadow DoTs look the same; all curse aura applications look the same).
-    uint32 FindSpellByFamilyName(class Player* bot, uint32 family, char const* name);
+    uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name);
+
+    // Issue `bot->CastSpell(target, spellId, false)` and log spec-prefixed
+    // failure on non-`SPELL_CAST_OK` results. Returns the result so callers
+    // can branch on success when needed (chained casts, tier cascade).
+    // Caller is responsible for any cooldown / precondition checks — this is
+    // strictly the cast + log step.
+    //
+    // `specLabel` is a short stable string ("FrostMage", "AffWarlock", etc.)
+    // used only as the log prefix; each strategy defines a `SPEC_LABEL`
+    // constexpr in its anonymous namespace and passes it here.
+    SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId, char const* specLabel);
 }

@@ -32,6 +32,8 @@ namespace
     constexpr uint32 GHW_LEVEL_FLOOR = 50;
 
     constexpr uint32 THREAT_WINDOW_MS = 2000;
+
+    constexpr char const* SPEC_LABEL = "RestoShaman";
 } // anon namespace
 
 RestoShamanStrategy::RestoShamanStrategy() = default;
@@ -240,14 +242,7 @@ bool RestoShamanStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    SpellCastResult result = bot->CastSpell(target, id, false);
-    if (result != SPELL_CAST_OK)
-    {
-        TC_LOG_INFO("altbot", "RestoShaman[%s] CastSpell %u failed: SpellCastResult=%u",
-                    bot->GetName().c_str(), id, uint32(result));
-        return false;
-    }
-    return true;
+    return StrategyUtil::CastWithLog(bot, target, id, SPEC_LABEL) == SPELL_CAST_OK;
 }
 
 void RestoShamanStrategy::DoMaintenance(Player* bot, Player* master)

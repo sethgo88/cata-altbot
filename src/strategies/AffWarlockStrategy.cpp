@@ -36,6 +36,8 @@ namespace
     constexpr int   AOE_MIN_TARGETS      = 3;
 
     constexpr uint32 PET_HEALTH_FUNNEL_PCT = 50;
+
+    constexpr char const* SPEC_LABEL = "AffWarlock";
 }
 
 void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext const& ctx)
@@ -179,14 +181,7 @@ bool AffWarlockStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    SpellCastResult result = bot->CastSpell(target, id, false);
-    if (result != SPELL_CAST_OK)
-    {
-        TC_LOG_INFO("altbot", "AffWarlock[%s] CastSpell %u failed: SpellCastResult=%u",
-                    bot->GetName().c_str(), id, uint32(result));
-        return false;
-    }
-    return true;
+    return StrategyUtil::CastWithLog(bot, target, id, SPEC_LABEL) == SPELL_CAST_OK;
 }
 
 void AffWarlockStrategy::PetMaintenance(Player* bot)
@@ -199,7 +194,7 @@ void AffWarlockStrategy::PetMaintenance(Player* bot)
         if (!bot->IsInCombat() && GetSpell(Spell::SummonFelhunter)
             && !IsOnCooldown(bot, GetSpell(Spell::SummonFelhunter)))
         {
-            bot->CastSpell(bot, GetSpell(Spell::SummonFelhunter), false);
+            StrategyUtil::CastWithLog(bot, bot, GetSpell(Spell::SummonFelhunter), SPEC_LABEL);
         }
         return;
     }
@@ -212,7 +207,7 @@ void AffWarlockStrategy::PetMaintenance(Player* bot)
         && !IsOnCooldown(bot, funnel)
         && !bot->IsNonMeleeSpellCast(false))
     {
-        bot->CastSpell(pet, funnel, false);
+        StrategyUtil::CastWithLog(bot, pet, funnel, SPEC_LABEL);
     }
 }
 
@@ -261,7 +256,7 @@ bool AffWarlockStrategy::DoDefensives(Player* bot)
         && bot->GetHealthPct() < ESCAPE_HP_PCT
         && !IsOnCooldown(bot, dct))
     {
-        bot->CastSpell(bot, dct, false);
+        StrategyUtil::CastWithLog(bot, bot, dct, SPEC_LABEL);
         return true;
     }
 
@@ -271,7 +266,7 @@ bool AffWarlockStrategy::DoDefensives(Player* bot)
         && bot->GetHealthPct() < ESCAPE_HP_PCT
         && !IsOnCooldown(bot, hot))
     {
-        bot->CastSpell(bot, hot, false);
+        StrategyUtil::CastWithLog(bot, bot, hot, SPEC_LABEL);
         return true;
     }
 
@@ -281,7 +276,7 @@ bool AffWarlockStrategy::DoDefensives(Player* bot)
     {
         if (Unit* victim = bot->GetVictim())
         {
-            bot->CastSpell(victim, dc, false);
+            StrategyUtil::CastWithLog(bot, victim, dc, SPEC_LABEL);
             return true;
         }
     }
@@ -382,7 +377,7 @@ bool AffWarlockStrategy::Tier_ShadowBolt(Player* bot, Unit* target, ManaMode mod
         uint32 lt = GetSpell(Spell::LifeTap);
         if (lt && bot->GetHealthPct() > LIFE_TAP_HP_FLOOR && !IsOnCooldown(bot, lt))
         {
-            bot->CastSpell(bot, lt, false);
+            StrategyUtil::CastWithLog(bot, bot, lt, SPEC_LABEL);
             return true;
         }
     }

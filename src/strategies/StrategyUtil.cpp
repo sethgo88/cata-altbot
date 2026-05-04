@@ -121,6 +121,17 @@ bool AllAtFullHp(Player* bot, Player* master, float minPct)
     return allHealthy;
 }
 
+SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId, char const* specLabel)
+{
+    SpellCastResult result = bot->CastSpell(target, spellId, false);
+    if (result != SPELL_CAST_OK)
+    {
+        TC_LOG_INFO("altbot", "%s[%s] CastSpell %u failed: SpellCastResult=%u",
+                    specLabel, bot->GetName().c_str(), spellId, uint32(result));
+    }
+    return result;
+}
+
 uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name)
 {
     if (!bot || !name)

@@ -257,3 +257,111 @@ WotLK functions that do NOT exist in CPP TC 4.3.4: `GetSpecialization()`, `GetTa
 **Status:** Partially resolved — not blocking.
 
 `MaxSecureAddons = 35` (WorldSession.h:1402) = max registered addon prefixes, not payload length. Actual `CHAT_MSG_ADDON` per-message cap not confirmed from source; likely standard 255-char WoW limit. Confirm before implementing Phase 4 chunking logic.
+
+---
+
+## Phase 5 — Strategy Cast Pipeline
+
+Conventions for the per-spec rotation tick (`{Spec}Strategy::Update`),
+discovered while debugging silent rotation failures (Frost Mage spamming
+Frostfire Bolt, warlock/hunter cascades of `SpellCastResult=69`). All four
+existing strategies (Frost Mage, Aff Warlock, MM Hunter, Resto Shaman)
+follow these. See `cata-altbot/CLAUDE.md` "Cast pipeline gotchas" for the
+runnable patterns; this section records the underlying API findings.
+
+### Passive talent / proc aura name collision
+**Status:** Resolved.
+
+Several talent passives share `SpellName` with the proc aura they grant.
+Walking `bot->GetAppliedAuras()` matching by name returns the talent
+(perpetual passive) instead of the proc (consumable buff), making proc
+detection read "always up."
+
+Known pairs (mage):
+- `Fingers of Frost`: 44544 talent / 74396 proc
+- `Brain Freeze`:    44546 talent / 57761 proc
+
+Filter using `SpellInfo::IsPassive()` (SpellInfo.cpp:1354-1356, returns
+`HasAttribute(SPELL_ATTR0_PASSIVE)`) when walking auras by name. Same
+filter is applied at cache-resolution time in
+`StrategyUtil::FindSpellByFamilyName` to handle the mirrored cast-vs-passive
+case in the spellbook (e.g. Molten Armor 30482 cast vs 34913 on-attacker
+fire-damage trigger, both free toggles in Cata so the existing two-pass
+"prefer castable" filter can't disambiguate).
+
+### `Unit::CastSpell` returns `SpellCastResult` — propagate it
+**Status:** Resolved.
+
+`WorldObject::CastSpell` (Object.cpp:2944, signature in Object.h:513)
+returns `SpellCastResult`. Discarding it makes failures invisible — the
+rotation tier chain stops descending as if the cast fired, when actually
+it was rejected at `Spell::prepare` time.
+
+Convention: every cast in any strategy goes through
+`StrategyUtil::CastWithLog(bot, target, spellId, SPEC_LABEL)`
+(StrategyUtil.h/.cpp), which issues `bot->CastSpell` and logs on
+non-`SPELL_CAST_OK`. Each strategy file declares
+`constexpr char const* SPEC_LABEL = "FrostMage"` (or AffWarlock /
+MmHunter / RestoShaman) in its anonymous namespace for the log prefix.
+`TryCast` is a thin wrapper that adds a cooldown precheck and returns
+bool; tier dispatch uses it. Maintenance, pet, and defensive sites
+(which do their own preconditions) call `CastWithLog` directly. There
+must be no `bot->CastSpell(...)` call inside `src/strategies/` outside
+the helper itself.
+
+SpellCastResult numeric codes worth memorizing (`SharedDefines.h`,
+`enum SpellCastResult`):
+- 49  = `SPELL_FAILED_LINE_OF_SIGHT`
+- 53  = `SPELL_FAILED_MOVING`
+- 69  = `SPELL_FAILED_NOT_READY` (typically GCD)
+- 107 = `SPELL_FAILED_SPELL_IN_PROGRESS`
+- 113 = `SPELL_FAILED_TARGET_AURASTATE` (e.g. Deep Freeze needs a frozen target)
+
+### Global cooldown detection
+**Status:** Resolved.
+
+`SpellHistory::HasCooldown(SpellInfo*)` only covers a spell's own recovery
+timer; it does NOT cover the GCD. Use
+`SpellHistory::HasGlobalCooldown(SpellInfo*)` (SpellHistory.h:136,
+implemented at SpellHistory.cpp:622-626), which is keyed by
+`StartRecoveryCategory` (most rotation spells share category 133).
+
+```cpp
+if (uint32 fillerId = GetSpell(Spell::Frostbolt))   // strategy's filler
+{
+    SpellInfo const* fillerInfo = sSpellMgr->GetSpellInfo(fillerId);
+    if (fillerInfo && bot->GetSpellHistory()->HasGlobalCooldown(fillerInfo))
+        return;
+}
+```
+
+Without this guard, every tier issues `CastSpell` during the post-cast
+GCD and the server rejects each with `SPELL_FAILED_NOT_READY` (69),
+producing one log line per tier per tick.
+
+### Cast-in-progress detection
+**Status:** Resolved.
+
+`UNIT_STATE_CASTING` covers regular casts; `Unit::IsNonMeleeSpellCast(false)`
+covers channels (Drain Soul, Mind Flay-style). Use both:
+
+```cpp
+if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
+    return;
+```
+
+Without it, a 2.5s Frostbolt / Shadow Bolt / Healing Wave gets re-issued
+every server tick, producing `SPELL_FAILED_SPELL_IN_PROGRESS` (107) until
+the cast resolves.
+
+### `MotionMaster::MoveChase` always Mutates a fresh generator
+**Status:** Resolved.
+
+`MoveChase` (MotionMaster.cpp:271-279) always
+`Mutate(new ChaseMovementGenerator(...))` — replaces the active slot,
+re-initializes pathing, flips `UNIT_STATE_CHASE`. Calling it every tick
+produces transient "moving" state that fails in-progress casts with
+`SPELL_FAILED_MOVING` (53) even when the bot is already in range.
+
+`AltbotPosition::MaintainRange` only re-issues when `dist > range || !HasUnitState(UNIT_STATE_CHASE)` —
+preserve this guard if positioning logic ever changes.

@@ -253,7 +253,7 @@ static void EmitStats(Player* master, Player* target, AltbotAI* targetAi, Player
     if (!master || !target || !targetAi || !via)
         return;
 
-    Powers ptype = target->getPowerType();
+    Powers ptype = target->GetPowerType();
 
     auto crit  = target->GetFloatValue(PLAYER_CRIT_PERCENTAGE);
     auto rcrit = target->GetFloatValue(PLAYER_RANGED_CRIT_PERCENTAGE);
@@ -267,8 +267,8 @@ static void EmitStats(Player* master, Player* target, AltbotAI* targetAi, Player
     auto rngMin  = target->GetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE);
     auto rngMax  = target->GetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE);
 
-    uint32 mainSpeed = target->GetAttackTime(BASE_ATTACK);
-    uint32 rngSpeed  = target->GetAttackTime(RANGED_ATTACK);
+    uint32 mainSpeed = target->GetBaseAttackTime(BASE_ATTACK);
+    uint32 rngSpeed  = target->GetBaseAttackTime(RANGED_ATTACK);
 
     // Haste rating → percentage via the standard rating multiplier helper.
     float meleeHaste = target->GetRatingBonusValue(CR_HASTE_MELEE);

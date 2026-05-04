@@ -128,6 +128,15 @@ void Update(Player* bot, Player* master, AltbotState const& state,
 
     uint32 nowMs = getMSTime();
 
+    // Reset intent to a pointer-free default before strategy runs. This is
+    // load-bearing: if the strategy returns early without calling SetIntent
+    // (e.g. master left combat between this check and the strategy's check),
+    // the manager Tick below would otherwise dereference stale Unit* pointers
+    // from a previous tick — a dangling-pointer crash if those units were
+    // freed in the interim.
+    if (ctx.positionManager)
+        ctx.positionManager->SetIntent(AltbotPositionManager::MakeFollowIntent());
+
     // A spec-specific strategy fully owns the tick when present; the generic
     // scan below is the fallback for specs without a strategy yet. Strategies
     // declare a PositionIntent inside Update; manager runs after to enact it.

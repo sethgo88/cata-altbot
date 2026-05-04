@@ -253,7 +253,6 @@ bool FindSafeRetreatPosition(Player* bot, Unit* anchor, float desiredRange,
     constexpr float kStep  = 2.0f * float(M_PI) / float(kSamples);
 
     int   bestScore = -1;
-    bool  bestLeashOk = false;
     float bestX = 0.0f, bestY = 0.0f, bestZ = 0.0f;
 
     for (int i = 0; i < kSamples; ++i)
@@ -264,34 +263,35 @@ bool FindSafeRetreatPosition(Player* bot, Unit* anchor, float desiredRange,
         float sz = bot->GetPositionZ();
         bot->UpdateAllowedPositionZ(sx, sy, sz);
 
-        if (!IsPathReachable(bot, sx, sy, sz))
-            continue;
-
-        bool leashOk = true;
+        // Leash is a HARD constraint (not a score component). A sample that
+        // violates the leash never qualifies — eat-the-fire fallback in the
+        // caller relies on us returning false when no leash-compliant sample
+        // exists.
         if (leashAnchor && leashRange > 0.0f)
         {
             float ldx = sx - leashAnchor->GetPositionX();
             float ldy = sy - leashAnchor->GetPositionY();
-            float ldist = std::sqrt(ldx * ldx + ldy * ldy);
-            leashOk = (ldist <= leashRange);
+            if (std::sqrt(ldx * ldx + ldy * ldy) > leashRange)
+                continue;
         }
+
+        if (!IsPathReachable(bot, sx, sy, sz))
+            continue;
 
         int score = 0;
         if (CountIdleHostilesNear(bot, sx, sy, sz, 2.0f) == 0) score += 4;
         if (anchor->IsWithinLOS(sx, sy, sz))                   score += 3;
-        if (leashOk)                                           score += 5;
         float ddx = sx - bx, ddy = sy - by;
         if (std::sqrt(ddx * ddx + ddy * ddy) > 3.0f)           score += 1;
 
         if (score > bestScore)
         {
-            bestScore   = score;
-            bestLeashOk = leashOk;
+            bestScore = score;
             bestX = sx; bestY = sy; bestZ = sz;
         }
     }
 
-    if (bestScore < 0 || !bestLeashOk)
+    if (bestScore < 0)
         return false;
 
     outX = bestX;

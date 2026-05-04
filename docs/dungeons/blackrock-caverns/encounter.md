@@ -374,7 +374,7 @@ mechanics:
     cadence_heroic: ~8-10s
 
   - name: Cinderbreath
-    spell_id: 75763                      # UNVERIFIED — collision with Obsidius spell
+    spell_id: 75763                      # ID WRONG 2026-05-03: Spell.dbc 75763 = "Umbral Mending" (heals target for % max health) — unrelated to Karsh. Find correct ID via .lookup spell in-game
     cast_by: karsh_steelbender
     cast_kind: cast
     target: frontal_cone
@@ -594,7 +594,7 @@ mechanics:
     stack_count_for_swap_normal: UNVERIFIED   # 3 vs 5 vs irrelevant — see survey Disagreement #7
 
   - name: Crepuscular Veil (debuff on player)
-    spell_id: 75476                      # UNVERIFIED
+    spell_id: 75476                      # ID WRONG 2026-05-03: Spell.dbc 75476 = "Dusk Shroud" (AoE shadow damage aura on caster) — not a player debuff. Dispel-blacklist entry below uses this wrong ID. Find correct ID via .lookup spell in-game
     cast_by: obsidius
     cast_kind: scripted
     target: ally_random_non_tank
@@ -619,7 +619,7 @@ mechanics:
     cadence: every ~30-45s (UNVERIFIED)
 
   - name: Shadow Prison / shadow puddles
-    spell_id: 75763                      # UNVERIFIED — collision with Karsh Cinderbreath; resolve in DBC
+    spell_id: 75763                      # ID WRONG 2026-05-03: Spell.dbc 75763 = "Umbral Mending" (% health heal) — may be Shadow of Obsidius self-heal, NOT the clone-activation trigger. Find correct ID via .lookup spell in-game
     cast_by: shadow_of_obsidius
     cast_kind: passive
     target: ground_around_clone
@@ -679,7 +679,7 @@ instance_wide:
   poison_dispel_required: false
   magic_dispel_required: false              # only on Obsidius and BLACKLISTED there
   dispel_blacklist:
-    - { spell_id: 75476, name: Crepuscular Veil, reason: Obsidius swap mechanic }
+    - { spell_id: 75476, name: Crepuscular Veil, reason: Obsidius swap mechanic }  # ID WRONG — 75476 is "Dusk Shroud" (AoE aura); real Crepuscular Veil ID unknown. DO NOT ship until corrected
   group_buff_anomaly: none
   required_consumables: standard (flask + food + pots per spec)
 ```

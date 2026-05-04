@@ -15,20 +15,18 @@ static constexpr uint32 SHAMAN_TREE_ELEMENTAL    = 261;
 static constexpr uint32 SHAMAN_TREE_ENHANCEMENT  = 263;
 static constexpr uint32 SHAMAN_TREE_RESTORATION  = 262;
 
-// TalentTab.dbc IDs for the new specs. Standard Cata 4.3.4 values; verify via
-// WDBXEditor before merge to catch any private-build divergence (the same
-// process used for the shaman trees above).
-static constexpr uint32 WARLOCK_TREE_AFFLICTION  = 302;
-static constexpr uint32 WARLOCK_TREE_DEMONOLOGY  = 303;
-static constexpr uint32 WARLOCK_TREE_DESTRUCTION = 301;
+// TalentTab.dbc IDs verified 2026-05-03 via WDBXEditor CSV export.
+static constexpr uint32 WARLOCK_TREE_AFFLICTION  = 871;
+static constexpr uint32 WARLOCK_TREE_DEMONOLOGY  = 867;
+static constexpr uint32 WARLOCK_TREE_DESTRUCTION = 865;
 
-static constexpr uint32 MAGE_TREE_ARCANE         =  81;
-static constexpr uint32 MAGE_TREE_FIRE           =  41;
-static constexpr uint32 MAGE_TREE_FROST          =  61;
+static constexpr uint32 MAGE_TREE_ARCANE         = 799;
+static constexpr uint32 MAGE_TREE_FIRE           = 851;
+static constexpr uint32 MAGE_TREE_FROST          = 823;
 
-static constexpr uint32 HUNTER_TREE_BEAST        =  50;
-static constexpr uint32 HUNTER_TREE_MARKSMANSHIP =  51;
-static constexpr uint32 HUNTER_TREE_SURVIVAL     = 163;
+static constexpr uint32 HUNTER_TREE_BEAST        = 811;
+static constexpr uint32 HUNTER_TREE_MARKSMANSHIP = 807;
+static constexpr uint32 HUNTER_TREE_SURVIVAL     = 809;
 
 static std::string SlugFromBot(Player* bot)
 {

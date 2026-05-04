@@ -38,8 +38,8 @@ Every `docs/specs/<spec>.md` has an `## UNVERIFIED items` table at the bottom. E
 ### Dungeon bundles (2)
 - `docs/dungeons/throne-of-the-tides/encounter.md` — 16 mechanic spell IDs, mostly Wowhead-verified
 - `docs/dungeons/blackrock-caverns/encounter.md` + `docs/research/blackrock-caverns-guide-survey.md` — 18 items including:
-  - **Spell ID 75763 collision** — same ID attributed to both Karsh Cinderbreath AND Obsidius shadow puddle. **At least one is wrong; resolve early.**
-  - **Crepuscular Veil 75476** — hardcoded as dispel-blacklist entry; if ID is wrong, bot will dispel the debuff and break the swap mechanic. **Runtime correctness; resolve early.**
+  - **Spell ID 75763** — ⚠️ DBC CHECKED 2026-05-03: row 75763 = `"Umbral Mending"` (heals target for % max health). Matches neither Karsh's lava-kite mechanic nor Obsidius clone-activation. **Both doc entries using this ID are wrong.** Find correct IDs via `.lookup spell` in-game.
+  - **Crepuscular Veil 75476** — ⚠️ DBC CHECKED 2026-05-03: row 75476 = `"Dusk Shroud"` (AoE shadow damage aura on caster). NOT a player debuff. **Dispel-blacklist entry in encounter.md uses this wrong ID — bot will fail to protect the correct debuff.** Find real Crepuscular Veil ID via `.lookup spell Crepuscular` in-game before shipping encounter logic.
 
 ---
 
@@ -314,8 +314,10 @@ These are not DBC items but live in the same TC-fork session because they need t
   `talentId` is the `Talent.dbc` row ID; `talentRank` is 0-based rank index.
   Talent/spec query API also confirmed: `GetActiveSpec()` (Player.h:1580) + `GetPrimaryTalentTree(uint8 spec)` (Player.h:1578).
 
-- **Addon-message prefix max length + per-message size cap** ⚠️ partially resolved:
-  `MaxSecureAddons = 35` (WorldSession.h:1402) = max number of *registered* addon prefixes, not message payload length. Actual `CHAT_MSG_ADDON` payload cap not found in source grep — likely follows standard WoW 255-char limit. Confirm with in-game `.send` test or grep `CHAT_MSG_ADDON` in WorldSession.cpp before designing Phase 4 chunking. Not blocking current work.
+- ✅ **Addon-message prefix max length + per-message size cap** — resolved 2026-05-03 via `ChatHandler.cpp::HandleAddonMessagechatOpcode`:
+  - **Message**: 9-bit length field → **511 chars max**, no secondary length validation in source.
+  - **Prefix**: 5-bit field but server enforces `prefix.length() > 16` → **16 chars max**.
+  - Design Phase 4 chunking around 511-char message and 16-char prefix limits (not 255).
 
 ---
 
@@ -325,19 +327,17 @@ Added 2026-05-03 alongside the warlock / mage / hunter strategies. These are fac
 
 | Constant | Class | Tree | Encoded value | DBC field |
 |---|---|---|---|---|
-| `WARLOCK_TREE_AFFLICTION` | Warlock | Affliction | 302 | `TalentTab.dbc` row whose `ClassMask` matches CLASS_WARLOCK (8) and is the "Affliction" tab |
-| `WARLOCK_TREE_DEMONOLOGY` | Warlock | Demonology | 303 | same DBC, "Demonology" tab |
-| `WARLOCK_TREE_DESTRUCTION` | Warlock | Destruction | 301 | same DBC, "Destruction" tab |
-| `MAGE_TREE_ARCANE` | Mage | Arcane | 81 | `TalentTab.dbc` ClassMask CLASS_MAGE (4) |
-| `MAGE_TREE_FIRE` | Mage | Fire | 41 | same DBC |
-| `MAGE_TREE_FROST` | Mage | Frost | 61 | same DBC |
-| `HUNTER_TREE_BEAST` | Hunter | Beast Mastery | 50 | `TalentTab.dbc` ClassMask CLASS_HUNTER (32) |
-| `HUNTER_TREE_MARKSMANSHIP` | Hunter | Marksmanship | 51 | same DBC |
-| `HUNTER_TREE_SURVIVAL` | Hunter | Survival | 163 | same DBC |
+| `WARLOCK_TREE_AFFLICTION` | Warlock | Affliction | ~~302~~ **871** ✅ | verified 2026-05-03 |
+| `WARLOCK_TREE_DEMONOLOGY` | Warlock | Demonology | ~~303~~ **867** ✅ | verified 2026-05-03 |
+| `WARLOCK_TREE_DESTRUCTION` | Warlock | Destruction | ~~301~~ **865** ✅ | verified 2026-05-03 |
+| `MAGE_TREE_ARCANE` | Mage | Arcane | ~~81~~ **799** ✅ | verified 2026-05-03 |
+| `MAGE_TREE_FIRE` | Mage | Fire | ~~41~~ **851** ✅ | verified 2026-05-03 |
+| `MAGE_TREE_FROST` | Mage | Frost | ~~61~~ **823** ✅ | verified 2026-05-03 |
+| `HUNTER_TREE_BEAST` | Hunter | Beast Mastery | ~~50~~ **811** ✅ | verified 2026-05-03 |
+| `HUNTER_TREE_MARKSMANSHIP` | Hunter | Marksmanship | ~~51~~ **807** ✅ | verified 2026-05-03 |
+| `HUNTER_TREE_SURVIVAL` | Hunter | Survival | ~~163~~ **809** ✅ | verified 2026-05-03 |
 
-**Symptom if wrong:** the strategy factory will return `nullptr` for an affected bot and fall back to `AltbotCombat`'s generic heal/damage scan — the bot will still function but won't run its tier rotation.
-
-**How to verify (Windows):** open `<TC server build>/dbc/enUS/TalentTab.dbc` in WDBXEditor, filter rows by ClassMask, read the row IDs against the `Name_lang` column. Update the constants in `src/AltbotStrategyFactory.cpp` if any diverge.
+**✅ Resolved 2026-05-03** — all 9 constants were wrong. Corrected in `src/AltbotStrategyFactory.cpp`. All original values (302/303/301, 81/41/61, 50/51/163) appear to have been placeholder/WotLK-era IDs.
 
 ---
 

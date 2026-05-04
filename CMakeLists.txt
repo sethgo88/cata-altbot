@@ -16,6 +16,7 @@ set(altbot_SOURCES
     src/AltbotAI.cpp
     src/AltbotAssist.cpp
     src/AltbotPosition.cpp
+    src/AltbotPositionManager.cpp
     src/AltbotCombat.cpp
     src/AltbotCommands.cpp
     src/AltbotCommandTable.cpp

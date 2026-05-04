@@ -28,4 +28,37 @@ namespace AltbotPosition
     // on this server when the target is within ~8y. Issued via MovePoint,
     // replacing any active chase generator.
     void BackUpToRange(Player* bot, Unit* anchor, float desiredRange);
+
+    // True when bot has line-of-sight to target. Wraps WorldObject::IsWithinLOSInMap
+    // with default checks. Cheap-but-not-free (VMAP raycast); manager throttles.
+    bool HasLineOfSight(Player* bot, Unit* target);
+
+    // Sample 8 points on a ring of radius `desiredRange` around `target`. For
+    // each: snap Z to terrain, validate target-LOS, validate reachability via
+    // PathGenerator. Returns first passing sample in (outX/Y/Z); false if none.
+    // Start from the angle closest to current target→bot vector and rotate
+    // outward in alternating ±directions (prefers staying near current spot).
+    bool FindLOSPosition(Player* bot, Unit* target, float desiredRange,
+                         float& outX, float& outY, float& outZ);
+
+    // Count hostile creatures within their own (level-aware) aggro radius of
+    // `point`, filtered to alive + not-in-combat + hostile-to-bot. `buffer` is
+    // added to each creature's GetAggroRange(bot) for slack.
+    // For idle-pack avoidance: a path crossing any nonzero count is unsafe.
+    int CountIdleHostilesNear(Player* bot, float x, float y, float z, float buffer);
+
+    // Sample 4 evenly-spaced points along (from→to) segment; reject if any
+    // sample sees an idle hostile within its aggro range + 2y. Conservative
+    // by design: false-positive = extra second of pathing, false-negative = wipe.
+    bool IsPathSafe(Player* bot,
+                    float fromX, float fromY, float fromZ,
+                    float toX,   float toY,   float toZ);
+
+    // Sample 12 ring points around `anchor` at `desiredRange`; score each on
+    // {outside-idle-packs, has-LOS-to-anchor, inside-leash, moved-far-enough}.
+    // Picks the highest-scoring sample. If best sample violates the leash,
+    // returns false — caller should "eat the fire" rather than break the leash.
+    bool FindSafeRetreatPosition(Player* bot, Unit* anchor, float desiredRange,
+                                 Unit* leashAnchor, float leashRange,
+                                 float& outX, float& outY, float& outZ);
 }

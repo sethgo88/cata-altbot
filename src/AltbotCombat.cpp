@@ -1,5 +1,6 @@
 #include "AltbotCombat.h"
 #include "AltbotAssist.h"
+#include "AltbotPositionManager.h"
 #include "AltbotStrategy.h"
 #include "AltbotTickContext.h"
 #include "Log.h"
@@ -8,6 +9,7 @@
 #include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
+#include "Timer.h"
 #include "Unit.h"
 
 static constexpr float HEAL_THRESHOLD_PCT = 70.0f;
@@ -102,6 +104,21 @@ static uint32 FindBestDamageSpell(Player* bot)
     return bestSpell;
 }
 
+// Synthesize a default intent for bots without a spec-specific strategy.
+// Caster classes get ranged-DPS positioning against master's victim; melee
+// classes (and casters with no target) defer to follow logic.
+static AltbotPosition::PositionIntent SynthesizeFallbackIntent(Player* bot, Player* master)
+{
+    Unit* target = master ? master->GetVictim() : nullptr;
+    uint8 cls = bot->getClass();
+    bool isCaster = (cls == CLASS_MAGE   || cls == CLASS_PRIEST  ||
+                     cls == CLASS_WARLOCK || cls == CLASS_DRUID  ||
+                     cls == CLASS_SHAMAN);
+    if (isCaster && target)
+        return AltbotPositionManager::MakeRangedDpsIntent(target, master);
+    return AltbotPositionManager::MakeFollowIntent();
+}
+
 void Update(Player* bot, Player* master, AltbotState const& state,
             AltbotTickContext const& ctx, AltbotStrategy* strategy)
 {
@@ -109,12 +126,25 @@ void Update(Player* bot, Player* master, AltbotState const& state,
     if (!master->IsInCombat())
         return;
 
+    uint32 nowMs = getMSTime();
+
     // A spec-specific strategy fully owns the tick when present; the generic
-    // scan below is the fallback for specs without a strategy yet.
+    // scan below is the fallback for specs without a strategy yet. Strategies
+    // declare a PositionIntent inside Update; manager runs after to enact it.
     if (strategy)
     {
         strategy->Update(bot, master, ctx);
+        if (ctx.positionManager)
+            ctx.positionManager->Tick(master, ctx, nowMs);
         return;
+    }
+
+    // No strategy: synthesize a default intent and let the manager handle
+    // positioning before the generic damage scan runs.
+    if (ctx.positionManager)
+    {
+        ctx.positionManager->SetIntent(SynthesizeFallbackIntent(bot, master));
+        ctx.positionManager->Tick(master, ctx, nowMs);
     }
 
     // Heal master if health is low

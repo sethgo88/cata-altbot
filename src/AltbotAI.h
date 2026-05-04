@@ -1,4 +1,5 @@
 #pragma once
+#include "AltbotPositionManager.h"
 #include "AltbotState.h"
 #include "AltbotStrategy.h"
 #include "AltbotStrategyFactory.h"
@@ -17,6 +18,8 @@ public:
     AltbotAI(WorldSession* botSession, ObjectGuid masterGuid, ObjectGuid botGuid);
 
     void Update(uint32 diff);
+
+    AltbotPositionManager& PositionManager() { return _positionManager; }
 
     WorldSession* GetSession()    const { return _botSession; }
     ObjectGuid    GetMasterGuid() const { return _masterGuid; }
@@ -98,4 +101,10 @@ private:
     // skipped. Lets the teleport land cleanly without the strategy's
     // MaintainRange immediately re-chasing the master's old target.
     uint32 _summonPinRemainingMs = 0;
+
+    // Owns positioning state across ticks (LOS cache, fire-detect HP samples,
+    // emergency-move cooldown). Nullary-constructible Reset() handles
+    // re-init; bot pointer is populated lazily on first Update().
+    AltbotPositionManager _positionManager{nullptr};
+    bool _positionManagerBound = false;
 };

@@ -1,5 +1,6 @@
 #include "FrostMageStrategy.h"
 #include "AltbotPosition.h"
+#include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -97,8 +98,14 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
     if (!master->IsInCombat())
         return;
 
-    if (target)
-        AltbotPosition::MaintainRange(bot, target, CASTER_RANGE);
+    // Positioning is handled by AltbotPositionManager after Update returns.
+    // Strategy declares its intent here (anchor + LOS + leash); the manager
+    // runs LOS recovery, idle-pack avoidance, leash check, and chase.
+    if (target && ctx.positionManager)
+        ctx.positionManager->SetIntent(
+            AltbotPositionManager::MakeRangedDpsIntent(target, master));
+    else if (ctx.positionManager)
+        ctx.positionManager->SetIntent(AltbotPositionManager::MakeFollowIntent());
 
     if (DoDefensives(bot)) { TC_LOG_INFO("altbot", "FrostMage[%s] tick: defensive", bot->GetName().c_str()); return; }
 

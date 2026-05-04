@@ -1,4 +1,5 @@
 #include "RestoShamanStrategy.h"
+#include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -58,6 +59,19 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
     }
 
     DoMaintenance(bot, master);
+
+    // Healer positioning: anchor on lowest-HP ally (or master fallback),
+    // collapse to Chain Heal range when 3+ allies are injured. Manager runs
+    // after Update returns and enforces a 6y leash to master.
+    if (ctx.positionManager)
+    {
+        Player* lowest = StrategyUtil::FindLowestHpAlly(bot, master);
+        bool stack = StrategyUtil::CountInjured(bot, master, CHAIN_HEAL_TRIGGER_HP)
+                     >= CHAIN_HEAL_MIN_INJURED;
+        Unit* anchor = lowest ? static_cast<Unit*>(lowest) : static_cast<Unit*>(master);
+        ctx.positionManager->SetIntent(
+            AltbotPositionManager::MakeHealerIntent(anchor, master, stack));
+    }
 
     ManaMode mode = GetManaMode(bot);
     CheckCooldowns(bot, mode);

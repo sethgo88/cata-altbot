@@ -1,5 +1,6 @@
 #include "AffWarlockStrategy.h"
 #include "AltbotPosition.h"
+#include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -79,8 +80,14 @@ void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext c
     if (!master->IsInCombat())
         return;
 
-    if (target)
-        AltbotPosition::MaintainRange(bot, target, CASTER_RANGE);
+    // Positioning is owned by AltbotPositionManager (called from
+    // AltbotCombat::Update after Update returns). Strategy declares its
+    // intent here; manager handles LOS recovery, idle-pack avoidance, leash.
+    if (target && ctx.positionManager)
+        ctx.positionManager->SetIntent(
+            AltbotPositionManager::MakeRangedDpsIntent(target, master));
+    else if (ctx.positionManager)
+        ctx.positionManager->SetIntent(AltbotPositionManager::MakeFollowIntent());
 
     if (DoDefensives(bot))
         return;

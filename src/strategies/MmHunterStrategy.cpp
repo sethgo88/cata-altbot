@@ -1,5 +1,6 @@
 #include "MmHunterStrategy.h"
 #include "AltbotPosition.h"
+#include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -86,22 +87,22 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
     if (!master->IsInCombat())
         return;
 
-    if (target)
+    // Positioning intent: dead-zone escape is handled by the manager (which
+    // also enforces the master-stack-range check before backing up — same
+    // semantics as the previous inline branch).
+    if (target && ctx.positionManager)
     {
-        // Dead-zone escape: hunter shots reject with SPELL_FAILED_TOO_CLOSE
-        // (130) inside ~8y on this server. Back up along the target→bot
-        // vector so we can fire. Skip if the master is also in melee range
-        // (stack mechanic — don't break formation just to fire shots; the
-        // auto-attack will keep ticking damage in the meantime).
-        float distToTarget = bot->GetDistance(target);
-        if (distToTarget < SHOT_DEAD_ZONE
-            && master->GetDistance(target) > MASTER_STACK_RANGE)
-        {
-            AltbotPosition::BackUpToRange(bot, target, SHOT_DEAD_ZONE_BACKUP);
-            return;   // skip rotation this tick — moving
-        }
-
-        AltbotPosition::MaintainRange(bot, target, CASTER_RANGE);
+        AltbotPosition::PositionIntent intent =
+            AltbotPositionManager::MakeRangedDpsIntent(target, master);
+        intent.requireDeadZoneEscape = true;
+        intent.deadZoneInner   = SHOT_DEAD_ZONE;
+        intent.deadZoneBackup  = SHOT_DEAD_ZONE_BACKUP;
+        intent.masterStackRange = MASTER_STACK_RANGE;
+        ctx.positionManager->SetIntent(intent);
+    }
+    else if (ctx.positionManager)
+    {
+        ctx.positionManager->SetIntent(AltbotPositionManager::MakeFollowIntent());
     }
 
     // Misdirection on tank fires regardless of threat-window gate — it's

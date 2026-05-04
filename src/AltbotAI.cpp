@@ -13,6 +13,7 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
+#include "Timer.h"
 #include "WorldSession.h"
 
 static constexpr uint32 FOLLOW_INTERVAL_MS = 1000;
@@ -59,6 +60,20 @@ void AltbotAI::Update(uint32 diff)
     // Bot player may still be loading from DB — wait until it's in the world
     if (!bot->IsInWorld())
         return;
+
+    // Position manager is constructed before bot exists; bind on first valid
+    // tick (and reset HP-delta state). Re-bind each tick afterwards so a
+    // re-spawned Player* never leaves a stale pointer in the manager.
+    if (!_positionManagerBound)
+    {
+        _positionManager.Bind(bot);
+        _positionManager.Reset();
+        _positionManagerBound = true;
+    }
+    else
+    {
+        _positionManager.Bind(bot);
+    }
 
     Player* master = ObjectAccessor::FindPlayer(_masterGuid);
     if (!master || !master->IsInWorld())
@@ -115,12 +130,15 @@ void AltbotAI::Update(uint32 diff)
     }
 
     AltbotTickContext ctx;
-    ctx.combatElapsedMs = _combatElapsedMs;
+    ctx.combatElapsedMs  = _combatElapsedMs;
+    ctx.positionManager  = &_positionManager;
     if (Map* map = bot->GetMap())
     {
         ctx.inDungeon = map->IsDungeon() && !map->IsRaid();
         ctx.inRaid    = map->IsRaid();
     }
+
+    uint32 nowMs = getMSTime();
 
     // Decrement the post-summon pin so combat + follow ticks below skip
     // for the configured duration after a Summon. This is what makes
@@ -167,6 +185,12 @@ void AltbotAI::Update(uint32 diff)
         if (_state.mode == AltbotMode::Follow && bot->IsAlive() && !followGated
             && _summonPinRemainingMs == 0)
             AltbotFollow::Update(bot, master);
+
+        // Fast positioning pass: only samples HP for the reactive-fire
+        // detector. Lets us trip the fire flag at 1000ms cadence while the
+        // expensive Tick (LOS / chase / leash) stays on the 1500ms combat tick.
+        if (bot->IsAlive() && followGated && _summonPinRemainingMs == 0)
+            _positionManager.FastTick(master, nowMs);
     }
 
     _combatTimer = (_combatTimer > diff) ? _combatTimer - diff : 0;

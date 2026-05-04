@@ -300,14 +300,14 @@ void AltbotMgr::PersistState(AltbotAI const& ai)
 
     CharacterDatabase.Execute(
         ("INSERT INTO character_altbot_state "
-         "(bot_guid, mode, assist_mode, role_override, auto_loot, auto_pass, auto_mount, auto_release, auto_quest_take, auto_quest_turn_in) "
+         "(bot_guid, mode, assist_mode, role_override, auto_loot, loot_roll, auto_mount, auto_release, auto_quest_take, auto_quest_turn_in) "
          "VALUES (" +
          std::to_string(ai.GetBotGuid().GetCounter()) + ", " +
          std::to_string(uint32(s.mode))            + ", " +
          std::to_string(uint32(s.assist))          + ", " +
          std::to_string(uint32(s.roleOverride))    + ", " +
          std::to_string(s.autoLoot         ? 1 : 0) + ", " +
-         std::to_string(s.autoPass         ? 1 : 0) + ", " +
+         std::to_string(uint32(s.lootRoll))         + ", " +
          std::to_string(s.autoMount        ? 1 : 0) + ", " +
          std::to_string(s.autoRelease      ? 1 : 0) + ", " +
          std::to_string(s.autoQuestTake    ? 1 : 0) + ", " +
@@ -317,7 +317,7 @@ void AltbotMgr::PersistState(AltbotAI const& ai)
          "assist_mode        = VALUES(assist_mode), "
          "role_override      = VALUES(role_override), "
          "auto_loot          = VALUES(auto_loot), "
-         "auto_pass          = VALUES(auto_pass), "
+         "loot_roll          = VALUES(loot_roll), "
          "auto_mount         = VALUES(auto_mount), "
          "auto_release       = VALUES(auto_release), "
          "auto_quest_take    = VALUES(auto_quest_take), "
@@ -347,7 +347,7 @@ void AltbotMgr::SetBotSpec(ObjectGuid masterGuid, ObjectGuid botGuid, std::strin
 void AltbotMgr::LoadState(AltbotAI& ai)
 {
     QueryResult result = CharacterDatabase.Query(
-        ("SELECT mode, assist_mode, role_override, auto_loot, auto_pass, auto_mount, auto_release, auto_quest_take, auto_quest_turn_in "
+        ("SELECT mode, assist_mode, role_override, auto_loot, loot_roll, auto_mount, auto_release, auto_quest_take, auto_quest_turn_in "
          "FROM character_altbot_state WHERE bot_guid = " +
          std::to_string(ai.GetBotGuid().GetCounter())).c_str());
 
@@ -360,7 +360,7 @@ void AltbotMgr::LoadState(AltbotAI& ai)
     s.assist           = AltbotAssistMode(f[1].GetUInt8());
     s.roleOverride     = AltbotRoleOverride(f[2].GetUInt8());
     s.autoLoot         = f[3].GetUInt8() != 0;
-    s.autoPass         = f[4].GetUInt8() != 0;
+    s.lootRoll         = AltbotLootRollMode(f[4].GetUInt8());
     s.autoMount        = f[5].GetUInt8() != 0;
     s.autoRelease      = f[6].GetUInt8() != 0;
     s.autoQuestTake    = f[7].GetUInt8() != 0;

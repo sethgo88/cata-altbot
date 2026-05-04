@@ -150,7 +150,7 @@ void PushState(AltbotAI const& ai)
         << ";assist="  << uint32(s.assist)
         << ";role="    << uint32(s.roleOverride)
         << ";loot="    << (s.autoLoot         ? 1 : 0)
-        << ";pass="    << (s.autoPass         ? 1 : 0)
+        << ";roll="    << uint32(s.lootRoll)
         << ";mount="   << (s.autoMount        ? 1 : 0)
         << ";release=" << (s.autoRelease      ? 1 : 0)
         << ";qtake="   << (s.autoQuestTake    ? 1 : 0)
@@ -248,12 +248,20 @@ static void ApplyToggleByKey(AltbotAI* ai, std::string_view key, bool value)
     ai->MutateState([&](AltbotState& s)
     {
         if      (key == "loot")    s.autoLoot         = value;
-        else if (key == "pass")    s.autoPass         = value;
         else if (key == "mount")   s.autoMount        = value;
         else if (key == "release") s.autoRelease      = value;
         else if (key == "qtake")   s.autoQuestTake    = value;
         else if (key == "qturn")   s.autoQuestTurnIn  = value;
     });
+}
+
+// Loot-roll mode: tri-state, not a boolean — its own SET_ROLL verb instead
+// of routing through SET_TOGGLE.
+static AltbotLootRollMode ParseLootRollMode(std::string const& s)
+{
+    if (s == "pass")                          return AltbotLootRollMode::Pass;
+    if (s == "de" || s == "disenchant")       return AltbotLootRollMode::Disenchant;
+    return AltbotLootRollMode::Wait;
 }
 
 static void DoSetToggle(Player* master, Player* bot, std::vector<std::string> const& parts)
@@ -295,6 +303,19 @@ static void DoSetAssist(Player* master, Player* bot, std::vector<std::string> co
     else                            m = AltbotAssistMode::Both;
 
     targetAi->MutateState([m](AltbotState& s) { s.assist = m; });
+    PushState(*targetAi);
+
+    (void)bot;
+}
+
+static void DoSetRoll(Player* master, Player* bot, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 3) return;
+    AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
+    if (!targetAi) return;
+
+    AltbotLootRollMode m = ParseLootRollMode(parts[2]);
+    targetAi->MutateState([m](AltbotState& s) { s.lootRoll = m; });
     PushState(*targetAi);
 
     (void)bot;
@@ -417,6 +438,18 @@ static void DoSetAssistAll(Player* master, std::vector<std::string> const& parts
     });
 }
 
+static void DoSetRollAll(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 2) return;
+    AltbotLootRollMode m = ParseLootRollMode(parts[1]);
+
+    ForEachActiveBot(master, [m](AltbotAI* ai, Player*)
+    {
+        ai->MutateState([m](AltbotState& s) { s.lootRoll = m; });
+        PushState(*ai);
+    });
+}
+
 static void DoSetToggleAll(Player* master, std::vector<std::string> const& parts)
 {
     if (parts.size() < 3) return;
@@ -518,6 +551,8 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoSetToggle(master, transport, parts);
     else if (verb == "SET_ASSIST")
         DoSetAssist(master, transport, parts);
+    else if (verb == "SET_ROLL")
+        DoSetRoll(master, transport, parts);
     else if (verb == "EQUIP" || verb == "SELL" || verb == "DROP" || verb == "TRADE")
         DoInventoryVerb(master, verb, parts);
     else if (verb == "LEARN_TALENT")
@@ -530,6 +565,8 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoSetModeAll(master, parts);
     else if (verb == "SET_ASSIST_ALL")
         DoSetAssistAll(master, parts);
+    else if (verb == "SET_ROLL_ALL")
+        DoSetRollAll(master, parts);
     else if (verb == "SET_TOGGLE_ALL")
         DoSetToggleAll(master, parts);
     else if (verb == "ATTACK_ALL")

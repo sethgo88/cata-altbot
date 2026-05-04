@@ -1,11 +1,13 @@
 #pragma once
 
 class Player;
+struct AltbotState;
 
-// Auto-loot of nearby corpses the bot is allowed to take from.
-// Currently a stub — the actual loot transfer (scan-and-grab + tap validation)
-// lands in Phase 5 alongside the OnLootRoll auto-pass hook.
+// Auto-loot of nearby corpses the bot is allowed to take from + auto-voting on
+// pending group-loot rolls. Both behaviors gate internally on AltbotState
+// (state.autoLoot for corpse loot, state.lootRoll for roll voting), so the
+// caller can fire Tick unconditionally.
 namespace AltbotLoot
 {
-    void Tick(Player* bot, Player* master);
+    void Tick(Player* bot, Player* master, AltbotState const& state);
 }

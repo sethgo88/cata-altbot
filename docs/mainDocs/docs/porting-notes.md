@@ -354,6 +354,69 @@ Without it, a 2.5s Frostbolt / Shadow Bolt / Healing Wave gets re-issued
 every server tick, producing `SPELL_FAILED_SPELL_IN_PROGRESS` (107) until
 the cast resolves.
 
+### Molten Armor — `IsPassive()` filter doesn't catch the trigger ID
+**Status:** Pending — log spam, not blocking gameplay.
+
+`Molten Armor` resolves to two candidates with the same `SpellName` and
+`SpellFamilyName`:
+- 30482 — the player-castable buff (lvl 34, mana=0, cd=0)
+- 34913 — the on-attacker fire-damage trigger (lvl 54, mana=0, cd=0)
+
+The two-pass "prefer castable (mana cost or cooldown)" filter doesn't
+disambiguate (Cata armor self-buffs are free toggles), and the
+`IsPassive()` filter we added at cache time *also* doesn't drop 34913 —
+suggesting 34913 is not flagged `SPELL_ATTR0_PASSIVE` in this server's
+spell data. The cache picks the higher-level 34913, and
+`DoMaintenance` then attempts to self-cast it every tick; it fails with
+`SpellCastResult=13` (`BAD_TARGETS`) because 34913's implicit target is
+the attacker, not self.
+
+Fix candidates (when we get to it):
+- Stronger filter at cache resolution: require a candidate to have at
+  least one effect of type `SPELL_EFFECT_APPLY_AURA` for armor-class
+  cache slots. The buff (30482) does; the damage trigger (34913) does not.
+- Or: per-strategy override that explicitly picks an ID by attribute
+  shape for armor self-buffs (since they're a known-shape category).
+
+### Summon All: run to master on same map
+**Status:** Pending — ship-as-teleport for now.
+
+The action-bar "Summon All" button currently teleports every active bot
+to the master's location (`AltbotInvite::Summon` — server-side
+`UpdatePosition` for same-map, `TeleportTo` + manual ack for cross-map,
+plus `InterruptNonMeleeSpells` / `CombatStop` so the bot doesn't run
+back to the old pull). The original UX intent was "same map → run on
+foot to me, cross-map → teleport." Deferred because:
+
+- Needs a per-bot `_summonRunningToMaster` flag in `AltbotAI` that
+  overrides combat-tick dispatch (skip strategy `Update`, skip
+  `MaintainRange`, only allow defensives) until the bot reaches an
+  arrival radius near master.
+- Needs interaction with the existing follow gate
+  (`AltbotAI.cpp:149` — `followGated = ctx.InInstance() && master->IsInCombat()`):
+  while the override is active, follow logic must run regardless of the
+  gate, since the whole point is to override combat behavior.
+- "Arrived" radius of ~3y (current `FOLLOW_DIST`) is the natural choice;
+  larger thresholds keep firing the override every tick while the bot
+  jostles near master.
+
+Cross-map case stays as teleport even after this lands — the bot can't
+run to a different map.
+
+### Warlock Demonic Circle: Summon attempted while moving
+**Status:** Pending — log spam, not blocking gameplay.
+
+`AffWarlockStrategy::DoMaintenance` runs every tick and tries to drop
+the Demonic Circle anchor when out of combat. The bot is often moving
+toward the master at that moment, so the cast fails with
+`SpellCastResult=53` (`SPELL_FAILED_MOVING`). Same pattern affects
+warlock Haunt attempts when the bot is mid-chase.
+
+Fix candidate: shared "is the bot moving (movespline active)" guard at
+the top of every strategy's `Update` — same shape as the IsCasting and
+GCD guards. Skips the cast attempt cleanly instead of letting it reject
+with `MOVING`.
+
 ### `MotionMaster::MoveChase` always Mutates a fresh generator
 **Status:** Resolved.
 

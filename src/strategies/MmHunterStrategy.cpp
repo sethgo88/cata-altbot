@@ -22,6 +22,7 @@ namespace
     constexpr float CASTER_RANGE        = 25.0f;
     constexpr float MELEE_NEAR_RADIUS   = 5.0f;
     constexpr int   DISENGAGE_TRIGGER   = 1;
+    constexpr float ESCAPE_HP_PCT       = 60.0f;
 
     constexpr float AOE_RADIUS          = 8.0f;
     constexpr int   AOE_MIN_TARGETS     = 3;
@@ -235,9 +236,17 @@ bool MmHunterStrategy::DoDefensives(Player* bot)
         return true;
     }
 
+    // Disengage only when actually pressured: meleed AND low HP. A single
+    // mob at high HP is a non-event — never displace the bot reflexively,
+    // since stack mechanics (Bronjahm Soulstorm, etc.) require the bot to
+    // stay with the group. The 30y range on shots means a Disengage hop
+    // also pushes the bot out of optimal cast position for no good reason
+    // when HP is fine.
     int meleeNear = AltbotPosition::CountHostilesNear(bot, MELEE_NEAR_RADIUS);
     uint32 dis = GetSpell(Spell::Disengage);
-    if (dis && meleeNear >= DISENGAGE_TRIGGER && !IsOnCooldown(bot, dis))
+    if (dis && meleeNear >= DISENGAGE_TRIGGER
+        && bot->GetHealthPct() < ESCAPE_HP_PCT
+        && !IsOnCooldown(bot, dis))
     {
         StrategyUtil::CastWithLog(bot, bot, dis, SPEC_LABEL);
         return true;

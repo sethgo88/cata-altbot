@@ -106,6 +106,22 @@ bool Summon(Player* master, AltbotAI* ai)
         bot->SetSemaphoreTeleportFar(false);
     }
 
+    // Break any in-progress cast — a 2.5s Frostbolt or 3s Healing Wave
+    // arriving at the new position can SPELL_FAILED_MOVING after the
+    // relocate, and the cast spell-target check may also reference a
+    // unit no longer near the bot.
+    bot->InterruptNonMeleeSpells(false);
+
+    // Drop combat with whatever the bot was engaged with at the old
+    // location. Without this, the strategy's next combat tick sees the
+    // master's old target still at range from the new position, fires
+    // MaintainRange, and the bot immediately MoveChases back toward the
+    // pull — making the summon effectively a no-op visually. Master's
+    // *current* target is re-acquired naturally on the next combat tick
+    // if combat is still active.
+    bot->CombatStop();
+    bot->AttackStop();
+
     // Drop any in-flight motion (follow path, chase, etc.) so the bot doesn't
     // immediately start walking back toward where it was.
     bot->GetMotionMaster()->Clear();

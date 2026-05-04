@@ -181,17 +181,22 @@ function SM:OpenFor(botButton, alt)
         if alt.active then
             addon:Logout(alt.name)
             alt.active = false
+            SM.btnToggle.icon:SetTexture(ICON_LOGIN)
+            SetTip(SM.btnToggle, "Login")
         else
             if alt.registered then addon:Login(alt.name)
             else                   addon:Add  (alt.name) end
             alt.active = true
+            SM.btnToggle.icon:SetTexture(ICON_LOGOUT)
+            SetTip(SM.btnToggle, "Logout")
         end
         -- Immediate repaint of the just-toggled bot's icon — don't wait for the
         -- LIST round-trip. The eventual LIST_DONE will reconcile if the server
         -- disagreed with the optimistic flip.
         if addon.RosterPopout then addon.RosterPopout:Refresh() end
         addon:RefreshAlts()
-        SM:Hide()
+        -- Strip stays open: only the bot's class icon (the strip's trigger)
+        -- closes the strip — clicking actions inside the strip should not.
     end)
 
     self.btnRemove:SetScript("OnClick", function()

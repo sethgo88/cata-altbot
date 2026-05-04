@@ -22,7 +22,8 @@ namespace
     constexpr float CASTER_RANGE        = 25.0f;
     constexpr float MELEE_NEAR_RADIUS   = 8.0f;
     constexpr float CONE_RANGE          = 8.0f;
-    constexpr int   MELEE_TRIGGER_COUNT = 1;
+    constexpr int   MELEE_TRIGGER_COUNT = 2;
+    constexpr float ESCAPE_HP_PCT       = 60.0f;
     constexpr float ICE_BLOCK_HP_PCT    = 20.0f;
 
     constexpr float AOE_RADIUS          = 10.0f;
@@ -253,31 +254,25 @@ bool FrostMageStrategy::DoDefensives(Player* bot)
         return true;
     }
 
+    // Frost Nova → Blink chain only when actually pressured: multiple
+    // meleers AND low HP. A single mob at high HP is a non-event — never
+    // displace the bot reflexively, since stack mechanics (Bronjahm
+    // Soulstorm, etc.) require the bot to stay with the group. The
+    // pushback while casting through close-range single-target attackers
+    // is intended; the rotation handles it (and Cone of Cold cycles as
+    // part of Tier_AoE when the cluster check passes).
     int meleeNear = AltbotPosition::CountHostilesNear(bot, MELEE_NEAR_RADIUS);
-    if (meleeNear < MELEE_TRIGGER_COUNT)
-        return false;
-
-    // Frost Nova → Blink chain. If Frost Nova is up, root the melee then jump.
-    uint32 fn    = GetSpell(Spell::FrostNova);
-    uint32 blink = GetSpell(Spell::Blink);
-    if (fn && !IsOnCooldown(bot, fn))
+    if (meleeNear >= MELEE_TRIGGER_COUNT && bot->GetHealthPct() < ESCAPE_HP_PCT)
     {
-        StrategyUtil::CastWithLog(bot, bot, fn, SPEC_LABEL);
-        if (blink && !IsOnCooldown(bot, blink))
-            StrategyUtil::CastWithLog(bot, bot, blink, SPEC_LABEL);
-        return true;
-    }
-
-    // Cone of Cold as a fallback slow when Frost Nova is on cooldown but
-    // the bot's still meleed (also damages, so no rotation lost).
-    uint32 coc = GetSpell(Spell::ConeOfCold);
-    if (coc && !IsOnCooldown(bot, coc))
-    {
-        // Picks any frontal hostile in cone — pass bot itself for self-cast
-        // origin; CoC applies to nearby enemies in front automatically.
-        if (Unit* victim = bot->GetVictim())
-            StrategyUtil::CastWithLog(bot, victim, coc, SPEC_LABEL);
-        return true;
+        uint32 fn    = GetSpell(Spell::FrostNova);
+        uint32 blink = GetSpell(Spell::Blink);
+        if (fn && !IsOnCooldown(bot, fn))
+        {
+            StrategyUtil::CastWithLog(bot, bot, fn, SPEC_LABEL);
+            if (blink && !IsOnCooldown(bot, blink))
+                StrategyUtil::CastWithLog(bot, bot, blink, SPEC_LABEL);
+            return true;
+        }
     }
 
     return false;

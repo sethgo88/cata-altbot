@@ -47,7 +47,23 @@ cata-altbot/src/
    *encouraged*, not gated. Healers gate only their support-DPS tier.
 5. Ranged casters call `AltbotPosition::MaintainRange(bot, target, 25.0f)` once combat is up.
    Healers don't (they stay near master / party for AoE-heal radius).
-6. **AoE cluster checks (ranged DPS only): anchor on the target, not the bot.**
+6. **Displacement defensives must be HP-gated, not "is something meleeing me?".**
+   Frost Nova → Blink, Disengage, Demonic Circle Teleport, etc. all *move the
+   bot*. Firing them whenever a single hostile is within 8y is wrong — it
+   spam-resets position, skips the rotation that tick (defensive returns
+   `true`), and breaks stack mechanics (Bronjahm Soulstorm, Halfus
+   shadow-nova stack, etc.) where the bot has to stay near the group. Gate
+   on `meleeNear >= 2 && bot->GetHealthPct() < 60.0f` (the warlock pattern
+   — Demonic Circle Teleport / Howl of Terror in `AffWarlockStrategy`). At
+   high HP the bot stays put and casts through pushback; the displacement
+   only triggers when actually pressured. Pure-damage "soft" defensives
+   (Cone of Cold, etc.) that don't move the bot can stay unconditional —
+   but route them through `Tier_AoE` rather than `DoDefensives` so they
+   don't consume the GCD when the rotation could have done more damage.
+   Min-range gating in tier dispatch is *not* needed: Cata removed min-range
+   from the relevant spells, and our cache lookups don't impose one.
+
+7. **AoE cluster checks (ranged DPS only): anchor on the target, not the bot.**
    Use `AltbotPosition::CountHostilesNearUnit(bot, target, radius)` — never
    `CountHostilesNear(bot, radius)` for the AoE-threshold check. The bot stands
    at 25y caster range, so the area around it is empty even when the tank is
@@ -59,7 +75,7 @@ cata-altbot/src/
 
 ## Cast pipeline gotchas
 
-Four traps that have already bitten this code. Every strategy must follow these
+Five traps that have already bitten this code. Every strategy must follow these
 patterns; the existing four (Frost Mage, Aff Warlock, MM Hunter, Resto Shaman)
 are the reference.
 

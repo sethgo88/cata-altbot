@@ -73,6 +73,35 @@ std::vector<BagItem> ListBags(Player* bot)
     return out;
 }
 
+std::vector<EquippedItem> ListEquipped(Player* bot)
+{
+    std::vector<EquippedItem> out;
+    if (!bot)
+        return out;
+
+    for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+    {
+        Item* item = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+        if (!item)
+            continue;
+        ItemTemplate const* tpl = item->GetTemplate();
+        if (!tpl)
+            continue;
+        EquippedItem row;
+        row.slot      = slot;
+        row.entry     = item->GetEntry();
+        row.enchantId = item->GetEnchantmentId(PERM_ENCHANTMENT_SLOT);
+        row.gem1      = item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT);
+        row.gem2      = item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_2);
+        row.gem3      = item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_3);
+        row.ilvl      = tpl->GetBaseItemLevel();
+        row.guidLow   = item->GetGUID().GetCounter();
+        out.push_back(std::move(row));
+    }
+
+    return out;
+}
+
 Item* FindItemInBags(Player* bot, std::string_view query)
 {
     if (!bot || query.empty())

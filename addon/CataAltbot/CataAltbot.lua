@@ -116,6 +116,18 @@ handlers.BAGS_DONE = function(parts)
     if addon.BagsModal then addon.BagsModal:OnBagsDone(parts) end
 end
 
+handlers.GEAR_ROW = function(parts)
+    if addon.CharacterModal then addon.CharacterModal:OnGearRow(parts) end
+end
+
+handlers.GEAR_DONE = function(parts)
+    if addon.CharacterModal then addon.CharacterModal:OnGearDone(parts) end
+end
+
+handlers.STATS = function(parts)
+    if addon.CharacterModal then addon.CharacterModal:OnStats(parts) end
+end
+
 handlers.ERR = function(parts)
     DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot] " .. (parts[2] or "?") ..
         ": " .. (parts[3] or "") .. "|r")
@@ -150,6 +162,10 @@ function addon:Summon(botName)   self:Send(self:AnyActiveBotName(),    "SUMMON|"
 
 function addon:RequestBags(botName)
     self:Send(self:AnyActiveBotName(), "BAGS|" .. botName)
+end
+
+function addon:RequestGear(botName)
+    self:Send(self:AnyActiveBotName(), "GEAR|" .. botName)
 end
 
 function addon:LearnTalent(botName, talentId, rank)
@@ -227,7 +243,7 @@ SlashCmdList["CATAALTBOT"] = function()
 
     -- Diagnostic when the action bar didn't register — almost always means
     -- one or more UI/*.lua files didn't reach the WoW client.
-    local expected = { "ActionBar", "RosterPopout", "BotButton", "BotSubMenu", "RoleMenu", "LootRollMenu", "SpecMenu", "BagsModal", "TalentsModal" }
+    local expected = { "ActionBar", "RosterPopout", "BotButton", "BotSubMenu", "RoleMenu", "LootRollMenu", "SpecMenu", "BagsModal", "TalentsModal", "CharacterModal" }
     local loaded, missing = {}, {}
     for _, k in ipairs(expected) do
         if addon[k] then table.insert(loaded, k) else table.insert(missing, k) end

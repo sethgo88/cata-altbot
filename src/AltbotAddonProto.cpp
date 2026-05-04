@@ -243,6 +243,127 @@ static void DoBags(Player* master, Player* bot, std::vector<std::string> const& 
     Send(bot, master, done.str());
 }
 
+// Single-line `STATS|<botGuid>|kv;kv;...` snapshot, organized into the same
+// categories the in-game character panel exposes (general / melee / ranged /
+// spell / defense). The addon parses the kv blob and renders one category at a
+// time. Fields are emitted unconditionally — empty/zero values just show as 0
+// on the client, which matches Blizzard's panel behavior.
+static void EmitStats(Player* master, Player* target, AltbotAI* targetAi, Player* via)
+{
+    if (!master || !target || !targetAi || !via)
+        return;
+
+    Powers ptype = target->getPowerType();
+
+    auto crit  = target->GetFloatValue(PLAYER_CRIT_PERCENTAGE);
+    auto rcrit = target->GetFloatValue(PLAYER_RANGED_CRIT_PERCENTAGE);
+    auto scrit = target->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1);
+    auto dodge = target->GetFloatValue(PLAYER_DODGE_PERCENTAGE);
+    auto parry = target->GetFloatValue(PLAYER_PARRY_PERCENTAGE);
+    auto block = target->GetFloatValue(PLAYER_BLOCK_PERCENTAGE);
+
+    auto mainMin = target->GetFloatValue(UNIT_FIELD_MINDAMAGE);
+    auto mainMax = target->GetFloatValue(UNIT_FIELD_MAXDAMAGE);
+    auto rngMin  = target->GetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE);
+    auto rngMax  = target->GetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE);
+
+    uint32 mainSpeed = target->GetAttackTime(BASE_ATTACK);
+    uint32 rngSpeed  = target->GetAttackTime(RANGED_ATTACK);
+
+    // Haste rating → percentage via the standard rating multiplier helper.
+    float meleeHaste = target->GetRatingBonusValue(CR_HASTE_MELEE);
+    float rngHaste   = target->GetRatingBonusValue(CR_HASTE_RANGED);
+    float spellHaste = target->GetRatingBonusValue(CR_HASTE_SPELL);
+
+    float meleeHit = target->GetRatingBonusValue(CR_HIT_MELEE);
+    float rngHit   = target->GetRatingBonusValue(CR_HIT_RANGED);
+    float spellHit = target->GetRatingBonusValue(CR_HIT_SPELL);
+
+    float expertise   = target->GetUInt32Value(PLAYER_EXPERTISE) * 0.25f; // 4 expertise = 1%
+    float resilience  = target->GetRatingBonusValue(CR_RESILIENCE_PLAYER_DAMAGE_TAKEN);
+    float mastery     = target->GetFloatValue(PLAYER_MASTERY);
+
+    // Spell power: max across schools — mirrors what the client panel shows.
+    int32 spellPower = 0;
+    for (uint32 sch = SPELL_SCHOOL_HOLY; sch < MAX_SPELL_SCHOOL; ++sch)
+        spellPower = std::max<int32>(spellPower, target->SpellBaseDamageBonusDone(SpellSchoolMask(1 << sch)));
+
+    std::ostringstream s;
+    s << "STATS|" << targetAi->GetBotGuid().GetCounter() << "|"
+      << "level="    << uint32(target->getLevel())
+      << ";ilvl="    << uint32(target->GetAverageItemLevel())
+      << ";hp="      << target->GetHealth()
+      << ";maxhp="   << target->GetMaxHealth()
+      << ";power="   << target->GetPower(ptype)
+      << ";maxpower="<< target->GetMaxPower(ptype)
+      << ";ptype="   << uint32(ptype)
+      << ";str="     << target->GetStat(STAT_STRENGTH)
+      << ";agi="     << target->GetStat(STAT_AGILITY)
+      << ";sta="     << target->GetStat(STAT_STAMINA)
+      << ";int="     << target->GetStat(STAT_INTELLECT)
+      << ";spi="     << target->GetStat(STAT_SPIRIT)
+      << ";armor="   << target->GetArmor()
+      << ";dodge="   << dodge
+      << ";parry="   << parry
+      << ";block="   << block
+      << ";resil="   << resilience
+      << ";ap="      << target->GetTotalAttackPowerValue(BASE_ATTACK)
+      << ";mainmin=" << mainMin
+      << ";mainmax=" << mainMax
+      << ";mainspd=" << mainSpeed
+      << ";meleehit="<< meleeHit
+      << ";crit="    << crit
+      << ";exp="     << expertise
+      << ";meleehaste=" << meleeHaste
+      << ";rap="     << target->GetTotalAttackPowerValue(RANGED_ATTACK)
+      << ";rngmin="  << rngMin
+      << ";rngmax="  << rngMax
+      << ";rngspd="  << rngSpeed
+      << ";rnghit="  << rngHit
+      << ";rngcrit=" << rcrit
+      << ";rnghaste="<< rngHaste
+      << ";sp="      << spellPower
+      << ";spellhit="<< spellHit
+      << ";spellcrit="<< scrit
+      << ";spellhaste="<< spellHaste
+      << ";mastery=" << mastery
+      << ";masteryrating=" << target->GetRatingBonusValue(CR_MASTERY);
+
+    Send(via, master, s.str());
+}
+
+static void DoGear(Player* master, Player* bot, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 2) return;
+
+    AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
+    if (!targetAi) return;
+    Player* target = targetAi->GetSession()->GetPlayer();
+    if (!target) return;
+
+    auto items = AltbotInventory::ListEquipped(target);
+    for (auto const& it : items)
+    {
+        std::ostringstream row;
+        row << "GEAR_ROW|" << targetAi->GetBotGuid().GetCounter()
+            << "|" << uint32(it.slot)
+            << "|" << it.entry
+            << "|" << it.enchantId
+            << "|" << it.gem1
+            << "|" << it.gem2
+            << "|" << it.gem3
+            << "|" << it.ilvl
+            << "|" << it.guidLow;
+        Send(bot, master, row.str());
+    }
+
+    EmitStats(master, target, targetAi, bot);
+
+    std::ostringstream done;
+    done << "GEAR_DONE|" << targetAi->GetBotGuid().GetCounter() << "|" << items.size();
+    Send(bot, master, done.str());
+}
+
 static void ApplyToggleByKey(AltbotAI* ai, std::string_view key, bool value)
 {
     ai->MutateState([&](AltbotState& s)
@@ -522,7 +643,7 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
     // every ALT_ROW would loop into UNKNOWN_VERB → ERR → UNKNOWN_VERB → ...
     static std::unordered_set<std::string> const OUTBOUND_VERBS = {
         "HELLO_OK", "ALT_ROW", "LIST_DONE", "LINK_ROW", "LINKS_DONE",
-        "STATE", "BAG_ROW", "BAGS_DONE", "ERR"
+        "STATE", "BAG_ROW", "BAGS_DONE", "GEAR_ROW", "GEAR_DONE", "STATS", "ERR"
     };
     if (OUTBOUND_VERBS.count(verb))
         return true;
@@ -541,6 +662,8 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoLinks(master, transport);
     else if (verb == "BAGS")
         DoBags(master, transport, parts);
+    else if (verb == "GEAR")
+        DoGear(master, transport, parts);
     else if (verb == "ADD" || verb == "REMOVE" || verb == "LOGIN" || verb == "LOGOUT")
         DoLifecycle(master, verb, parts);
     else if (verb == "INVITE" || verb == "UNINVITE" || verb == "SUMMON")

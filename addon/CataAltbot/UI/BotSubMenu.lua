@@ -3,7 +3,7 @@
 -- Triggered by right-click on a BotButton. Anchored to the right of the
 -- triggering button so it visually extends out of the bot icon.
 --
--- Buttons: [Bags] [Talents] [Spec] [Role] [LootRoll] [Summon] [Login/Logout] [Remove].
+-- Buttons: [Bags] [Character] [Talents] [Spec] [Role] [LootRoll] [Summon] [Login/Logout] [Remove].
 -- Spec opens the existing class-aware UIDropDown; Role opens RoleMenu (a
 -- vertical 3-icon popout for tank/healer/dps); LootRoll opens LootRollMenu
 -- (wait/pass/disenchant); the rest are direct actions.
@@ -53,8 +53,9 @@ local function SetTip(button, title)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
 end
 
-local ICON_BAGS    = "Interface\\Icons\\INV_Misc_Bag_07"
-local ICON_TALENT  = "Interface\\Icons\\Spell_Nature_NatureTouchGrow"
+local ICON_BAGS      = "Interface\\Icons\\INV_Misc_Bag_07"
+local ICON_CHARACTER = "Interface\\Icons\\INV_Shirt_GuildTabard_01"
+local ICON_TALENT    = "Interface\\Icons\\Spell_Nature_NatureTouchGrow"
 local ICON_SPEC    = "Interface\\Icons\\Inv_Inscription_82_Tome_C"
 local ICON_ROLE    = "Interface\\Icons\\Achievement_GuildPerk_HavingaBall"
 local ICON_SUMMON  = "Interface\\Icons\\Spell_Arcane_TeleportShattrath"
@@ -70,8 +71,9 @@ local ICON_ROLL_DE   = "Interface\\Icons\\Inv_Enchant_Disenchant"
 
 -- Build all 8 children once; OpenFor binds them to the active alt.
 
-SM.btnBags     = MakeIconButton(frame, ICON_BAGS);      SetTip(SM.btnBags,     "Bags")
-SM.btnTalents  = MakeIconButton(frame, ICON_TALENT);    SetTip(SM.btnTalents,  "Talents")
+SM.btnBags      = MakeIconButton(frame, ICON_BAGS);      SetTip(SM.btnBags,      "Bags")
+SM.btnCharacter = MakeIconButton(frame, ICON_CHARACTER); SetTip(SM.btnCharacter, "Character")
+SM.btnTalents   = MakeIconButton(frame, ICON_TALENT);    SetTip(SM.btnTalents,   "Talents")
 SM.btnSpec     = MakeIconButton(frame, ICON_SPEC);      SetTip(SM.btnSpec,     "Spec")
 SM.btnRole     = MakeIconButton(frame, ICON_ROLE);      SetTip(SM.btnRole,     "Role")
 SM.btnLootRoll = MakeIconButton(frame, ICON_ROLL_WAIT); SetTip(SM.btnLootRoll, "Loot Roll")
@@ -80,7 +82,7 @@ SM.btnToggle   = MakeIconButton(frame, ICON_LOGIN);     SetTip(SM.btnToggle,   "
 SM.btnRemove   = MakeIconButton(frame, ICON_REMOVE);    SetTip(SM.btnRemove,   "Remove")
 
 -- Layout left → right.
-local children = { SM.btnBags, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLootRoll, SM.btnSummon, SM.btnToggle, SM.btnRemove }
+local children = { SM.btnBags, SM.btnCharacter, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLootRoll, SM.btnSummon, SM.btnToggle, SM.btnRemove }
 for i, b in ipairs(children) do
     if i == 1 then
         b:SetPoint("LEFT", frame, "LEFT", 0, 0)
@@ -139,6 +141,12 @@ function SM:OpenFor(botButton, alt)
     -- Bind all action buttons to this alt.
     self.btnBags:SetScript("OnClick", function()
         if addon.BagsModal then addon.BagsModal:Open(alt.name, alt.guidLow) end
+    end)
+
+    self.btnCharacter:SetScript("OnClick", function()
+        if addon.CharacterModal then
+            addon.CharacterModal:Open(alt.name, alt.guidLow, alt.classId, alt.level)
+        end
     end)
 
     self.btnTalents:SetScript("OnClick", function()

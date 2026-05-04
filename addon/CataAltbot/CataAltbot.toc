@@ -9,6 +9,7 @@
 CataAltbot.lua
 UI\SpecMenu.lua
 UI\BagsModal.lua
+UI\CharacterModal.lua
 UI\TalentsModal.lua
 UI\RoleMenu.lua
 UI\LootRollMenu.lua

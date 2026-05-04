@@ -94,6 +94,13 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
     if (!bot->IsInCombat())
         bot->Attack(target, false);
 
+    // Skip the rotation while a cast is in progress — Steady Shot (2s) and
+    // Aimed Shot (2.4s) are both castable, and re-issuing every tick produces
+    // spurious SPELL_FAILED_SPELL_IN_PROGRESS attempts that stop the tier
+    // chain from descending on the next tick.
+    if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
+        return;
+
     if (Tier_AimedShotProc(bot, target))    return;
     if (Tier_SerpentSting(bot, target))     return;
     if (Tier_ChimeraShot(bot, target))      return;
@@ -148,7 +155,13 @@ bool MmHunterStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    bot->CastSpell(target, id, false);
+    SpellCastResult result = bot->CastSpell(target, id, false);
+    if (result != SPELL_CAST_OK)
+    {
+        TC_LOG_INFO("altbot", "MmHunter[%s] CastSpell %u failed: SpellCastResult=%u",
+                    bot->GetName().c_str(), id, uint32(result));
+        return false;
+    }
     return true;
 }
 
@@ -241,6 +254,8 @@ namespace
             if (!info || !info->SpellName)
                 continue;
             if (info->SpellFamilyName != SPELLFAMILY_HUNTER)
+                continue;
+            if (info->IsPassive())
                 continue;
             if (std::strcmp(info->SpellName, name) == 0)
                 return a;

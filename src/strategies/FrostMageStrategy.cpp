@@ -33,6 +33,10 @@ namespace
 {
     // Look up bot's aura by name (lazy resolution for proc auras whose IDs
     // weren't in the spellbook scan). Returns the aura if present.
+    //
+    // Passive talents share SpellName with their proc auras: 44544/74396 both
+    // named "Fingers of Frost", 44546/57761 both named "Brain Freeze". Skip
+    // passives so we only match the consumable proc.
     Aura* FindBotAuraByName(Player* bot, char const* name)
     {
         for (auto const& [spellId, app] : bot->GetAppliedAuras())
@@ -44,6 +48,8 @@ namespace
             if (!info || !info->SpellName)
                 continue;
             if (info->SpellFamilyName != SPELLFAMILY_MAGE)
+                continue;
+            if (info->IsPassive())
                 continue;
             if (std::strcmp(info->SpellName, name) == 0)
                 return a;

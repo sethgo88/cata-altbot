@@ -60,6 +60,14 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
     ManaMode mode = GetManaMode(bot);
     CheckCooldowns(bot, mode);
 
+    // Skip the rotation while a cast is in progress — Healing Wave (2.5s) and
+    // Greater Healing Wave (3s) are the bulk of healer GCDs, and re-issuing a
+    // heal every tick during the cast produces spurious
+    // SPELL_FAILED_SPELL_IN_PROGRESS attempts and stops lower tiers from
+    // running on the next tick.
+    if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
+        return;
+
     if (Tier1_SelfEmergency(bot))                     return;
     if (Tier2_TankEmergency(bot, master, mode))       return;
     if (Tier3_Riptide(bot, master))                   return;
@@ -222,7 +230,13 @@ bool RestoShamanStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    bot->CastSpell(target, id, false);
+    SpellCastResult result = bot->CastSpell(target, id, false);
+    if (result != SPELL_CAST_OK)
+    {
+        TC_LOG_INFO("altbot", "RestoShaman[%s] CastSpell %u failed: SpellCastResult=%u",
+                    bot->GetName().c_str(), id, uint32(result));
+        return false;
+    }
     return true;
 }
 

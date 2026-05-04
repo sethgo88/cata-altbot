@@ -15,6 +15,17 @@ void MaintainRange(Player* bot, Unit* target, float range)
 {
     if (!bot || !target)
         return;
+
+    // Only re-issue MoveChase when actually out of range. Each call mutates a
+    // fresh ChaseMovementGenerator (replaces the active slot, re-initializes
+    // pathing, flips UNIT_STATE_CHASE) — calling every tick while the bot is
+    // already in range was producing SPELL_FAILED_MOVING (53) mid-cast on
+    // 2-3s caster spells. The chase generator already holds at `range` once
+    // started, so we just need to start it once.
+    float dist = bot->GetDistance(target);
+    if (dist <= range && bot->HasUnitState(UNIT_STATE_CHASE))
+        return;
+
     bot->GetMotionMaster()->MoveChase(target, range);
 }
 

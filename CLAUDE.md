@@ -23,6 +23,10 @@ cata-altbot/src/
 ```
 
 ## Adding a new spec
+
+> Before writing any cast logic, read **Cast pipeline gotchas** below — all four
+> existing strategies follow those patterns and a new one needs to as well.
+
 1. Create `src/strategies/{Spec}Strategy.{h,cpp}` inheriting `AltbotStrategy`.
 2. Use `StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_X, "Spell Name")` for caches when
    effect-introspection can't disambiguate (warlock DoTs, mage school overlap, etc.).
@@ -48,6 +52,61 @@ cata-altbot/src/
    (Frost Nova / Disengage / Howl of Terror — "is something meleeing me?").
    Self-anchored cone effects (Cone of Cold, etc.) gate on `bot->GetDistance(target) <= cone_range`
    *after* the around-target cluster check passes.
+
+## Cast pipeline gotchas
+
+Four traps that have already bitten this code. Every strategy must follow these
+patterns; the existing four (Frost Mage, Aff Warlock, MM Hunter, Resto Shaman)
+are the reference.
+
+1. **Passive talents share `SpellName` with their proc auras.** Known cases:
+   `Fingers of Frost` (44544 talent / 74396 proc) and `Brain Freeze`
+   (44546 talent / 57761 proc) — both read as `SpellName="Fingers of Frost"` /
+   `"Brain Freeze"` with `SpellFamilyName=MAGE`. Any helper that walks
+   `bot->GetAppliedAuras()` matching by name **must** filter
+   `info->IsPassive()` or it will return the talent every tick and read
+   "proc up" forever. See `FrostMageStrategy.cpp::FindBotAuraByName` and
+   `MmHunterStrategy.cpp::FindHunterAuraByName` for the canonical pattern.
+   When in doubt, prefer cataloging the actual proc spell ID directly over
+   name-matching.
+
+2. **`TryCast` must propagate `SpellCastResult`.** `Unit::CastSpell` returns
+   the result code; discarding it makes failures silent and the rotation
+   acts as if the cast fired — so the tier chain stops descending and the
+   lower-priority tier never gets its turn. Capture the result, log on
+   failure, return `false`:
+   ```cpp
+   SpellCastResult result = bot->CastSpell(target, id, false);
+   if (result != SPELL_CAST_OK)
+   {
+       TC_LOG_INFO("altbot", "{Spec}[%s] CastSpell %u failed: SpellCastResult=%u",
+                   bot->GetName().c_str(), id, uint32(result));
+       return false;
+   }
+   ```
+   Numeric codes worth memorizing: 49 = LINE_OF_SIGHT, 53 = MOVING,
+   107 = SPELL_IN_PROGRESS, 113 = TARGET_AURASTATE (e.g. Deep Freeze
+   needs a frozen target).
+
+3. **Skip the rotation while a cast is in progress.** Insert *after*
+   maintenance / defensives, *before* the tier dispatch:
+   ```cpp
+   if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
+       return;
+   ```
+   Without it, a 2.5s Frostbolt / Shadow Bolt / Healing Wave gets re-issued
+   every server tick, producing `SPELL_FAILED_SPELL_IN_PROGRESS` (107) and
+   stopping the lower tiers from getting a turn that tick.
+   `IsNonMeleeSpellCast(false)` covers channels (Drain Soul, Mind Flay-style);
+   `UNIT_STATE_CASTING` covers regular casts. Use both.
+
+4. **`MaintainRange` is idempotent only when guarded.**
+   `MotionMaster::MoveChase` always `Mutate`s a fresh `ChaseMovementGenerator`
+   (re-initializes pathing, flips `UNIT_STATE_CHASE`). Calling it every tick
+   produces `SPELL_FAILED_MOVING` (53) mid-cast even when the bot is already
+   in range. `AltbotPosition::MaintainRange` only re-issues when
+   `dist > range || !HasUnitState(UNIT_STATE_CHASE)` — preserve this guard
+   if positioning logic ever changes.
 
 ## Build Integration (how this gets compiled)
 1. Junction at `server-core/src/server/scripts/Custom/cata-altbot/` → this directory

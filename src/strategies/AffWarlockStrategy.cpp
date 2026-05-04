@@ -92,6 +92,13 @@ void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext c
     if (!bot->IsInCombat())
         bot->Attack(target, false);
 
+    // Skip the rotation while a cast or channel is in progress — re-issuing a
+    // cast every tick during a 2.5s Shadow Bolt or 5s Drain Soul produces
+    // spurious SPELL_FAILED_SPELL_IN_PROGRESS attempts and stops the tier
+    // chain from descending to the next tier on the next tick.
+    if (bot->HasUnitState(UNIT_STATE_CASTING) || bot->IsNonMeleeSpellCast(false))
+        return;
+
     ManaMode mode = GetManaMode(bot);
 
     if (Tier_Haunt(bot, target))               return;
@@ -162,7 +169,13 @@ bool AffWarlockStrategy::TryCast(Player* bot, Unit* target, Spell s) const
         return false;
     if (bot->GetSpellHistory()->HasCooldown(info))
         return false;
-    bot->CastSpell(target, id, false);
+    SpellCastResult result = bot->CastSpell(target, id, false);
+    if (result != SPELL_CAST_OK)
+    {
+        TC_LOG_INFO("altbot", "AffWarlock[%s] CastSpell %u failed: SpellCastResult=%u",
+                    bot->GetName().c_str(), id, uint32(result));
+        return false;
+    }
     return true;
 }
 

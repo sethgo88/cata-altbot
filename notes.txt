@@ -1,29 +1,81 @@
-FindSpellByFamilyName 'Molten Armor' (family=3) on 'Mageone' considered 2 candidates: {id=34913 lvl=54 mana=0 cd=0} {id=30482 lvl=34 mana=0 cd=0}
-FindSpellByFamilyName 'Deep Freeze' (family=3) on 'Mageone' considered 2 candidates: {id=71757 lvl=60 mana=0 cd=0} {id=44572 lvl=1 mana=1 cd=1}
-FindSpellByFamilyName 'Blizzard' (family=3) on 'Mageone' considered 2 candidates: {id=10 lvl=52 mana=1 cd=0} {id=42208 lvl=20 mana=0 cd=0}
-FrostMage[Mageone] tick: threat-window (460<2000)
-FindSpellByFamilyName 'Unstable Affliction' (family=5) on 'Warlockone' considered 2 candidates: {id=30108 lvl=10 mana=1 cd=0} {id=31117 lvl=1 mana=0 cd=0}
-FindSpellByFamilyName 'Drain Life' (family=5) on 'Warlockone' considered 2 candidates: {id=689 lvl=6 mana=1 cd=0} {id=89420 lvl=6 mana=1 cd=0}
-FindSpellByFamilyName 'Seed of Corruption' (family=5) on 'Warlockone' considered 2 candidates: {id=27243 lvl=72 mana=1 cd=0} {id=27285 lvl=72 mana=0 cd=0}
+AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=53
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=10.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=10.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=10.3 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=10.3 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: 4949.574707 Y: 2232.307617 Z: 638.733276 Map: 632 (The Forge of Souls) Area: 4809 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: threat-window (42<2000)
 AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=53
-FrostMage[Mageone] tick: threat-window (1961<2000)
-AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=69
-AffWarlock[Warlockone] CastSpell 603 failed: SpellCastResult=69
-AffWarlock[Warlockone] CastSpell 172 failed: SpellCastResult=69
-AffWarlock[Warlockone] CastSpell 30108 failed: SpellCastResult=69
-AffWarlock[Warlockone] CastSpell 686 failed: SpellCastResult=69
-MmHunter[Hunterone] CastSpell 1978 failed: SpellCastResult=69
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=69
-MmHunter[Hunterone] CastSpell 19434 failed: SpellCastResult=69
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=69
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=69
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
-FrostMage[Mageone] tick: defensive
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: threat-window (1542<2000)
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=34.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=99
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=36.6 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=99
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=99
+  -> NO TIER FIRED
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=26.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=26.4 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 27243 failed: SpellCastResult=99
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=26.4 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Adept' dist=27.1 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Adept' dist=27.1 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Adept' dist=27.1 casting=0 FoF=1 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 27243 failed: SpellCastResult=99
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Reaper' dist=27.3 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Ghoul Minion' dist=10.8 casting=0 FoF=1 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=53
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+FrostMage[Mageone] tick: tgt='Soulguard Bonecaster' dist=28.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: 5034.376465 Y: 2148.073486 Z: 645.163391 Map: 632 (The Forge of Souls) Area: 4809 (T) Zone: Unknown Selected: Soulguard Bonecaster (GUID Full: 0xf1308ed40000000e Type: Creature Entry: 36564  Low: 14)]

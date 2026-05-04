@@ -176,9 +176,38 @@ static bool CmdToggleLoot(Player* m, AltbotAI* ai, std::string_view args)
 
 // ---- Phase 5 handlers: hook-driven toggles ----
 
-static bool CmdTogglePass(Player* m, AltbotAI* ai, std::string_view args)
+static bool CmdSetRoll(Player* master, AltbotAI* ai, std::string_view args)
 {
-    return ApplyToggle(m, ai, args, "Auto-pass", &AltbotState::autoPass);
+    std::string a = Lower(Trim(args));
+
+    if (a.empty())
+    {
+        char const* cur = "wait";
+        switch (ai->GetState().lootRoll)
+        {
+            case AltbotLootRollMode::Wait:       cur = "wait";       break;
+            case AltbotLootRollMode::Pass:       cur = "pass";       break;
+            case AltbotLootRollMode::Disenchant: cur = "disenchant"; break;
+        }
+        Reply(master, std::string("Loot roll mode is '") + cur + "'. Usage: roll wait|pass|disenchant");
+        return true;
+    }
+
+    AltbotLootRollMode mode;
+    if      (a == "wait" || a == "off")            mode = AltbotLootRollMode::Wait;
+    else if (a == "pass")                          mode = AltbotLootRollMode::Pass;
+    else if (a == "de" || a == "disenchant")       mode = AltbotLootRollMode::Disenchant;
+    else
+    {
+        Reply(master, "Usage: roll wait|pass|disenchant");
+        return true;
+    }
+
+    ai->MutateState([mode](AltbotState& s) { s.lootRoll = mode; });
+    char const* label = mode == AltbotLootRollMode::Wait ? "wait"
+                      : mode == AltbotLootRollMode::Pass ? "pass" : "disenchant";
+    Reply(master, std::string("Loot roll mode set to '") + label + "'.");
+    return true;
 }
 
 static bool CmdToggleQuestTake(Player* m, AltbotAI* ai, std::string_view args)
@@ -425,7 +454,9 @@ static bool CmdHelp(Player* master, AltbotAI* /*ai*/, std::string_view)
     Reply(master,
         "  follow, stay, attack, invite, uninvite, come, help");
     Reply(master,
-        "  mount/release/loot/pass/questtake/questturnin [on|off]  (toggle if no arg)");
+        "  mount/release/loot/questtake/questturnin [on|off]  (toggle if no arg)");
+    Reply(master,
+        "  roll wait|pass|disenchant  (group-loot vote behavior)");
     Reply(master,
         "  assist off|target|skull|both");
     Reply(master,
@@ -458,7 +489,7 @@ static constexpr WhisperCommand kCommands[] = {
     {"assist",      CmdSetAssist},
     {"role",        CmdSetRole},
     // Phase 5
-    {"pass",        CmdTogglePass},
+    {"roll",        CmdSetRoll},
     {"questtake",   CmdToggleQuestTake},
     {"questturnin", CmdToggleQuestTurnIn},
     // Phase 6

@@ -134,8 +134,10 @@ void AltbotAI::Update(uint32 diff)
         if (_state.autoMount && bot->IsAlive())
             AltbotMount::Tick(bot, master);
 
-        if (_state.autoLoot && bot->IsAlive())
-            AltbotLoot::Tick(bot, master);
+        // Both autoLoot (corpse pickup) and lootRoll (roll voting) gate
+        // internally; AltbotLoot::Tick is a single entry point covering both.
+        if (bot->IsAlive())
+            AltbotLoot::Tick(bot, master, _state);
 
         // LFG rolecheck/proposal accepts must fire even if the bot is dead —
         // a dead-but-in-world bot can still be in a queued group.

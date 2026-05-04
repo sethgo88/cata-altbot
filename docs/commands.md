@@ -5,7 +5,11 @@ login/logout
 follow/stay
 summon to master location
 loot/don't loot
-pass on loot yes/no
+roll wait|pass|disenchant — group-loot vote behavior
+   wait        : do nothing, let the 60s roll timer expire (default)
+   pass        : auto-vote PASS on every eligible roll
+   disenchant  : auto-vote DISENCHANT when offered (group has an enchanter
+                 who meets the item's RequiredDisenchantSkill), else PASS
 view bags
     in bags have a button to enable trade, have the altbot equip, drop, or sell a selected item
 view talents

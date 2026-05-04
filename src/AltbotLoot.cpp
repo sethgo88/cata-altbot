@@ -48,7 +48,7 @@ static void TickRollVote(Player* bot, AltbotLootRollMode mode)
     struct Pending { ObjectGuid itemGuid; uint8 vote; uint32 itemId; };
     std::vector<Pending> pending;
 
-    for (auto const& rollPtr : group->GetRollIdList())
+    for (auto const& rollPtr : group->GetRolls())
     {
         Roll* r = rollPtr.get();
         if (!r)

@@ -17,10 +17,26 @@ struct BagItem
     std::string name;
 };
 
+struct EquippedItem
+{
+    uint8  slot      = 0;   // EQUIPMENT_SLOT_HEAD..EQUIPMENT_SLOT_TABARD (0..18)
+    uint32 entry     = 0;
+    uint32 enchantId = 0;
+    uint32 gem1      = 0;
+    uint32 gem2      = 0;
+    uint32 gem3      = 0;
+    uint32 ilvl      = 0;
+    uint32 guidLow   = 0;
+};
+
 namespace AltbotInventory
 {
     // Lists every item in the bot's bags (excluding equipped slots).
     std::vector<BagItem> ListBags(Player* bot);
+
+    // Lists every equipped item (slots 0..18). Empty slots are omitted; the
+    // addon side draws the default PaperDoll backdrop for missing slots.
+    std::vector<EquippedItem> ListEquipped(Player* bot);
 
     // Item-name OR item GUID-low matching, returns the first item found.
     Item* FindItemInBags(Player* bot, std::string_view query);

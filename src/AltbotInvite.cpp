@@ -117,14 +117,21 @@ bool Summon(Player* master, AltbotAI* ai)
     // master's old target still at range from the new position, fires
     // MaintainRange, and the bot immediately MoveChases back toward the
     // pull — making the summon effectively a no-op visually. Master's
-    // *current* target is re-acquired naturally on the next combat tick
-    // if combat is still active.
+    // *current* target is re-acquired naturally after the post-summon
+    // pin (see MarkSummonPin below) expires.
     bot->CombatStop();
     bot->AttackStop();
 
-    // Drop any in-flight motion (follow path, chase, etc.) so the bot doesn't
-    // immediately start walking back toward where it was.
+    // Drop any in-flight motion (follow path, chase, etc.) and tell
+    // surrounding clients to stop interpolating along the active
+    // movespline. Without StopMoving + DisableSpline, the master's
+    // client keeps animating the bot along the pre-summon chase spline
+    // even after SendTeleportPacket — visually the bot "flies" toward
+    // the master along the old path instead of snapping. This is the
+    // same recipe Unit::NearTeleportTo uses for non-players.
     bot->GetMotionMaster()->Clear();
+    bot->StopMoving();
+    bot->DisableSpline();
 
     Position destPos(master->GetPositionX(),
                      master->GetPositionY(),
@@ -167,6 +174,15 @@ bool Summon(Player* master, AltbotAI* ai)
         if (bot->IsBeingTeleportedFar())
             bot->GetSession()->HandleMoveWorldportAck();
     }
+
+    // Pin combat + follow ticks for ~2 seconds so the strategy doesn't
+    // immediately MaintainRange → MoveChase the master's old target and
+    // run the bot straight back. Without this the in-combat summon
+    // appears to "do nothing" because the bot teleports for one frame
+    // and is back at the pull within 1.5s. After 2s the bot resumes
+    // normal behavior from master's location.
+    if (ai)
+        ai->MarkSummonPin(2000);
 
     ChatHandler(master->GetSession()).PSendSysMessage("%s summoned to your location.",
         bot->GetName().c_str());

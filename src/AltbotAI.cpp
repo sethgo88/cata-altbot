@@ -122,6 +122,13 @@ void AltbotAI::Update(uint32 diff)
         ctx.inRaid    = map->IsRaid();
     }
 
+    // Decrement the post-summon pin so combat + follow ticks below skip
+    // for the configured duration after a Summon. This is what makes
+    // in-combat summons actually stick — without the pin, MaintainRange
+    // re-chases the master's old target ~1.5s after the teleport.
+    if (_summonPinRemainingMs > 0)
+        _summonPinRemainingMs = (_summonPinRemainingMs > diff) ? _summonPinRemainingMs - diff : 0;
+
     _followTimer = (_followTimer > diff) ? _followTimer - diff : 0;
     if (_followTimer == 0)
     {
@@ -157,7 +164,8 @@ void AltbotAI::Update(uint32 diff)
             bot->GetMotionMaster()->MoveIdle();
         _followGatedLast = followGated;
 
-        if (_state.mode == AltbotMode::Follow && bot->IsAlive() && !followGated)
+        if (_state.mode == AltbotMode::Follow && bot->IsAlive() && !followGated
+            && _summonPinRemainingMs == 0)
             AltbotFollow::Update(bot, master);
     }
 
@@ -165,7 +173,7 @@ void AltbotAI::Update(uint32 diff)
     if (_combatTimer == 0)
     {
         _combatTimer = COMBAT_INTERVAL_MS;
-        if (bot->IsAlive())
+        if (bot->IsAlive() && _summonPinRemainingMs == 0)
             AltbotCombat::Update(bot, master, _state, ctx, _strategy.get());
     }
 }

@@ -43,6 +43,13 @@ public:
     // AltbotInvite::Invite + AltbotInvite::Summon and clears the flag.
     void MarkPendingAutoInviteSummon() { _pendingAutoInviteSummon = true; }
 
+    // Skip combat + follow ticks for `durationMs` milliseconds. Called by
+    // AltbotInvite::Summon so the bot doesn't immediately MoveChase back to
+    // the master's old target on the next combat tick — without this, in-combat
+    // summons appear to do nothing because the bot teleports to master and
+    // then re-chases the pull within 1.5s. Decremented inside Update().
+    void MarkSummonPin(uint32 durationMs = 2000) { _summonPinRemainingMs = durationMs; }
+
     // Latch flipped once per LFG rolecheck so AltbotLfg::Tick fires the
     // UpdateRoleCheck call exactly once and resets when the rolecheck ends.
     bool HasLfgRoleResponded() const { return _lfgRoleResponded; }
@@ -86,4 +93,9 @@ private:
     // break the active MoveFollow so the bot stops trailing master into the
     // tank's pile; strategies that maintain range take over from there.
     bool   _followGatedLast = false;
+
+    // Post-summon pin: while > 0, the bot's combat + follow ticks are
+    // skipped. Lets the teleport land cleanly without the strategy's
+    // MaintainRange immediately re-chasing the master's old target.
+    uint32 _summonPinRemainingMs = 0;
 };

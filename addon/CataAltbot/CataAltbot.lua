@@ -191,6 +191,13 @@ function addon:Loot(botName, targetGuid)
     self:Send(self:AnyActiveBotName(), "LOOT|" .. botName .. "|" .. targetGuid)
 end
 
+-- Force the bot to accept/turn-in every quest the master's selected NPC
+-- offers/involves. `targetGuid` is the raw UnitGUID("target") string. Server
+-- replies with a PSendSysMessage summary in the master's chat window.
+function addon:QuestNPC(botName, targetGuid)
+    self:Send(self:AnyActiveBotName(), "QUEST_NPC|" .. botName .. "|" .. targetGuid)
+end
+
 -- Broadcast verbs — server fans out across all active bots.
 function addon:SetModeAll(mode)         self:Send(self:AnyActiveBotName(), "SET_MODE_ALL|"   .. mode) end
 function addon:SetAssistAll(mode)       self:Send(self:AnyActiveBotName(), "SET_ASSIST_ALL|" .. mode) end

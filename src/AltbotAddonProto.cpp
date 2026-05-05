@@ -4,6 +4,7 @@
 #include "AltbotInventory.h"
 #include "AltbotInvite.h"
 #include "AltbotMgr.h"
+#include "AltbotQuest.h"
 #include "AltbotTalents.h"
 #include "AccountMgr.h"
 #include "Chat.h"
@@ -595,6 +596,30 @@ static void DoLoot(Player* master, Player* via, std::vector<std::string> const& 
     targetAi->SetPendingLootTarget(targetGuid);
 }
 
+// "QUEST_NPC|<bot>|<hexGuid>" — addon-driven retroactive accept/turn-in for
+// every quest the targeted NPC offers / involves that the bot is eligible for.
+// Mirrors AltbotQuest::InteractWithNpc; the helper handles range validation
+// and replies via PSendSysMessage to master's chat.
+static void DoQuestNpc(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 3) return;
+    AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
+    if (!targetAi) return;
+
+    std::string const& hex = parts[2];
+    char const* p = hex.c_str();
+    if (hex.size() > 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
+        p += 2;
+    uint64 raw = std::strtoull(p, nullptr, 16);
+    if (raw == 0)
+    {
+        ChatHandler(master->GetSession()).PSendSysMessage("Altbot: no NPC selected.");
+        return;
+    }
+
+    AltbotQuest::InteractWithNpc(master, targetAi, ObjectGuid(raw));
+}
+
 // Slug → AltbotRoleOverride. Mirrors AltbotCommandTable::ParseRoleArg so the
 // addon dropdown and the .altbot role slash command accept the same vocabulary.
 static void DoSetRole(Player* master, std::vector<std::string> const& parts)
@@ -773,6 +798,8 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoSetRole(master, parts);
     else if (verb == "LOOT")
         DoLoot(master, transport, parts);
+    else if (verb == "QUEST_NPC")
+        DoQuestNpc(master, parts);
     else if (verb == "SET_MODE_ALL")
         DoSetModeAll(master, parts);
     else if (verb == "SET_ASSIST_ALL")

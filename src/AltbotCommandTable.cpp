@@ -3,6 +3,7 @@
 #include "AltbotInventory.h"
 #include "AltbotInvite.h"
 #include "AltbotMgr.h"
+#include "AltbotQuest.h"
 #include "AltbotRole.h"
 #include "AltbotTalents.h"
 #include "Chat.h"
@@ -218,6 +219,32 @@ static bool CmdToggleQuestTake(Player* m, AltbotAI* ai, std::string_view args)
 static bool CmdToggleQuestTurnIn(Player* m, AltbotAI* ai, std::string_view args)
 {
     return ApplyToggle(m, ai, args, "Auto-quest-turn-in", &AltbotState::autoQuestTurnIn);
+}
+
+// "quests" — print the bot's active quest log to master's chat.
+static bool CmdListQuests(Player* master, AltbotAI* ai, std::string_view)
+{
+    AltbotQuest::ListBotQuests(master, ai);
+    return true;
+}
+
+// "questnpc" — force the bot to accept/turn-in everything with master's
+// currently-selected target. Lets the master fix a bot that missed an
+// earlier auto-accept, or hand in quests retroactively.
+static bool CmdQuestNpc(Player* master, AltbotAI* ai, std::string_view)
+{
+    Player* bot = BotOf(ai);
+    if (!bot) return true;
+
+    ObjectGuid targetGuid = master->GetTarget();
+    if (targetGuid.IsEmpty())
+    {
+        Reply(master, "Select a quest-giver NPC first, then run questnpc.");
+        return true;
+    }
+
+    AltbotQuest::InteractWithNpc(master, ai, targetGuid);
+    return true;
 }
 
 // ---- Phase 6 handlers: inventory + talents ----
@@ -458,6 +485,10 @@ static bool CmdHelp(Player* master, AltbotAI* /*ai*/, std::string_view)
     Reply(master,
         "  roll wait|pass|disenchant  (group-loot vote behavior)");
     Reply(master,
+        "  quests  (list bot's active quests)");
+    Reply(master,
+        "  questnpc  (force bot to accept/turn-in with selected NPC)");
+    Reply(master,
         "  assist off|target|skull|both");
     Reply(master,
         "  role [auto|dps|healer|tank|main tank]");
@@ -492,6 +523,8 @@ static constexpr WhisperCommand kCommands[] = {
     {"roll",        CmdSetRoll},
     {"questtake",   CmdToggleQuestTake},
     {"questturnin", CmdToggleQuestTurnIn},
+    {"quests",      CmdListQuests},
+    {"questnpc",    CmdQuestNpc},
     // Phase 6
     {"bags",        CmdShowBags},
     {"equip",       CmdEquipItem},

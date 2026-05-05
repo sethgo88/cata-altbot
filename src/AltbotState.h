@@ -50,6 +50,6 @@ struct AltbotState
     AltbotLootRollMode lootRoll       = AltbotLootRollMode::Wait;
     bool             autoMount        = true;
     bool             autoRelease      = true;
-    bool             autoQuestTake    = false;
-    bool             autoQuestTurnIn  = false;
+    bool             autoQuestTake    = true;
+    bool             autoQuestTurnIn  = true;
 };

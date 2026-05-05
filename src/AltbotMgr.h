@@ -48,6 +48,11 @@ public:
     AltbotAI* FindBotAI    (ObjectGuid masterGuid, ObjectGuid botGuid);
     AltbotAI* FindBotByName(ObjectGuid masterGuid, std::string const& botName);
 
+    // Locate the AI for a bot by its guid alone — walks every master's roster.
+    // Used by PlayerScript hooks that fire on the bot's session (quest events,
+    // creature kills) where the master guid isn't in scope.
+    AltbotAI* FindAnyBotAI (ObjectGuid botGuid);
+
     // Joins character_altbot with characters to return everything the master has registered.
     // `active` is filled by cross-referencing _activeBots.
     std::vector<RegisteredBot> ListRegistered(ObjectGuid masterGuid);

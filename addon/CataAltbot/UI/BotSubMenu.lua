@@ -3,11 +3,12 @@
 -- Triggered by right-click on a BotButton. Anchored to the right of the
 -- triggering button so it visually extends out of the bot icon.
 --
--- Buttons: [Bags] [Character] [Talents] [Spec] [Role] [Loot] [LootRoll] [Summon] [Login/Logout] [Remove].
+-- Buttons: [Bags] [Character] [Talents] [Spec] [Role] [Loot] [LootRoll] [Quest] [Summon] [Login/Logout] [Remove].
 -- Spec opens the existing class-aware UIDropDown; Role opens RoleMenu (a
 -- vertical 3-icon popout for tank/healer/dps); LootRoll opens LootRollMenu
 -- (wait/pass/disenchant); Loot tells the active bot to run to the master's
--- selected corpse and loot it; the rest are direct actions.
+-- selected corpse and loot it; Quest forces the bot to accept/turn-in every
+-- quest with the master's currently-selected NPC; the rest are direct actions.
 --
 -- Single-instance; OpenFor(botButton, alt) repositions and rebinds.
 
@@ -60,6 +61,7 @@ local ICON_TALENT    = "Interface\\Icons\\Spell_Nature_NatureTouchGrow"
 local ICON_SPEC    = "Interface\\Icons\\Inv_Inscription_82_Tome_C"
 local ICON_ROLE    = "Interface\\Icons\\Achievement_GuildPerk_HavingaBall"
 local ICON_LOOT    = "Interface\\Icons\\INV_Misc_Bag_10"  -- distinct from ICON_BAGS so the strip reads at a glance
+local ICON_QUEST   = "Interface\\Icons\\INV_Misc_Note_01"  -- "?" parchment, reads as quest-giver dialog
 local ICON_SUMMON  = "Interface\\Icons\\Spell_Arcane_TeleportShattrath"
 local ICON_LOGIN   = "Interface\\Icons\\Spell_Holy_Resurrection"
 local ICON_LOGOUT  = "Interface\\Icons\\Spell_Magic_LesserInvisibilty"
@@ -80,12 +82,13 @@ SM.btnSpec     = MakeIconButton(frame, ICON_SPEC);      SetTip(SM.btnSpec,     "
 SM.btnRole     = MakeIconButton(frame, ICON_ROLE);      SetTip(SM.btnRole,     "Role")
 SM.btnLoot     = MakeIconButton(frame, ICON_LOOT);      SetTip(SM.btnLoot,     "Loot Selected Corpse")
 SM.btnLootRoll = MakeIconButton(frame, ICON_ROLL_WAIT); SetTip(SM.btnLootRoll, "Loot Roll")
+SM.btnQuest    = MakeIconButton(frame, ICON_QUEST);     SetTip(SM.btnQuest,    "Quest with Selected NPC")
 SM.btnSummon   = MakeIconButton(frame, ICON_SUMMON);    SetTip(SM.btnSummon,   "Summon")
 SM.btnToggle   = MakeIconButton(frame, ICON_LOGIN);     SetTip(SM.btnToggle,   "Login")
 SM.btnRemove   = MakeIconButton(frame, ICON_REMOVE);    SetTip(SM.btnRemove,   "Remove")
 
 -- Layout left → right.
-local children = { SM.btnBags, SM.btnCharacter, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLoot, SM.btnLootRoll, SM.btnSummon, SM.btnToggle, SM.btnRemove }
+local children = { SM.btnBags, SM.btnCharacter, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLoot, SM.btnLootRoll, SM.btnQuest, SM.btnSummon, SM.btnToggle, SM.btnRemove }
 for i, b in ipairs(children) do
     if i == 1 then
         b:SetPoint("LEFT", frame, "LEFT", 0, 0)
@@ -186,6 +189,18 @@ function SM:OpenFor(botButton, alt)
 
     self.btnLootRoll:SetScript("OnClick", function()
         if addon.LootRollMenu then addon.LootRollMenu:OpenFor(self.btnLootRoll, alt) end
+    end)
+
+    -- Force quest accept/turn-in with master's selected NPC. Server validates
+    -- the target is a creature, in range, and has quests for the bot; the
+    -- summary lands as a system message in master's chat.
+    self.btnQuest:SetScript("OnClick", function()
+        local targetGuid = UnitGUID("target")
+        if not targetGuid or targetGuid == "" then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot] QUEST: select an NPC first|r")
+            return
+        end
+        addon:QuestNPC(alt.name, targetGuid)
     end)
 
     self.btnSummon:SetScript("OnClick", function()

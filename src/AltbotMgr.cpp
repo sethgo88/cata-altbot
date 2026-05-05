@@ -246,6 +246,20 @@ AltbotAI* AltbotMgr::FindBotByName(ObjectGuid masterGuid, std::string const& bot
     return FindBotAI(masterGuid, botGuid);
 }
 
+AltbotAI* AltbotMgr::FindAnyBotAI(ObjectGuid botGuid)
+{
+    for (auto& kv : _activeBots)
+    {
+        for (auto& ai : kv.second)
+        {
+            Player* bot = ai->GetSession()->GetPlayer();
+            if (bot && bot->GetGUID() == botGuid)
+                return ai.get();
+        }
+    }
+    return nullptr;
+}
+
 std::vector<RegisteredBot> AltbotMgr::ListRegistered(ObjectGuid masterGuid)
 {
     std::vector<RegisteredBot> out;

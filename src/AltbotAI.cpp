@@ -6,6 +6,7 @@
 #include "AltbotLoot.h"
 #include "AltbotMgr.h"
 #include "AltbotMount.h"
+#include "AltbotQuest.h"
 #include "AltbotRelease.h"
 #include "AltbotTickContext.h"
 #include "Log.h"
@@ -179,6 +180,11 @@ void AltbotAI::Update(uint32 diff)
         // LFG rolecheck/proposal accepts must fire even if the bot is dead —
         // a dead-but-in-world bot can still be in a queued group.
         AltbotLfg::Tick(bot, this);
+
+        // Quest progress polling: detects objective increments and the
+        // INCOMPLETE→COMPLETE transition (CompleteQuest doesn't fire
+        // OnQuestStatusChange). Whispers master via AltbotQuest helpers.
+        AltbotQuest::TickProgress(*this, _questSnapshot);
 
         // In a dungeon or raid, hand positioning to the strategy once combat
         // starts so ranged casters don't get cleaved sitting on the master's

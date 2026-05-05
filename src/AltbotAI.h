@@ -1,5 +1,6 @@
 #pragma once
 #include "AltbotPositionManager.h"
+#include "AltbotQuest.h"
 #include "AltbotState.h"
 #include "AltbotStrategy.h"
 #include "AltbotStrategyFactory.h"
@@ -124,4 +125,13 @@ private:
     // re-init; bot pointer is populated lazily on first Update().
     AltbotPositionManager _positionManager{nullptr};
     bool _positionManagerBound = false;
+
+    // Snapshot of the bot's quest log from the last follow tick. AltbotQuest::
+    // TickProgress diffs this against the live map to surface kill/item
+    // increments + INCOMPLETE→COMPLETE transitions (which Player::CompleteQuest
+    // doesn't fire OnQuestStatusChange for).
+    AltbotQuest::SnapshotMap _questSnapshot;
+
+public:
+    AltbotQuest::SnapshotMap& QuestSnapshot() { return _questSnapshot; }
 };

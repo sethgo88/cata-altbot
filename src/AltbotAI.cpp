@@ -147,6 +147,18 @@ void AltbotAI::Update(uint32 diff)
     if (_summonPinRemainingMs > 0)
         _summonPinRemainingMs = (_summonPinRemainingMs > diff) ? _summonPinRemainingMs - diff : 0;
 
+    // Manual loot task (addon LOOT verb). Runs ahead of follow/combat and
+    // short-circuits both while active — the corpse walk would otherwise
+    // fight MaintainRange and the follow generator. Internally clears the
+    // pending guid when the loot is drained, the target disappears, or the
+    // task times out.
+    if (!_pendingLootTarget.IsEmpty() && bot->IsAlive())
+    {
+        AltbotLoot::TickPending(bot, master, *this, diff);
+        if (!_pendingLootTarget.IsEmpty())
+            return;   // still walking / draining; skip the rest of this tick
+    }
+
     _followTimer = (_followTimer > diff) ? _followTimer - diff : 0;
     if (_followTimer == 0)
     {

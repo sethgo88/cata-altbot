@@ -184,6 +184,13 @@ function addon:SetRoll(botName, slug)
     self:Send(self:AnyActiveBotName(), "SET_ROLL|" .. botName .. "|" .. slug)
 end
 
+-- Master-targeted manual loot. `targetGuid` is the raw "0x..." string from
+-- UnitGUID("target"); the server decodes it to ObjectGuid and validates
+-- lootability, replying ERR|NOT_LOOTABLE|... on failure.
+function addon:Loot(botName, targetGuid)
+    self:Send(self:AnyActiveBotName(), "LOOT|" .. botName .. "|" .. targetGuid)
+end
+
 -- Broadcast verbs — server fans out across all active bots.
 function addon:SetModeAll(mode)         self:Send(self:AnyActiveBotName(), "SET_MODE_ALL|"   .. mode) end
 function addon:SetAssistAll(mode)       self:Send(self:AnyActiveBotName(), "SET_ASSIST_ALL|" .. mode) end

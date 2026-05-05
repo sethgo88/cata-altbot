@@ -3,10 +3,11 @@
 -- Triggered by right-click on a BotButton. Anchored to the right of the
 -- triggering button so it visually extends out of the bot icon.
 --
--- Buttons: [Bags] [Character] [Talents] [Spec] [Role] [LootRoll] [Summon] [Login/Logout] [Remove].
+-- Buttons: [Bags] [Character] [Talents] [Spec] [Role] [Loot] [LootRoll] [Summon] [Login/Logout] [Remove].
 -- Spec opens the existing class-aware UIDropDown; Role opens RoleMenu (a
 -- vertical 3-icon popout for tank/healer/dps); LootRoll opens LootRollMenu
--- (wait/pass/disenchant); the rest are direct actions.
+-- (wait/pass/disenchant); Loot tells the active bot to run to the master's
+-- selected corpse and loot it; the rest are direct actions.
 --
 -- Single-instance; OpenFor(botButton, alt) repositions and rebinds.
 
@@ -58,6 +59,7 @@ local ICON_CHARACTER = "Interface\\Icons\\INV_Shirt_GuildTabard_01"
 local ICON_TALENT    = "Interface\\Icons\\Spell_Nature_NatureTouchGrow"
 local ICON_SPEC    = "Interface\\Icons\\Inv_Inscription_82_Tome_C"
 local ICON_ROLE    = "Interface\\Icons\\Achievement_GuildPerk_HavingaBall"
+local ICON_LOOT    = "Interface\\Icons\\INV_Misc_Bag_10"  -- distinct from ICON_BAGS so the strip reads at a glance
 local ICON_SUMMON  = "Interface\\Icons\\Spell_Arcane_TeleportShattrath"
 local ICON_LOGIN   = "Interface\\Icons\\Spell_Holy_Resurrection"
 local ICON_LOGOUT  = "Interface\\Icons\\Spell_Magic_LesserInvisibilty"
@@ -76,13 +78,14 @@ SM.btnCharacter = MakeIconButton(frame, ICON_CHARACTER); SetTip(SM.btnCharacter,
 SM.btnTalents   = MakeIconButton(frame, ICON_TALENT);    SetTip(SM.btnTalents,   "Talents")
 SM.btnSpec     = MakeIconButton(frame, ICON_SPEC);      SetTip(SM.btnSpec,     "Spec")
 SM.btnRole     = MakeIconButton(frame, ICON_ROLE);      SetTip(SM.btnRole,     "Role")
+SM.btnLoot     = MakeIconButton(frame, ICON_LOOT);      SetTip(SM.btnLoot,     "Loot Selected Corpse")
 SM.btnLootRoll = MakeIconButton(frame, ICON_ROLL_WAIT); SetTip(SM.btnLootRoll, "Loot Roll")
 SM.btnSummon   = MakeIconButton(frame, ICON_SUMMON);    SetTip(SM.btnSummon,   "Summon")
 SM.btnToggle   = MakeIconButton(frame, ICON_LOGIN);     SetTip(SM.btnToggle,   "Login")
 SM.btnRemove   = MakeIconButton(frame, ICON_REMOVE);    SetTip(SM.btnRemove,   "Remove")
 
 -- Layout left → right.
-local children = { SM.btnBags, SM.btnCharacter, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLootRoll, SM.btnSummon, SM.btnToggle, SM.btnRemove }
+local children = { SM.btnBags, SM.btnCharacter, SM.btnTalents, SM.btnSpec, SM.btnRole, SM.btnLoot, SM.btnLootRoll, SM.btnSummon, SM.btnToggle, SM.btnRemove }
 for i, b in ipairs(children) do
     if i == 1 then
         b:SetPoint("LEFT", frame, "LEFT", 0, 0)
@@ -167,6 +170,18 @@ function SM:OpenFor(botButton, alt)
 
     self.btnRole:SetScript("OnClick", function()
         if addon.RoleMenu then addon.RoleMenu:OpenFor(self.btnRole, alt) end
+    end)
+
+    self.btnLoot:SetScript("OnClick", function()
+        -- Snapshot the master's selected target at click time. The server
+        -- decodes the hex, validates lootability, and bounces an ERR back
+        -- through handlers.ERR if it isn't lootable.
+        local targetGuid = UnitGUID("target")
+        if not targetGuid or targetGuid == "" then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot] LOOT: no target selected|r")
+            return
+        end
+        addon:Loot(alt.name, targetGuid)
     end)
 
     self.btnLootRoll:SetScript("OnClick", function()

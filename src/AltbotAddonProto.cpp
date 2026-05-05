@@ -7,6 +7,8 @@
 #include "AltbotTalents.h"
 #include "AccountMgr.h"
 #include "Chat.h"
+#include "Creature.h"
+#include "Group.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -508,6 +510,91 @@ static void DoSetSpec(Player* master, std::vector<std::string> const& parts)
     PushState(*targetAi);
 }
 
+// Manual single-corpse loot. The addon button reads UnitGUID("target") at click
+// time and ships it as a "0x"-prefixed 64-bit hex string (WoW Lua format).
+//
+// We validate the target up front so the master gets immediate feedback in
+// chat (ERR|NOT_LOOTABLE|<reason>) instead of watching the bot walk to a
+// corpse it can't take. The actual walk + drain happens on the bot's tick
+// (AltbotLoot::TickPending) once we set the pending guid.
+static void DoLoot(Player* master, Player* via, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 3) return;
+
+    AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
+    if (!targetAi) return;
+    Player* bot = targetAi->GetSession()->GetPlayer();
+    if (!bot || !bot->IsInWorld()) return;
+
+    auto sendErr = [via, master](char const* code, char const* msg)
+    {
+        std::ostringstream out;
+        out << "ERR|" << code << "|" << msg;
+        Send(via, master, out.str());
+    };
+
+    // Lua's UnitGUID is "0x" + 16 hex chars. Strip the prefix and parse the
+    // full 64-bit raw value — splitting into (HighGuid, counter) requires
+    // decoding the entry-encoded high half for creatures, which the uint64
+    // ctor sidesteps.
+    std::string const& hex = parts[2];
+    char const* p = hex.c_str();
+    if (hex.size() > 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
+        p += 2;
+    uint64 raw = std::strtoull(p, nullptr, 16);
+    if (raw == 0)
+    {
+        sendErr("NO_TARGET", "no target selected");
+        return;
+    }
+
+    ObjectGuid targetGuid(raw);
+    Unit* unit = ObjectAccessor::GetUnit(*bot, targetGuid);
+    Creature* creature = unit ? unit->ToCreature() : nullptr;
+    if (!creature)
+    {
+        sendErr("NOT_LOOTABLE", "target is not a creature");
+        return;
+    }
+
+    if (creature->IsAlive())
+    {
+        sendErr("NOT_LOOTABLE", "target is alive");
+        return;
+    }
+
+    if (creature->GetMapId() != bot->GetMapId())
+    {
+        sendErr("NOT_LOOTABLE", "target is on a different map");
+        return;
+    }
+
+    if (!creature->HasDynamicFlag(UNIT_DYNFLAG_LOOTABLE))
+    {
+        sendErr("NOT_LOOTABLE", "nothing to loot");
+        return;
+    }
+
+    // Tap eligibility: if a recipient is recorded, the bot must be that
+    // player or in their group. Null recipient means no tap was ever set
+    // (rare — quest mobs / dispatched spawns) and we let it through.
+    if (Player* recipient = creature->GetLootRecipient())
+    {
+        if (recipient != bot)
+        {
+            Group* botGroup       = bot->GetGroup();
+            Group* recipientGroup = recipient->GetGroup();
+            if (!botGroup || botGroup != recipientGroup)
+            {
+                sendErr("NOT_OWNER", "you don't own this kill");
+                return;
+            }
+        }
+    }
+
+    targetAi->SetPendingLootTarget(targetGuid);
+}
+
 // Slug → AltbotRoleOverride. Mirrors AltbotCommandTable::ParseRoleArg so the
 // addon dropdown and the .altbot role slash command accept the same vocabulary.
 static void DoSetRole(Player* master, std::vector<std::string> const& parts)
@@ -684,6 +771,8 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoSetSpec(master, parts);
     else if (verb == "SET_ROLE")
         DoSetRole(master, parts);
+    else if (verb == "LOOT")
+        DoLoot(master, transport, parts);
     else if (verb == "SET_MODE_ALL")
         DoSetModeAll(master, parts);
     else if (verb == "SET_ASSIST_ALL")

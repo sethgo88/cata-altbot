@@ -53,6 +53,16 @@ public:
     // then re-chases the pull within 1.5s. Decremented inside Update().
     void MarkSummonPin(uint32 durationMs = 2000) { _summonPinRemainingMs = durationMs; }
 
+    // Manual loot task: when set, AltbotAI::Update routes through
+    // AltbotLoot::TickPending each tick to walk the bot to the corpse and
+    // drain it. Set via the addon LOOT verb; cleared once the loot is
+    // taken or the task gives up (target gone / out of map / timeout).
+    ObjectGuid GetPendingLootTarget() const           { return _pendingLootTarget; }
+    void       SetPendingLootTarget(ObjectGuid guid)  { _pendingLootTarget = guid; _pendingLootStartedAtMs = 0; }
+    void       ClearPendingLootTarget()               { _pendingLootTarget = ObjectGuid::Empty; _pendingLootStartedAtMs = 0; }
+    uint32     GetPendingLootElapsedMs() const        { return _pendingLootStartedAtMs; }
+    void       AddPendingLootElapsedMs(uint32 diff)   { _pendingLootStartedAtMs += diff; }
+
     // Latch flipped once per LFG rolecheck so AltbotLfg::Tick fires the
     // UpdateRoleCheck call exactly once and resets when the rolecheck ends.
     bool HasLfgRoleResponded() const { return _lfgRoleResponded; }
@@ -101,6 +111,13 @@ private:
     // skipped. Lets the teleport land cleanly without the strategy's
     // MaintainRange immediately re-chasing the master's old target.
     uint32 _summonPinRemainingMs = 0;
+
+    // Manual loot task. Empty when idle. Master sets this via the addon's
+    // Loot button; AltbotLoot::TickPending walks the bot in and drains the
+    // corpse, then clears it. _pendingLootStartedAtMs is the elapsed time
+    // since the task was assigned, used as a give-up timeout.
+    ObjectGuid _pendingLootTarget;
+    uint32     _pendingLootStartedAtMs = 0;
 
     // Owns positioning state across ticks (LOS cache, fire-detect HP samples,
     // emergency-move cooldown). Nullary-constructible Reset() handles

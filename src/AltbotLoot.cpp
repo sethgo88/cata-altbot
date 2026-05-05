@@ -1,9 +1,15 @@
 #include "AltbotLoot.h"
+#include "AltbotAI.h"
+#include "AltbotAddonProto.h"
 #include "AltbotState.h"
+#include "Creature.h"
 #include "Group.h"
 #include "Loot.h"
 #include "Log.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
+#include <sstream>
 #include <vector>
 
 namespace AltbotLoot
@@ -92,6 +98,125 @@ void Tick(Player* bot, Player* master, AltbotState const& state)
 
     if (state.lootRoll != AltbotLootRollMode::Wait)
         TickRollVote(bot, state.lootRoll);
+}
+
+// Manual loot task driven by the addon LOOT verb. The verb handler has already
+// validated lootability + tap eligibility, so this function only has to keep
+// the bot honest while it walks to the corpse and drains it.
+//
+// Range: 4y matches Trinity's interact distance for "loot" interactions
+// (CORPSE_LOOT_DISTANCE in Object.h). MovePoint to corpse coords; we don't use
+// MoveChase because the corpse never moves and MoveChase keeps reissuing each
+// time the chase generator decides it's "out of range" by its own threshold.
+//
+// Drain: ModifyMoney + StoreLootItem mirror the server-side packet handlers
+// (HandleLootMoneyOpcode / HandleAutostoreLootItemOpcode). StoreLootItem does
+// the inventory-fit check internally and marks the slot looted on success;
+// items that don't fit are skipped (left on the corpse for someone else).
+//
+// Timeout: 30s give-up. Long enough to chase a corpse across a small room
+// without the master watching it forever; short enough that "couldn't path
+// to corpse" doesn't pin the bot indefinitely.
+void TickPending(Player* bot, Player* master, AltbotAI& ai, uint32 diff)
+{
+    static constexpr float CORPSE_LOOT_RANGE = 4.0f;
+    static constexpr uint32 LOOT_TIMEOUT_MS  = 30000;
+
+    if (!bot)
+        return;
+
+    ai.AddPendingLootElapsedMs(diff);
+
+    auto fail = [&](char const* code, char const* msg)
+    {
+        ai.ClearPendingLootTarget();
+        if (!master)
+            return;
+        std::ostringstream out;
+        out << "ERR|" << code << "|" << msg;
+        AltbotAddonProto::Send(bot, master, out.str());
+    };
+
+    if (ai.GetPendingLootElapsedMs() > LOOT_TIMEOUT_MS)
+    {
+        fail("LOOT_TIMEOUT", "could not reach corpse");
+        return;
+    }
+
+    Unit* unit = ObjectAccessor::GetUnit(*bot, ai.GetPendingLootTarget());
+    Creature* creature = unit ? unit->ToCreature() : nullptr;
+
+    // Target despawned mid-walk — silent clear, not really an error.
+    if (!creature || creature->IsAlive())
+    {
+        ai.ClearPendingLootTarget();
+        return;
+    }
+
+    // Map mismatch (master pulled bot into a different instance via summon
+    // mid-walk) — silent clear; the master can re-issue if they still want it.
+    if (creature->GetMapId() != bot->GetMapId())
+    {
+        ai.ClearPendingLootTarget();
+        return;
+    }
+
+    // Lootable flag may have been cleared by another looter while we were
+    // walking. Same silent-clear treatment as despawn.
+    if (!creature->HasDynamicFlag(UNIT_DYNFLAG_LOOTABLE))
+    {
+        ai.ClearPendingLootTarget();
+        return;
+    }
+
+    float dist = bot->GetDistance(creature);
+    if (dist > CORPSE_LOOT_RANGE)
+    {
+        // Issue MovePoint once per re-entry; MotionMaster::MovePoint replaces
+        // the active generator, so spamming it every tick fights itself the
+        // same way MoveChase does. UNIT_STATE_ROAMING_MOVE flips on while a
+        // MovePoint is in flight.
+        if (!bot->HasUnitState(UNIT_STATE_ROAMING_MOVE))
+        {
+            float x, y, z;
+            creature->GetPosition(x, y, z);
+            bot->GetMotionMaster()->MovePoint(0, x, y, z);
+        }
+        return;
+    }
+
+    // In range — drain. SendLoot populates creature->loot if it hasn't been
+    // opened yet (the dyn-flag guarantees it has loot), and registers the bot
+    // as a current looter so StoreLootItem won't reject the slot.
+    bot->SendLoot(creature->GetGUID(), LOOT_CORPSE);
+
+    Loot* loot = &creature->loot;
+
+    if (loot->gold > 0)
+    {
+        bot->ModifyMoney(loot->gold);
+        loot->gold = 0;
+    }
+
+    // Walk every populated slot once. StoreLootItem returns the affected
+    // LootItem* on success and nullptr on failure (full inventory, BoP rules,
+    // etc.). Items that fail are left on the corpse — partially-looted is OK.
+    for (uint8 i = 0; i < uint8(loot->items.size()); ++i)
+    {
+        if (loot->items[i].is_looted)
+            continue;
+        bot->StoreLootItem(i, loot);
+    }
+
+    // Standard release flow — also handles the dyn-flag flip when isLooted().
+    bot->GetSession()->DoLootRelease(creature->GetGUID());
+
+    ai.ClearPendingLootTarget();
+
+    TC_LOG_DEBUG("altbot",
+        "AltbotLoot: '%s' manual-looted creature %u",
+        bot->GetName().c_str(),
+        creature->GetEntry());
 }
 
 } // namespace AltbotLoot

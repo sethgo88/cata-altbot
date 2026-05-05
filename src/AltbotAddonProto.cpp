@@ -596,6 +596,16 @@ static void DoLoot(Player* master, Player* via, std::vector<std::string> const& 
     targetAi->SetPendingLootTarget(targetGuid);
 }
 
+// Strip a "0x"-prefixed hex GUID string to its 64-bit value. Returns 0 if the
+// string is empty or unparseable. Shared between QUEST_NPC and QUEST_NPC_ALL.
+static uint64 ParseHexGuid(std::string const& hex)
+{
+    char const* p = hex.c_str();
+    if (hex.size() > 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
+        p += 2;
+    return std::strtoull(p, nullptr, 16);
+}
+
 // "QUEST_NPC|<bot>|<hexGuid>" — addon-driven retroactive accept/turn-in for
 // every quest the targeted NPC offers / involves that the bot is eligible for.
 // Mirrors AltbotQuest::InteractWithNpc; the helper handles range validation
@@ -606,11 +616,7 @@ static void DoQuestNpc(Player* master, std::vector<std::string> const& parts)
     AltbotAI* targetAi = ResolveBotByGuidOrName(master, parts[1]);
     if (!targetAi) return;
 
-    std::string const& hex = parts[2];
-    char const* p = hex.c_str();
-    if (hex.size() > 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
-        p += 2;
-    uint64 raw = std::strtoull(p, nullptr, 16);
+    uint64 raw = ParseHexGuid(parts[2]);
     if (raw == 0)
     {
         ChatHandler(master->GetSession()).PSendSysMessage("Altbot: no NPC selected.");
@@ -618,6 +624,29 @@ static void DoQuestNpc(Player* master, std::vector<std::string> const& parts)
     }
 
     AltbotQuest::InteractWithNpc(master, targetAi, ObjectGuid(raw));
+}
+
+// "QUEST_NPC_ALL|<hexGuid>" — broadcast version. Each active bot independently
+// runs InteractWithNpc, so range/eligibility checks are per-bot (the helper
+// emits a system message per bot regardless of outcome). Bots out of range or
+// on a different map just print a "can't see / not close enough" line — that's
+// useful feedback, not noise.
+static void DoQuestNpcAll(Player* master, std::vector<std::string> const& parts)
+{
+    if (parts.size() < 2) return;
+
+    uint64 raw = ParseHexGuid(parts[1]);
+    if (raw == 0)
+    {
+        ChatHandler(master->GetSession()).PSendSysMessage("Altbot: no NPC selected.");
+        return;
+    }
+
+    ObjectGuid npcGuid(raw);
+    ForEachActiveBot(master, [master, npcGuid](AltbotAI* ai, Player*)
+    {
+        AltbotQuest::InteractWithNpc(master, ai, npcGuid);
+    });
 }
 
 // Slug → AltbotRoleOverride. Mirrors AltbotCommandTable::ParseRoleArg so the
@@ -800,6 +829,8 @@ bool TryDispatch(Player* master, AltbotAI* ai, std::string_view msg)
         DoLoot(master, transport, parts);
     else if (verb == "QUEST_NPC")
         DoQuestNpc(master, parts);
+    else if (verb == "QUEST_NPC_ALL")
+        DoQuestNpcAll(master, parts);
     else if (verb == "SET_MODE_ALL")
         DoSetModeAll(master, parts);
     else if (verb == "SET_ASSIST_ALL")

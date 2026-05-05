@@ -1,6 +1,6 @@
 -- ActionBar.lua — main horizontal control bar.
 --
--- Layout (left → right): [Attack Target] [Follow/Stay toggle] [Summon All] [Roster].
+-- Layout (left → right): [Attack Target] [Follow/Stay toggle] [Summon All] [Quest All] [Roster].
 -- Draggable as a single unit (the parent frame, not individual buttons).
 -- Centered by default; position persists in CataAltbotDB.position.
 --
@@ -22,7 +22,7 @@ AB.followStay = "follow"
 -- Frames -------------------------------------------------------------------
 
 local frame = CreateFrame("Frame", "CataAltbotActionBar", UIParent)
-frame:SetSize(BUTTON_SIZE * 4 + SPACING * 3, BUTTON_SIZE)
+frame:SetSize(BUTTON_SIZE * 5 + SPACING * 4, BUTTON_SIZE)
 frame:SetMovable(true)
 frame:EnableMouse(true)
 frame:RegisterForDrag("LeftButton")
@@ -104,6 +104,7 @@ local ICON_ATTACK       = "Interface\\Icons\\Ability_DualWield"
 local ICON_FOLLOW       = "Interface\\Icons\\Ability_Tracking"
 local ICON_STAY         = "Interface\\Icons\\Spell_Frost_Stun"
 local ICON_SUMMON       = "Interface\\Icons\\Spell_Arcane_TeleportShattrath"
+local ICON_QUEST        = "Interface\\Icons\\INV_Misc_Note_01"
 local ICON_ROSTER       = "Interface\\Icons\\Inv_Misc_GroupLooking"
 
 AB.btnAttack = MakeIconButton(frame, "CataAltbotBtnAttack", ICON_ATTACK)
@@ -131,8 +132,25 @@ AB.btnSummon:SetPoint("LEFT", AB.btnFollowStay, "RIGHT", SPACING, 0)
 AB.btnSummon:SetScript("OnClick", function() addon:SummonAll() end)
 SetTip(AB.btnSummon, "Summon All", "Pull every active bot to your location.")
 
+-- Quest with selected NPC, fanned out to every active bot. Each bot accepts
+-- everything the NPC offers + turns in everything it has completed; per-bot
+-- range / map / eligibility checks happen server-side and reply as system
+-- messages in your chat.
+AB.btnQuestAll = MakeIconButton(frame, "CataAltbotBtnQuestAll", ICON_QUEST)
+AB.btnQuestAll:SetPoint("LEFT", AB.btnSummon, "RIGHT", SPACING, 0)
+AB.btnQuestAll:SetScript("OnClick", function()
+    local targetGuid = UnitGUID("target")
+    if not targetGuid or targetGuid == "" then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff5555[CataAltbot] QUEST: select an NPC first|r")
+        return
+    end
+    addon:QuestNPCAll(targetGuid)
+end)
+SetTip(AB.btnQuestAll, "Quest with Selected NPC (All)",
+    "Every active bot accepts/turns-in with your current target.")
+
 AB.btnRoster = MakeIconButton(frame, "CataAltbotBtnRoster", ICON_ROSTER)
-AB.btnRoster:SetPoint("LEFT", AB.btnSummon, "RIGHT", SPACING, 0)
+AB.btnRoster:SetPoint("LEFT", AB.btnQuestAll, "RIGHT", SPACING, 0)
 AB.btnRoster:SetScript("OnClick", function()
     if addon.RosterPopout then addon.RosterPopout:Toggle() end
 end)

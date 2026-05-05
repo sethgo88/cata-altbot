@@ -206,6 +206,7 @@ function addon:AttackAll()              self:Send(self:AnyActiveBotName(), "ATTA
 function addon:InviteAll()              self:Send(self:AnyActiveBotName(), "INVITE_ALL")             end
 function addon:UninviteAll()            self:Send(self:AnyActiveBotName(), "UNINVITE_ALL")           end
 function addon:SummonAll()              self:Send(self:AnyActiveBotName(), "SUMMON_ALL")             end
+function addon:QuestNPCAll(targetGuid)  self:Send(self:AnyActiveBotName(), "QUEST_NPC_ALL|" .. targetGuid) end
 
 -- ---- Chat filter — swallow our own protocol traffic ----
 --

@@ -163,7 +163,7 @@ void TickPending(Player* bot, Player* master, AltbotAI& ai, uint32 diff)
 
     // Lootable flag may have been cleared by another looter while we were
     // walking. Same silent-clear treatment as despawn.
-    if (!creature->HasDynamicFlag(UNIT_DYNFLAG_LOOTABLE))
+    if (!creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE))
     {
         ai.ClearPendingLootTarget();
         return;
@@ -205,7 +205,7 @@ void TickPending(Player* bot, Player* master, AltbotAI& ai, uint32 diff)
     {
         if (loot->items[i].is_looted)
             continue;
-        bot->StoreLootItem(i, loot);
+        bot->StoreLootItem(creature->GetGUID(), i, loot);
     }
 
     // Standard release flow — also handles the dyn-flag flip when isLooted().

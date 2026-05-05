@@ -570,7 +570,7 @@ static void DoLoot(Player* master, Player* via, std::vector<std::string> const& 
         return;
     }
 
-    if (!creature->HasDynamicFlag(UNIT_DYNFLAG_LOOTABLE))
+    if (!creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE))
     {
         sendErr("NOT_LOOTABLE", "nothing to loot");
         return;

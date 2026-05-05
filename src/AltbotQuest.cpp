@@ -99,10 +99,19 @@ void OnMasterQuestAccept(Player* master, Quest const* quest)
     }
 }
 
+// Force-complete a quest the bot doesn't have organically progressed. Bots
+// rarely earn kill credit (out of group-reward distance, no damage tagged) or
+// loot drops (out of range, can't trigger pickup), so when the master turns
+// in a quest we skip the objective check entirely: add the quest if missing,
+// flip to COMPLETE, then RewardQuest. The underlying calls are the same ones
+// `.quest add` / `.quest complete` / `.quest reward` would make — we just
+// bypass the ChatHandler + RBAC layer since we're already master-authorized.
 void OnMasterQuestReward(Player* master, Quest const* quest)
 {
     if (!quest)
         return;
+
+    uint32 questId = quest->GetQuestId();
 
     for (AltbotAI* ai : CollectBotsInGroup(master))
     {
@@ -113,16 +122,51 @@ void OnMasterQuestReward(Player* master, Quest const* quest)
         if (!bot || !bot->IsInWorld())
             continue;
 
-        // Bot must have completed the quest objectives.
-        if (bot->GetQuestStatus(quest->GetQuestId()) != QUEST_STATUS_COMPLETE)
-            continue;
+        QuestStatus status = bot->GetQuestStatus(questId);
 
-        // Reward index 0 = first reward choice (no UI to pick from).
-        bot->RewardQuest(quest, 0, master, false);
+        if (status == QUEST_STATUS_REWARDED)
+            continue;   // already turned in — daily / repeatable / earlier mirror
+
+        // Bot doesn't have the quest at all. Force-add via the same path
+        // OnMasterQuestAccept uses, then fall through into complete + reward.
+        // Eligibility is still gated by CanTakeQuest so we don't dump rewards
+        // on a bot that's the wrong class/level/race/skill/faction or on
+        // daily cooldown.
+        if (status == QUEST_STATUS_NONE)
+        {
+            if (!bot->CanTakeQuest(quest, false))
+            {
+                WhisperMaster(bot, master,
+                    "Can't turn in '" + quest->GetTitle() + "' (level/class/cooldown/prereq mismatch).");
+                continue;
+            }
+            bot->AddQuestAndCheckCompletion(quest, master);
+            status = bot->GetQuestStatus(questId);
+        }
+
+        // Force-complete an in-progress quest. The master did the work; the
+        // bot doesn't need to have hit kill credit or looted items. CompleteQuest
+        // just flips the slot state — it doesn't validate counters and doesn't
+        // fire OnQuestStatusChange (TC 4.3.4), so no extra whisper here.
+        if (status == QUEST_STATUS_INCOMPLETE)
+        {
+            bot->CompleteQuest(questId);
+            status = bot->GetQuestStatus(questId);
+        }
+
+        if (status == QUEST_STATUS_COMPLETE)
+        {
+            // Reward index 0 = first reward choice (no UI to pick from).
+            // RewardQuest's DestroyItemCount calls silently no-op when the
+            // bot doesn't have the required items, so unfetched quest items
+            // don't block the turn-in.
+            bot->RewardQuest(quest, 0, master, false);
+        }
 
         TC_LOG_INFO("altbot", "AltbotQuest: '%s' auto-turned-in quest %u for master '%s'.",
-            bot->GetName().c_str(), quest->GetQuestId(), master->GetName().c_str());
-        // Same as accept: the bot's hook produces the turn-in whisper.
+            bot->GetName().c_str(), questId, master->GetName().c_str());
+        // The bot's OnQuestStatusChange hook produces the visible "Turned in"
+        // whisper from the RewardQuest path above; nothing to emit here.
     }
 }
 
@@ -351,18 +395,31 @@ void InteractWithNpc(Player* master, AltbotAI* ai, ObjectGuid npcGuid)
         ++accepted;
     }
 
-    // Involved quests — turn in anything the bot has completed.
+    // Involved quests — turn in anything the bot has on its log, force-completing
+    // INCOMPLETE entries first. Master-driven button click implies "I want this
+    // turned in regardless of organic objective progress" (the same reasoning
+    // OnMasterQuestReward uses).
     for (uint32 questId : sObjectMgr->GetCreatureQuestInvolvedRelations(npc->GetEntry()))
     {
         Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
         if (!quest)
             continue;
 
-        if (bot->GetQuestStatus(questId) != QUEST_STATUS_COMPLETE)
-            continue;
+        QuestStatus status = bot->GetQuestStatus(questId);
+        if (status == QUEST_STATUS_NONE || status == QUEST_STATUS_REWARDED)
+            continue;   // not on the bot's log / already turned in
 
-        bot->RewardQuest(quest, 0, npc, false);
-        ++turnedIn;
+        if (status == QUEST_STATUS_INCOMPLETE)
+        {
+            bot->CompleteQuest(questId);
+            status = bot->GetQuestStatus(questId);
+        }
+
+        if (status == QUEST_STATUS_COMPLETE)
+        {
+            bot->RewardQuest(quest, 0, npc, false);
+            ++turnedIn;
+        }
     }
 
     chat.PSendSysMessage("Altbot: %s — %u quest(s) accepted, %u quest(s) turned in with %s.",

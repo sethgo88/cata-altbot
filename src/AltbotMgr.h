@@ -74,6 +74,17 @@ public:
     // reverts to auto-detect.
     void SetBotSpec(ObjectGuid masterGuid, ObjectGuid botGuid, std::string const& spec);
 
+    // Called from PlayerScript::OnLogout (registered in AltbotLoader) for
+    // every player that logs out — both clean .logout and forced session
+    // destruction (account collision, shutdown). Two cases:
+    //   (a) the player is a registered master  → tear down each of their
+    //       bots cleanly via LogoutPlayer(true) so inventory + money save,
+    //       then erase the master entry from _activeBots.
+    //   (b) the player is a registered bot     → drop its AI from its
+    //       master's list. The session is already mid-destruction; we
+    //       just remove the now-unsafe cached pointer.
+    void HandlePlayerLogout(ObjectGuid playerGuid);
+
 private:
     AltbotMgr() = default;
 

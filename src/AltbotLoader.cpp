@@ -246,6 +246,28 @@ public:
     }
 };
 
+// Fires from WorldSession::LogoutPlayer (TC: WorldSession.cpp ~line 653) for
+// every player logout — clean .logout, kick, *and* forced session destruction
+// via World::AddSession_ collision or ~WorldSession during shutdown.
+//
+// Closes the dangling-AltbotAI window: if the bot's session is destroyed
+// externally, the cached _botSession pointer in AltbotAI becomes garbage on
+// the very next OnUpdate tick. Routing through HandlePlayerLogout removes the
+// AI from _activeBots before that tick arrives. Also handles the master-side
+// case (tear down all of a master's bots when the master logs out).
+class altbot_playerscript : public PlayerScript
+{
+public:
+    altbot_playerscript() : PlayerScript("altbot_playerscript") {}
+
+    void OnLogout(Player* player) override
+    {
+        if (!player)
+            return;
+        sAltbotMgr->HandlePlayerLogout(player->GetGUID());
+    }
+};
+
 void AddSC_AltbotCommands();
 void AddSC_AltbotQuest();
 
@@ -253,6 +275,7 @@ void AddSC_AltbotLoader()
 {
     new altbot_commandscript();
     new altbot_worldscript();
+    new altbot_playerscript();
     AddSC_AltbotCommands();
     AddSC_AltbotQuest();
 }

@@ -1,91 +1,13 @@
-FindSpellByFamilyName 'Molten Armor' (family=3) on 'Mageone' considered 2 candidates: {id=34913 lvl=54 mana=0 cd=0} {id=30482 lvl=34 mana=0 cd=0}
-FindSpellByFamilyName 'Deep Freeze' (family=3) on 'Mageone' considered 2 candidates: {id=71757 lvl=60 mana=0 cd=0} {id=44572 lvl=1 mana=1 cd=1}
-FindSpellByFamilyName 'Blizzard' (family=3) on 'Mageone' considered 2 candidates: {id=10 lvl=52 mana=1 cd=0} {id=42208 lvl=20 mana=0 cd=0}
-FrostMageStrategy cache for 'Mageone': MoltenArmor=34913 MageArmor=6117 FrostArmor=7302 Frostbolt=116 FFB=44614 Fireball=133 IceLance=30455 DeepFreeze=44572 FrostNova=122 CoC=120 Blizzard=10 Pet=31687 IceBlock=45438 MageWard=543 Blink=1953
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: threat-window (52<2000)
-MmHunterStrategy cache for 'Hunterone': Hawk=13165 Mark=1130 Serpent=1978 Chimera=53209 Aimed=19434 Kill=53351 Arcane=3044 Steady=56641 Multi=2643 Misdirection=34477 MendPet=136 CallPet=0 Disengage=781 FeignDeath=5384 Deterrence=19263
-FindSpellByFamilyName 'Unstable Affliction' (family=5) on 'Warlockone' considered 2 candidates: {id=30108 lvl=10 mana=1 cd=0} {id=31117 lvl=1 mana=0 cd=0}
-FindSpellByFamilyName 'Drain Life' (family=5) on 'Warlockone' considered 2 candidates: {id=689 lvl=6 mana=1 cd=0} {id=89420 lvl=6 mana=1 cd=0}
-FindSpellByFamilyName 'Seed of Corruption' (family=5) on 'Warlockone' considered 2 candidates: {id=27243 lvl=72 mana=1 cd=0} {id=27285 lvl=72 mana=0 cd=0}
-AffWarlockStrategy cache for 'Warlockone': FelArmor=28176 DemonArmor=687 CoE=1490 Haunt=48181 BaneDoom=603 BaneAgony=980 Corruption=172 UA=30108 SB=686 DrainSoul=1120 DrainLife=89420 LifeTap=1454 SoC=27243 DCSummon=48018 DCTeleport=48020 HoT=5484 DeathCoil=6789 Felhunter=691 HealthFunnel=755
-AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=53
-RestoShamanStrategy cache for 'Shamanone': HSurge=8004 HW=331 GHW=77472 Riptide=61295 ChainHeal=1064 EarthShield=61295 WaterShield=79206 SpiritLinkTotem=0 ManaTideTotem=0 LightningBolt=45297
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: threat-window (1552<2000)
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=24.8 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-  -> Frostbolt
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-AltbotPositionManager [Shamanone]: emergency-fire signal (delta=2742 hp / 10.8% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: leash violation, eating fire
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=24.8 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-  -> Frostbolt
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Shamanone]: skip move (casting)
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=24.8 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (delta=3644 hp / 15.5% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Shamanone]: skip move (casting)
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=24.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-  -> AoE
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Hunterone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-RestoShaman[Shamanone] CastSpell 45297 failed: SpellCastResult=136
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=18.8 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Hunterone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-RestoShaman[Shamanone] CastSpell 45297 failed: SpellCastResult=136
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=12.8 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-RestoShaman[Shamanone] CastSpell 45297 failed: SpellCastResult=136
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.4 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-RestoShaman[Shamanone] CastSpell 45297 failed: SpellCastResult=136
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.4 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Hunterone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=11.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-  -> Frostbolt
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Hunterone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-RestoShaman[Shamanone] CastSpell 45297 failed: SpellCastResult=136
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=14.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-RestoShaman[Shamanone] CastSpell 45297 failed: SpellCastResult=136
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=19.6 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-  -> Frostbolt
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Hunterone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=25.1 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-  -> Frostbolt
-AltbotPositionManager [Mageone]: skip move (casting)
-AltbotPositionManager [Hunterone]: skip move (casting)
-AltbotPositionManager [Warlockone]: skip move (casting)
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: no target
-FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
-FrostMage[Mageone] tick: tgt='Soulguard Watchman' dist=48.6 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=99
-  -> NO TIER FIRED
+>> Loaded 137 Spell Learn SkilThe spell 17002 listed in `spell_learn_spell` attempts learning talent spell 24867, skipped.
+The spell 24866 listed in `spell_learn_spell` attempts learning talent spell 24864, skipped.
+The spell 33872 listed in `spell_learn_spell` attempts learning talent spell 47179, skipped.
+The spell 33873 listed in `spell_learn_spell` attempts learning talent spell 47180, skipped.
+Spell Id 36488 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 39440 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 47261 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 47262 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 67726 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 67736 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 67740 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 67744 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+Spell Id 85556 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!

@@ -45,6 +45,10 @@ public:
 
     void Update(uint32 diff);
 
+    // Called from WorldScript::OnShutdown — logs out every active bot so
+    // InstanceMap::UnloadAll doesn't assert !HavePlayers() on shutdown.
+    void ShutdownAllBots();
+
     AltbotAI* FindBotAI    (ObjectGuid masterGuid, ObjectGuid botGuid);
     AltbotAI* FindBotByName(ObjectGuid masterGuid, std::string const& botName);
 

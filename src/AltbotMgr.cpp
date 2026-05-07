@@ -459,6 +459,26 @@ std::vector<AvailableAlt> AltbotMgr::ListAvailableAlts(Player* master)
     return out;
 }
 
+void AltbotMgr::ShutdownAllBots()
+{
+    for (auto& [masterRaw, bots] : _activeBots)
+    {
+        for (auto& ai : bots)
+        {
+            if (WorldSession* s = ai->GetSession())
+            {
+                if (Player* bot = s->GetPlayer(); bot && bot->IsInWorld())
+                {
+                    TC_LOG_INFO("altbot", "AltbotMgr::ShutdownAllBots: logging out '%s' before map unload.",
+                        bot->GetName().c_str());
+                    s->LogoutPlayer(true);
+                }
+            }
+        }
+    }
+    _activeBots.clear();
+}
+
 void AltbotMgr::Update(uint32 diff)
 {
     for (auto& [masterRaw, bots] : _activeBots)

@@ -244,6 +244,11 @@ public:
     {
         sAltbotMgr->Update(diff);
     }
+
+    void OnShutdown() override
+    {
+        sAltbotMgr->ShutdownAllBots();
+    }
 };
 
 void AddSC_AltbotCommands();

@@ -29,6 +29,16 @@ public:
     AltbotState const& GetState() const { return _state; }
     AltbotState&       MutableState()    { return _state; }
 
+    // Set by AltbotAI::Update when the bot's Player is no longer connected
+    // (session destroyed externally — account collision in
+    // World::AddSession_, server shutdown via KickAll, etc.). AltbotMgr::Update
+    // reaps dead AIs each tick. Belt-and-suspenders alongside the
+    // PlayerScript::OnLogout hook in AltbotLoader, which removes us from
+    // _activeBots synchronously when LogoutPlayer fires; this catches the
+    // edge case where the session was destroyed before its Player ever
+    // attached, so OnLogout never fired.
+    bool IsDead() const { return _dead; }
+
     // Apply a mutation to _state and persist the result via AltbotMgr::PersistState.
     // Use this for any state change driven by a command — never poke _state directly.
     void MutateState(std::function<void(AltbotState&)> const& fn);
@@ -96,6 +106,7 @@ private:
     bool          _lfgRoleResponded        = false;
     bool          _lfgProposalResponded    = false;
     lfg::LfgState _lastLfgState            = lfg::LFG_STATE_NONE;
+    bool          _dead                    = false;
 
     // Combat-state tracking for the threat-window gate and combat-aware follow.
     // _combatElapsedMs is the ms since master last entered combat (0 when out

@@ -5,6 +5,7 @@
 #include "CharacterCache.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
+#include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "Player.h"
 #include "World.h"
@@ -482,6 +483,103 @@ void AltbotMgr::ShutdownAllBots()
 void AltbotMgr::Update(uint32 diff)
 {
     for (auto& [masterRaw, bots] : _activeBots)
+    {
         for (auto& ai : bots)
             ai->Update(diff);
+
+        // Reap AIs that AltbotAI::Update flagged as dead (their bot Player is
+        // no longer connected — session got destroyed without our OnLogout
+        // hook firing, e.g. session torn down before its Player ever attached).
+        // The hook in AltbotLoader catches the common case synchronously;
+        // this is the safety net for the cases it can't reach.
+        std::size_t const before = bots.size();
+        bots.erase(
+            std::remove_if(bots.begin(), bots.end(),
+                [](std::unique_ptr<AltbotAI> const& ai) { return ai->IsDead(); }),
+            bots.end());
+        std::size_t const reaped = before - bots.size();
+        if (reaped > 0)
+            TC_LOG_INFO("altbot",
+                "AltbotMgr::Update: reaped %zu dead AI(s) for master raw=%llu "
+                "(remaining=%zu). If you see this without a corresponding "
+                "'session likely destroyed externally' WARN above, the AI was "
+                "marked dead by some other path.",
+                reaped, static_cast<unsigned long long>(masterRaw), bots.size());
+    }
+}
+
+void AltbotMgr::HandlePlayerLogout(ObjectGuid playerGuid)
+{
+    // Case A: the logging-out player is a master with registered bots.
+    // Tear down each bot cleanly so its inventory + money persist, then erase
+    // the master entry.
+    auto masterIt = _activeBots.find(playerGuid.GetRawValue());
+    if (masterIt != _activeBots.end())
+    {
+        // Snapshot bot guids before iterating: each LogoutPlayer call below
+        // re-enters this hook synchronously (LogoutPlayer fires
+        // sScriptMgr->OnPlayerLogout for the bot) and that recursive call
+        // hits Case B which mutates masterIt->second. Iterate a stable copy.
+        std::vector<ObjectGuid> botGuids;
+        botGuids.reserve(masterIt->second.size());
+        for (auto const& ai : masterIt->second)
+            botGuids.push_back(ai->GetBotGuid());
+
+        TC_LOG_INFO("altbot",
+            "AltbotMgr::HandlePlayerLogout: master %s logged out — tearing down %zu bot(s).",
+            playerGuid.ToString().c_str(), botGuids.size());
+
+        std::size_t toreDown = 0;
+        std::size_t orphans  = 0;
+        for (ObjectGuid botGuid : botGuids)
+        {
+            Player* bot = ObjectAccessor::FindConnectedPlayer(botGuid);
+            if (!bot || !bot->IsInWorld())
+            {
+                ++orphans;
+                TC_LOG_WARN("altbot",
+                    "AltbotMgr::HandlePlayerLogout: bot %s (master %s) has no "
+                    "in-world Player — orphan AI (session likely already gone). "
+                    "Will be cleaned up via the master entry erase below; "
+                    "no LogoutPlayer call possible, so any unsaved inventory "
+                    "for this bot is lost.",
+                    botGuid.ToString().c_str(), playerGuid.ToString().c_str());
+                continue;
+            }
+            bot->GetSession()->LogoutPlayer(true);
+            ++toreDown;
+            // LogoutPlayer fires OnPlayerLogout(bot) → re-enters this function
+            // → Case B → erases the AI from masterIt->second. The map iterator
+            // itself stays valid (Case B never erases map keys).
+        }
+
+        TC_LOG_INFO("altbot",
+            "AltbotMgr::HandlePlayerLogout: master %s teardown complete — "
+            "%zu bot(s) saved+logged out, %zu orphan(s).",
+            playerGuid.ToString().c_str(), toreDown, orphans);
+
+        // Recursive Case B drains the list during the loop above, but if a
+        // bot's session was already gone (no Player to LogoutPlayer), its AI
+        // lingers — erase the whole map entry to drop those orphans too.
+        _activeBots.erase(masterIt);
+        return;
+    }
+
+    // Case B: the logging-out player is a bot. Drop its AI from its master's
+    // list. Don't call LogoutPlayer here — the session is already mid-logout.
+    for (auto& [masterRaw, bots] : _activeBots)
+    {
+        auto it = std::find_if(bots.begin(), bots.end(), [&](std::unique_ptr<AltbotAI> const& ai)
+        {
+            return ai->GetBotGuid() == playerGuid;
+        });
+        if (it != bots.end())
+        {
+            TC_LOG_INFO("altbot",
+                "AltbotMgr::HandlePlayerLogout: bot %s logged out — dropping AI.",
+                playerGuid.ToString().c_str());
+            bots.erase(it);
+            return;
+        }
+    }
 }

@@ -47,16 +47,39 @@ void AltbotAI::SetSpecOverride(std::string const& spec)
 
 void AltbotAI::Update(uint32 diff)
 {
-    Player* bot = _botSession->GetPlayer();
-    if (!bot)
+    if (_dead)
         return;
+
+    // Look up the bot by guid each tick rather than trusting the cached
+    // _botSession pointer. If the session was destroyed (account collision
+    // in World::AddSession_, KickAll on shutdown, WorldSession::Update
+    // returning false on a null socket, etc.), the cached pointer is dangling
+    // — the GUID lookup returns null cleanly. AltbotMgr::Update reaps any
+    // AI flagged dead here.
+    Player* bot = ObjectAccessor::FindConnectedPlayer(_botGuid);
+    if (!bot)
+    {
+        // Log on the rising edge only: this branch fires every tick until
+        // AltbotMgr reaps us, and we don't want to spam.
+        if (!_dead)
+            TC_LOG_WARN("altbot",
+                "AltbotAI::Update: bot %s (master %s) has no connected Player — "
+                "session likely destroyed externally (account collision, shutdown, "
+                "or session-update path). Marking dead for AltbotMgr reap. "
+                "If the OnLogout hook had fired, this AI would already be gone "
+                "from _activeBots; reaching this branch means OnLogout did not "
+                "fire (e.g. session was destroyed before its Player attached).",
+                _botGuid.ToString().c_str(), _masterGuid.ToString().c_str());
+        _dead = true;
+        return;
+    }
 
     // Bots have no client to send teleport acks. If anything (LFG dungeon
     // teleport, .tele, scripted teleport, etc.) put the bot into a far-port
     // semaphore state, we drive the ack ourselves so the map swap completes
     // and IsInWorld() flips back to true.
     if (bot->IsBeingTeleportedFar())
-        _botSession->HandleMoveWorldportAck();
+        bot->GetSession()->HandleMoveWorldportAck();
 
     // Bot player may still be loading from DB — wait until it's in the world
     if (!bot->IsInWorld())

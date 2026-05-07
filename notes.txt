@@ -1,13 +1,51 @@
->> Loaded 137 Spell Learn SkilThe spell 17002 listed in `spell_learn_spell` attempts learning talent spell 24867, skipped.
-The spell 24866 listed in `spell_learn_spell` attempts learning talent spell 24864, skipped.
-The spell 33872 listed in `spell_learn_spell` attempts learning talent spell 47179, skipped.
-The spell 33873 listed in `spell_learn_spell` attempts learning talent spell 47180, skipped.
-Spell Id 36488 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 39440 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 47261 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 47262 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 67726 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 67736 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 67740 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 67744 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
-Spell Id 85556 has SPELL_ATTR3_CAN_PROC_FROM_PROCS attribute and no restriction on what spells can cause it to proc and no cooldown. This spell can cause infinite proc loops. Proc data for this spell was not generated, data in `spell_proc` table is required for it to function!
+I'm working on a TrinityCore-based Cataclysm server-core that has a custom
+  "cata-altbot" module installed. On another machine I've already implemented
+  two safety nets in the module and now I need to finalize two more, but I
+  need code from this server-core build first. Please READ-ONLY: paste
+  verbatim what I ask for, don't modify anything, don't analyze beyond the
+  brief notes I request. Goal is to keep token usage low.
+
+  Repo root is the server-core checkout (the one with cata-altbot patches
+  applied — should have AltbotLogin, GetPendingProposalIdForPlayer,
+  Group::GetRolls). If unsure which path is right, run:
+    grep -rln "AltbotLogin" src/server/
+
+  Please return, in order:
+
+  1) The full body of `World::AddSession_` (likely
+     `src/server/game/World/World.cpp`). Paste the entire function. Then a
+     one-line note: does it call `delete old->second` for an existing session
+     on the same accountId, or has it been patched to skip eviction for bot
+     sessions?
+
+  2) The full body of `WorldSession::AltbotLogin` (likely
+     `src/server/game/Handlers/CharacterHandler.cpp`, around the
+     HandlePlayerLogin area). Paste the entire function.
+
+  3) The declaration of `m_sessions` in `src/server/game/World/World.h`
+     (just the line + the typedef/using if there is one). I want to know its
+     key type — is it `std::unordered_map<uint32, WorldSession*>` keyed by
+     accountId, or has it been re-keyed by GUID, or made multi-valued?
+
+  4) The `class WorldScript` declaration from
+     `src/server/game/Scripting/ScriptMgr.h` (just the class block with its
+     virtual hooks — I want to see which lifecycle hooks exist:
+     OnShutdown, OnShutdownInitiate, OnShutdownCancel, OnStartup, etc.).
+
+  5) Tail of the most recent worldserver crash, if there is one. Run:
+       ls -lt Errors.log* core.* 2>/dev/null | head
+     then paste the last ~80 lines of whichever Errors.log is newest, plus
+     `gdb --batch --ex bt <binary> <core>` output if there's a core file
+     from a guild-related crash.
+
+  6) The current Appender / Logger block from the **active**
+     `worldserver.conf` (not the `.dist` — the one the running server
+     actually loads). Find it with:
+       find . -name "worldserver.conf" -not -name "*.dist" 2>/dev/null
+     then paste every line that starts with `Appender.` or `Logger.`. I want
+     to make sure proposed appender names like `Altbot` and logger channel
+     `altbot` don't collide with anything already configured. If only the
+     `.dist` exists (no deployed conf yet), say so.
+
+  That's it — don't refactor, don't build, don't dig further. Just paste those
+  six blocks back to me.

@@ -1,51 +1,194 @@
-I'm working on a TrinityCore-based Cataclysm server-core that has a custom
-  "cata-altbot" module installed. On another machine I've already implemented
-  two safety nets in the module and now I need to finalize two more, but I
-  need code from this server-core build first. Please READ-ONLY: paste
-  verbatim what I ask for, don't modify anything, don't analyze beyond the
-  brief notes I request. Goal is to keep token usage low.
+1. World::AddSession_ — server-core/src/server/game/World/World.cpp                   
+                                                                                        
+  void World::AddSession_(WorldSession* s)                                              
+  {                                                              
+      ASSERT(s);
 
-  Repo root is the server-core checkout (the one with cata-altbot patches
-  applied — should have AltbotLogin, GetPendingProposalIdForPlayer,
-  Group::GetRolls). If unsure which path is right, run:
-    grep -rln "AltbotLogin" src/server/
+      // Altbot sessions must not go through the normal account-keyed session management
+   —
+      // doing so would kick the master player who shares the same account.
+      if (s->IsAltbot())
+      {
+          m_altbotSessions[s->GetAltbotGuid().GetCounter()] = s;
+          UpdateMaxSessionCounters();
+          return;
+      }
 
-  Please return, in order:
+      //NOTE - Still there is race condition in WorldSession* being used in the Sockets
 
-  1) The full body of `World::AddSession_` (likely
-     `src/server/game/World/World.cpp`). Paste the entire function. Then a
-     one-line note: does it call `delete old->second` for an existing session
-     on the same accountId, or has it been patched to skip eviction for bot
-     sessions?
+      ///- kick already loaded player with same account (if any) and remove session
+      ///- if player is in loading and want to load again, return
+      if (!RemoveSession (s->GetAccountId()))
+      {
+          s->KickPlayer();
+          delete s;                                           // session not added yet
+  in session list, so not listed in queue
+          return;
+      }
 
-  2) The full body of `WorldSession::AltbotLogin` (likely
-     `src/server/game/Handlers/CharacterHandler.cpp`, around the
-     HandlePlayerLogin area). Paste the entire function.
+      // decrease session counts only at not reconnection case
+      bool decrease_session = true;
 
-  3) The declaration of `m_sessions` in `src/server/game/World/World.h`
-     (just the line + the typedef/using if there is one). I want to know its
-     key type — is it `std::unordered_map<uint32, WorldSession*>` keyed by
-     accountId, or has it been re-keyed by GUID, or made multi-valued?
+      // if session already exist, prepare to it deleting at next world update
+      // NOTE - KickPlayer() should be called on "old" in RemoveSession()
+      {
+          SessionMap::const_iterator old = m_sessions.find(s->GetAccountId());
 
-  4) The `class WorldScript` declaration from
-     `src/server/game/Scripting/ScriptMgr.h` (just the class block with its
-     virtual hooks — I want to see which lifecycle hooks exist:
-     OnShutdown, OnShutdownInitiate, OnShutdownCancel, OnStartup, etc.).
+          if (old != m_sessions.end())
+          {
+              // prevent decrease sessions count if session queued
+              if (RemoveQueuedPlayer(old->second))
+                  decrease_session = false;
+              // not remove replaced session form queue if listed
+              delete old->second;
+          }
+      }
 
-  5) Tail of the most recent worldserver crash, if there is one. Run:
-       ls -lt Errors.log* core.* 2>/dev/null | head
-     then paste the last ~80 lines of whichever Errors.log is newest, plus
-     `gdb --batch --ex bt <binary> <core>` output if there's a core file
-     from a guild-related crash.
+      m_sessions[s->GetAccountId()] = s;
 
-  6) The current Appender / Logger block from the **active**
-     `worldserver.conf` (not the `.dist` — the one the running server
-     actually loads). Find it with:
-       find . -name "worldserver.conf" -not -name "*.dist" 2>/dev/null
-     then paste every line that starts with `Appender.` or `Logger.`. I want
-     to make sure proposed appender names like `Altbot` and logger channel
-     `altbot` don't collide with anything already configured. If only the
-     `.dist` exists (no deployed conf yet), say so.
+      uint32 Sessions = GetActiveAndQueuedSessionCount();
+      uint32 pLimit = GetPlayerAmountLimit();
+      uint32 QueueSize = GetQueuedSessionCount(); //number of players in the queue
 
-  That's it — don't refactor, don't build, don't dig further. Just paste those
-  six blocks back to me.
+      //so we don't count the user trying to
+      //login as a session and queue the socket that we are using
+      if (decrease_session)
+          --Sessions;
+
+      if (pLimit > 0 && Sessions >= pLimit &&
+  !s->HasPermission(rbac::RBAC_PERM_SKIP_QUEUE) && !HasRecentlyDisconnected(s))
+      {
+          AddQueuedPlayer(s);
+          UpdateMaxSessionCounters();
+          TC_LOG_INFO("misc", "PlayerQueue: Account id %u is in Queue Position (%u).",
+  s->GetAccountId(), ++QueueSize);
+          return;
+      }
+
+      s->InitializeSession();
+
+      UpdateMaxSessionCounters();
+
+      // Updates the population
+      if (pLimit > 0)
+      {
+          float popu = (float)GetActiveSessionCount();              // updated number of
+   users on the server
+          popu /= pLimit;
+          popu *= 2;
+          TC_LOG_INFO("misc", "Server Population (%f).", popu);
+      }
+  }
+
+  Note: Patched. Altbot sessions are intercepted early and stored in m_altbotSessions
+  (keyed by character GUID low). The normal delete old->second eviction path is never
+  reached for bot sessions — they bypass it entirely via the early return.
+
+  ---
+  2. WorldSession::AltbotLogin —
+  server-core/src/server/game/Handlers/CharacterHandler.cpp
+
+  void WorldSession::AltbotLogin(ObjectGuid guid)
+  {
+      _isAltbot = true;
+      _altbotGuid = guid;
+      m_playerLoading = guid;
+      _legacyConnectionModeEnabled = true;
+      HandleContinuePlayerLogin();
+  }
+
+  ---
+  3. m_sessions declaration — server-core/src/server/game/World/World.h
+
+  typedef std::unordered_map<uint32, WorldSession*> SessionMap;
+
+  SessionMap m_sessions;
+  SessionMap m_altbotSessions;  ///< Bot sessions keyed by character guid low — bypass
+  account-keyed kick logic
+
+  Key type: uint32 = accountId for m_sessions; uint32 = character GUID low for
+  m_altbotSessions. Single-valued (not multi-map).
+
+  ---
+  4. class WorldScript — server-core/src/server/game/Scripting/ScriptMgr.h
+
+  class TC_GAME_API WorldScript : public ScriptObject
+  {
+      protected:
+
+          WorldScript(char const* name);
+
+      public:
+
+          // Called when the open/closed state of the world changes.
+          virtual void OnOpenStateChange(bool /*open*/) { }
+
+          // Called when a world shutdown is initiated.
+          virtual void OnShutdownInitiate(ShutdownExitCode /*code*/, ShutdownMask
+  /*mask*/) { }
+
+          // Called when a world shutdown is cancelled.
+          virtual void OnShutdownCancel() { }
+
+          // Called on every world tick (don't execute too heavy code here).
+          virtual void OnUpdate(uint32 /*diff*/) { }
+
+          // Called when the world is started.
+          virtual void OnStartup() { }
+
+          // Called when the world is actually shut down.
+          virtual void OnShutdown() { }
+  };
+
+  Hooks present: OnOpenStateChange, OnShutdownInitiate, OnShutdownCancel, OnUpdate,
+  OnStartup, OnShutdown. No OnConfigLoad or OnMotdChange on the class itself (those
+  exist only on ScriptMgr's dispatch side).
+
+  ---
+  5. Crash log tail (last ~80 lines of server-build/install/crash.log, dated 2026-05-06)
+
+  FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+  FrostMage[Mageone] tick: tgt='Erunak Stonespeaker' dist=21.7 casting=1 FoF=0 BF=0
+  FB-id=116 IL-id=30455 FFB-id=44614
+  FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+  ... (repeating pattern) ...
+  AltbotPositionManager [Hunterone]: emergency-fire signal (delta=6249 hp / 27.8% max,
+  attackers_in_8y=0)
+  AltbotPositionManager [Warlockone]: emergency-fire signal (delta=5980 hp / 14.2% max,
+  attackers_in_8y=0)
+  AltbotPositionManager [Warlockone]: leash violation, eating fire
+  AltbotPositionManager [Mageone]: emergency-fire signal (delta=5432 hp / 15.0% max,
+  attackers_in_8y=0)
+  AltbotPositionManager [Hunterone]: leash violation, eating fire
+  AltbotPositionManager [Shamanone]: emergency-fire signal (delta=5432 hp / 13.9% max,
+  attackers_in_8y=0)
+  FrostMage[Mageone] CastSpell 34913 failed: SpellCastResult=13
+  FrostMage[Mageone] tick: tgt='Erunak Stonespeaker' dist=21.7 casting=0 FoF=1 BF=0
+  FB-id=116 IL-id=30455 FFB-id=44614
+  Altbo    ← file ends mid-line
+
+  No core dump found (ls Errors.log* core.* — no matching files). The log ends mid-write
+   — likely a clean process kill rather than a fault-induced crash. No guild-related
+  stack trace present.
+
+  ---
+  6. Active worldserver.conf — server-build/install/worldserver.conf (last modified
+  2026-05-05)
+
+  Appender.Console=1,3,0
+  Appender.Server=2,2,0,Server.log,w
+  Appender.GM=2,2,15,gm/gm_%s.log
+  Appender.DBErrors=2,2,0,DBErrors.log
+
+  Logger.root=5,Console Server
+  Logger.server=3,Console Server
+  Logger.commands.gm=3,Console GM
+  Logger.scripts.hotswap=3,Console Server
+  Logger.sql.sql=5,Console DBErrors
+  Logger.sql.updates=3,Console Server
+  Logger.altbot=2,Console Server
+
+  A deployed (non-dist) conf exists. The name Altbot (appender) is not taken — only
+  Console, Server, GM, DBErrors are defined. The channel altbot is already present as
+  Logger.altbot=2,Console Server — so that logger name is in use; don't redefine it,
+  wire into it or use a sub-logger like Logger.altbot.combat.

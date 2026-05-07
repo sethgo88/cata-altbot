@@ -59,6 +59,17 @@ void AltbotAI::Update(uint32 diff)
     Player* bot = ObjectAccessor::FindConnectedPlayer(_botGuid);
     if (!bot)
     {
+        // Log on the rising edge only: this branch fires every tick until
+        // AltbotMgr reaps us, and we don't want to spam.
+        if (!_dead)
+            TC_LOG_WARN("altbot",
+                "AltbotAI::Update: bot %s (master %s) has no connected Player — "
+                "session likely destroyed externally (account collision, shutdown, "
+                "or session-update path). Marking dead for AltbotMgr reap. "
+                "If the OnLogout hook had fired, this AI would already be gone "
+                "from _activeBots; reaching this branch means OnLogout did not "
+                "fire (e.g. session was destroyed before its Player attached).",
+                _botGuid.ToString().c_str(), _masterGuid.ToString().c_str());
         _dead = true;
         return;
     }

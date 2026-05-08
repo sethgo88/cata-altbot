@@ -265,27 +265,14 @@ public:
     }
 };
 
-// Fires from WorldSession::LogoutPlayer (TC: WorldSession.cpp ~line 653) for
-// every player logout — clean .logout, kick, *and* forced session destruction
-// via World::AddSession_ collision or ~WorldSession during shutdown.
-//
-// Closes the dangling-AltbotAI window: if the bot's session is destroyed
-// externally, the cached _botSession pointer in AltbotAI becomes garbage on
-// the very next OnUpdate tick. Routing through HandlePlayerLogout removes the
-// AI from _activeBots before that tick arrives. Also handles the master-side
-// case (tear down all of a master's bots when the master logs out).
-class altbot_playerscript : public PlayerScript
-{
-public:
-    altbot_playerscript() : PlayerScript("altbot_playerscript") {}
-
-    void OnLogout(Player* player) override
-    {
-        if (!player)
-            return;
-        sAltbotMgr->HandlePlayerLogout(player->GetGUID());
-    }
-};
+// NOTE: the PlayerScript hook (`OnChat`, `OnLogin`, `OnLogout`) lives in
+// AltbotCommands.cpp's `altbot_playerscript`. TC's ScriptMgr keys scripts by
+// the name passed to the base ctor, and registering a second class under the
+// same name silently displaces the first — earlier versions of this file
+// declared a duplicate `altbot_playerscript` for the OnLogout hook, which
+// blew away the OnChat handler that drives the addon protocol (no LIST,
+// INVITE, anything reached the server). Add new player-side hooks to
+// AltbotCommands.cpp's class instead.
 
 void AddSC_AltbotCommands();
 void AddSC_AltbotQuest();
@@ -294,7 +281,6 @@ void AddSC_AltbotLoader()
 {
     new altbot_commandscript();
     new altbot_worldscript();
-    new altbot_playerscript();
     AddSC_AltbotCommands();
     AddSC_AltbotQuest();
 }

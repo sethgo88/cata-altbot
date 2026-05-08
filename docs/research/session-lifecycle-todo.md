@@ -43,7 +43,8 @@ destroyed before its Player attached and `~WorldSession` skipped
 
 ## (2) `PlayerScript::OnLogout` hook — DONE
 
-`altbot_playerscript` in `AltbotLoader.cpp` calls
+The `OnLogout` override lives on **`AltbotCommands.cpp`'s** `altbot_playerscript`,
+alongside `OnChat` and `OnLogin`. It calls
 `sAltbotMgr->HandlePlayerLogout(player->GetGUID())`. Two cases:
 - player is a registered master → tear down each bot via `LogoutPlayer(true)`,
   then erase the master entry from `_activeBots`.
@@ -51,6 +52,15 @@ destroyed before its Player attached and `~WorldSession` skipped
 
 `HandlePlayerLogout` snapshots bot guids before iteration because
 `LogoutPlayer` re-enters `OnLogout` synchronously (Case A → Case B recursion).
+
+**Don't add a second `altbot_playerscript` class** for new player-side hooks.
+TC's ScriptMgr keys scripts by the string passed to the base ctor; a second
+registration under the same name silently displaces the first. An earlier
+revision of `AltbotLoader.cpp` had a duplicate `altbot_playerscript` for
+`OnLogout` that blew away the `OnChat` handler driving the addon protocol —
+no LIST/INVITE/anything reached the server until the duplicate was removed.
+Add new player-side hooks as additional methods on the existing class in
+`AltbotCommands.cpp`.
 
 ## (3) `WorldScript::OnShutdownInitiate` — DONE
 

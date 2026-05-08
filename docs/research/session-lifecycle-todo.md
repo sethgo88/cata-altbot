@@ -32,75 +32,40 @@ instead of trusting the cached `_botSession*`. On null lookup, sets
 `HandlePlayerLogout` snapshots bot guids before iteration because
 `LogoutPlayer` re-enters `OnLogout` synchronously (Case A → Case B recursion).
 
-## (3) `WorldScript::OnShutdownInitiate` — TODO, needs info
+## (3) `WorldScript::OnShutdownInitiate` — DONE
 
-**Goal:** save every bot's inventory/money before TC's `KickAll` runs and
-session destruction starts going through the no-socket-session destructor
-path. Belt-and-suspenders against (2) — if the destructor's `LogoutPlayer`
-ever silently fails for null-socket bots, this catches it.
+`altbot_worldscript` in `AltbotLoader.cpp` overrides
+`OnShutdownInitiate(ShutdownExitCode, ShutdownMask)` (primary save point —
+fires before `KickAll` and `InstanceMap::UnloadAll`) and also keeps an
+`OnShutdown()` override as a late backup. Both call
+`AltbotMgr::ShutdownAllBots`, which is idempotent because it clears
+`_activeBots` after teardown.
 
-**What I need from the server-core:** the `WorldScript` class declaration in
-`src/server/game/Scripting/ScriptMgr.h` (or wherever it lives in the user's
-fork). Looking for which lifecycle hooks are virtual:
+`ShutdownAllBots` snapshots bot guids first (LogoutPlayer re-enters
+`HandlePlayerLogout` synchronously and would otherwise invalidate the
+iteration) and looks up each bot's `Player*` via `ObjectAccessor::
+FindConnectedPlayer` rather than trusting cached session pointers.
 
-- `OnStartup()`
-- `OnShutdownInitiate(ShutdownExitCode, ShutdownMask)` — ideal hook for us
-- `OnShutdown()` — fires too late (after `KickAll`); not useful here
-- `OnConfigLoad(bool reload)`
-- `OnUpdate(uint32 diff)`
+## (4) Same-account session-collision check — RESOLVED, NOT NEEDED
 
-The exact hook name + signature varies by TC version. Confirm what's in the
-fork before writing the override.
+The fork has already solved this at the core. `World::AddSession_` is
+patched (in `src/server/game/World/World.cpp`) to short-circuit altbot
+sessions into a separate map:
 
-**Implementation when ready:** in `altbot_worldscript`, override the right
-hook and call something like `AltbotMgr::TearDownAllBots()` which walks every
-master entry in `_activeBots` and runs the same logic as
-`HandlePlayerLogout` Case A on each. Reusing the existing function is fine —
-just iterate keys and call it.
+```cpp
+if (s->IsAltbot())
+{
+    m_altbotSessions[s->GetAltbotGuid().GetCounter()] = s;
+    UpdateMaxSessionCounters();
+    return;
+}
+```
 
-## (4) Same-account session-collision check — TODO, needs info
-
-**Goal:** in `AltbotMgr::SpawnBot`, refuse to add a bot whose `accountId`
-already has an active session that we'd evict. Originally framed as a
-`sWorld->FindSession(botAccountId) != nullptr` check, but that is **wrong**
-for this user's setup.
-
-**Why:** the user runs *all* their bots on the same account as the master
-(single-account model: master Warriorone + altbot Mageone/Hunterone/
-Warlockone/Shamanone all under account M). In stock TC, `m_sessions` is keyed
-by accountId (`World.cpp:369`) and `AddSession_` would evict the existing
-session for that account. The fact that the user's setup works means their
-TC fork has been patched to handle multi-session-per-account specifically for
-bot sessions. A naive `FindSession` check would refuse every bot add.
-
-**What I need from the server-core:**
-
-1. `World::AddSession_` body, especially around the
-   `RemoveSession(accountId)` / `delete old->second` lines (stock TC:
-   `World.cpp:336-400`).
-2. `WorldSession::AltbotLogin` body (the patch declared at
-   `WorldSession.h:479` per CLAUDE.md, implemented in
-   `CharacterHandler.cpp:766`). Either it stuffs a fake socket into
-   `m_Socket[CONNECTION_TYPE_REALM]` so the standard collision logic works,
-   or it bypasses the eviction path entirely.
-3. The `m_sessions` declaration in `World.h` — is it still
-   `std::unordered_map<uint32, WorldSession*>` keyed by accountId, or has it
-   been re-keyed by GUID / made multi-valued?
-
-**Implementation when ready:** the right check depends on what (1)–(3)
-reveal:
-
-- If the fork keys sessions by character GUID (multi-session-per-account
-  natively): check `sWorld->FindSession*ByGuid*(botGuid)` — only conflicts if
-  *that specific character* already has a session.
-- If the fork keeps account-keyed sessions but stashes bot sessions in a
-  side-map: check that side-map's collision rules.
-- If the fork lets `AddSession_` skip the eviction path for null-socket
-  sessions: there's nothing to add at the AltbotMgr layer — collisions can't
-  happen for bots. (4) becomes a no-op and we can close it out.
-
-**Until we have this info, do not add `(4)`.** A wrong check here would break
-the user's workflow on the very first `.altbot login`.
+`m_altbotSessions` is keyed by character guid (low 32) instead of accountId,
+so adding a bot session never evicts the master's session even when both
+share an account. `WorldSession::AltbotLogin` sets the `_isAltbot` flag and
+the `_altbotGuid` that this map keys on. There is no collision to defend
+against at the `AltbotMgr` layer. Close the issue.
 
 ## Other follow-ups surfaced by the same investigation
 

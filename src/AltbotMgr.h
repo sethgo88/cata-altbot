@@ -45,8 +45,11 @@ public:
 
     void Update(uint32 diff);
 
-    // Called from WorldScript::OnShutdown — logs out every active bot so
-    // InstanceMap::UnloadAll doesn't assert !HavePlayers() on shutdown.
+    // Called from WorldScript::OnShutdownInitiate (primary) and OnShutdown
+    // (late backup) — logs out every active bot via LogoutPlayer(true) so
+    // their inventory + money persist and InstanceMap::UnloadAll doesn't
+    // assert !HavePlayers(). Idempotent: clears _activeBots at the end so
+    // the second hook call (from OnShutdown) is a no-op.
     void ShutdownAllBots();
 
     AltbotAI* FindBotAI    (ObjectGuid masterGuid, ObjectGuid botGuid);

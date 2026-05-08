@@ -462,21 +462,55 @@ std::vector<AvailableAlt> AltbotMgr::ListAvailableAlts(Player* master)
 
 void AltbotMgr::ShutdownAllBots()
 {
-    for (auto& [masterRaw, bots] : _activeBots)
+    // Snapshot bot guids first. LogoutPlayer below fires
+    // sScriptMgr->OnPlayerLogout for each bot, which re-enters
+    // HandlePlayerLogout and erases that bot's AI from _activeBots. Iterating
+    // _activeBots directly while that mutation happens is iterator
+    // invalidation; iterate a stable snapshot instead.
+    std::vector<ObjectGuid> botGuids;
+    for (auto const& [masterRaw, bots] : _activeBots)
     {
-        for (auto& ai : bots)
-        {
-            if (WorldSession* s = ai->GetSession())
-            {
-                if (Player* bot = s->GetPlayer(); bot && bot->IsInWorld())
-                {
-                    TC_LOG_INFO("altbot", "AltbotMgr::ShutdownAllBots: logging out '%s' before map unload.",
-                        bot->GetName().c_str());
-                    s->LogoutPlayer(true);
-                }
-            }
-        }
+        botGuids.reserve(botGuids.size() + bots.size());
+        for (auto const& ai : bots)
+            botGuids.push_back(ai->GetBotGuid());
     }
+
+    TC_LOG_INFO("altbot",
+        "AltbotMgr::ShutdownAllBots: tearing down %zu active bot(s) before map unload.",
+        botGuids.size());
+
+    std::size_t toreDown = 0;
+    std::size_t orphans  = 0;
+    for (ObjectGuid botGuid : botGuids)
+    {
+        // Look up Player by guid rather than trusting AltbotAI::GetSession's
+        // cached pointer — same staleness rationale as AltbotAI::Update.
+        Player* bot = ObjectAccessor::FindConnectedPlayer(botGuid);
+        if (!bot || !bot->IsInWorld())
+        {
+            ++orphans;
+            TC_LOG_WARN("altbot",
+                "AltbotMgr::ShutdownAllBots: bot %s has no in-world Player — "
+                "orphan AI (session likely already torn down). Any unsaved "
+                "inventory for this bot is lost.",
+                botGuid.ToString().c_str());
+            continue;
+        }
+        TC_LOG_INFO("altbot",
+            "AltbotMgr::ShutdownAllBots: logging out '%s' (%s).",
+            bot->GetName().c_str(), botGuid.ToString().c_str());
+        bot->GetSession()->LogoutPlayer(true);
+        ++toreDown;
+    }
+
+    TC_LOG_INFO("altbot",
+        "AltbotMgr::ShutdownAllBots: shutdown teardown complete — "
+        "%zu bot(s) saved+logged out, %zu orphan(s).",
+        toreDown, orphans);
+
+    // Belt-and-suspenders: the recursive Case B path inside HandlePlayerLogout
+    // already erased the per-bot AIs as their LogoutPlayer fired. clear()
+    // wipes any master entries left holding orphan AIs.
     _activeBots.clear();
 }
 

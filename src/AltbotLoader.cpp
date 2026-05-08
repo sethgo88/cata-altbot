@@ -245,6 +245,20 @@ public:
         sAltbotMgr->Update(diff);
     }
 
+    // Primary shutdown save point. Per ScriptMgr.h's WorldScript declaration,
+    // this hook fires when shutdown is *announced* — before World::KickAll
+    // closes sockets and before InstanceMap::UnloadAll asserts !HavePlayers().
+    // All sessions/players/maps are still healthy here, so LogoutPlayer(true)
+    // saves cleanly.
+    void OnShutdownInitiate(ShutdownExitCode /*code*/, ShutdownMask /*mask*/) override
+    {
+        sAltbotMgr->ShutdownAllBots();
+    }
+
+    // Late safety net. Fires after KickAll, so it's the wrong place for the
+    // strong save guarantee — but ShutdownAllBots is idempotent (it clears
+    // _activeBots), so if shutdown ever skips OnShutdownInitiate we still get
+    // a teardown attempt here. Original assertion-fix path; keep it.
     void OnShutdown() override
     {
         sAltbotMgr->ShutdownAllBots();

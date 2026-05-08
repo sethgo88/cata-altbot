@@ -1,25 +1,54 @@
-To diagnose the startup crash at guild-member load, the most useful      
-  artifacts are:                                                           
-                                                                           
-  1. Worldserver console output from launch through the crash — the line   
-  right before the crash usually names the guild ID / member GUID it choked
-   on. Capture stderr too.                                                 
-  2. Server.log / Errors.log from server-core/build/.../logs/ (whatever
-  your LogsDir is set to in worldserver.conf).                             
-  3. Stack trace — if it's a real crash (segfault), there should be a .dmp
-  next to the binary on Windows or a crash log in the logs dir on          
-  macOS/Linux. On macOS, Console.app → "Crash Reports" usually has it; or
-  run under lldb -- ./worldserver and paste bt after it dies.              
-  4. What "can't build" means — is the compile failing, or is it the 
-  worldserver process crashing at startup? If compile, paste the           
-  cmake/ninja output. If startup, that's the same as #1.
-  5. DB state sanity check — the queries SELECT COUNT(*) FROM guild_member;
-   and SELECT guildid, COUNT(*) FROM guild_member GROUP BY guildid ORDER BY
-   2 DESC LIMIT 5; against the characters DB. A bot that got added to a
-  guild then had its character row deleted will leave a dangling           
-  guild_member row pointing at a missing character — that's a known crash
-  shape.
+#1 — Console output / last lines before crash                  
+                                                                                                                                                                                   
+  Server.log shows the server dies mid-startup here:                                                                                                                               
+  Loading Guilds...
+  >> Loaded 1 guild definitions in 3 ms
+  Loading guild ranks...
+  >> Loaded 5 guild ranks in 1 ms
+  Loading guild members...
+  <process exits — nothing after this line>
+  No further output. The crash is 100% during guild member loading.
 
-  If you paste the last ~50 lines of console output before the crash plus  
-  any stack trace, that's usually enough to pinpoint it. Which would you
-  like to grab first?   
+  ---
+  #2 — Server.log / DBErrors.log
+
+  - server-build/DBErrors.log — empty (0 bytes), nothing useful there
+  - server-build/install/DBErrors.log — has schema errors: Unknown column 'wander_distance' and unit_flags2 in creature table. These are pre-existing DB schema mismatches but are
+  not the crash cause — they're prepared-statement warnings that happen on every run without killing the process
+
+  ---
+  #3 — Stack trace / crash dump
+
+  There are two .dmp files in server-build/install/ from May 4:
+  - worldserver.exe_260504_094456.dmp
+  - worldserver.exe_260504_101326.dmp
+
+  No new .dmp was generated for the current crash — likely the guild member load is an ASSERT or unhandled exception that calls abort() before the crash handler writes a dump. To
+  read the May 4 dumps:
+
+  # In PowerShell — open in WinDbg if you have it:
+  & "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe" `
+    -z "C:\cataclysm\server-build\install\worldserver.exe_260504_094456.dmp"
+  # Then in WinDbg: !analyze -v
+  # or: .ecxr ; k
+
+  ---
+  #4 — Build vs startup crash
+
+  This is a startup crash, not a compile failure. The binary runs, loads world data for ~2 minutes successfully, then crashes specifically at guild member table read. The compile
+  is fine.
+
+  ---
+  Bottom line: The crash shape exactly matches the dangling guild_member row you described in #5 — one guild with 5 ranks, but loading its members hits a missing character GUID.
+  Your DB query will confirm it.
+
+sql
+SELECT guildid, COUNT(*) FROM guild_member GROUP BY guildid ORDER BY 2 DESC LIMIT 5;
+"guildid"	"COUNT(*)"
+"1"	"5"
+
+SELECT gm.guildid, gm.guid
+  FROM guild_member gm
+  LEFT JOIN characters c ON c.guid = gm.guid
+  WHERE c.guid IS NULL;
+/* Affected rows: 0  Found rows: 0  Warnings: 0  Duration for 1 query: 0.016 sec. */

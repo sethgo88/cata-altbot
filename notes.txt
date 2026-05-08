@@ -1,5 +1,12 @@
-# Add this line near the other Appender.* declarations:                                     
-  Appender.Altbot=2,2,7,altbot.log,a                                                          
-                                                                                              
-  # Replace the existing Logger.altbot line with:                                             
-  Logger.altbot=2,Console Server Altbot  
+TC>TrinityCore rev. e53b90d75b60+ 2026-03-26 22:09:43 +0100 (master branch) (Win64, RelWithDebInfo, Static) (worldserver-daemon) ready...
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+Command: account onlinelist [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+Command: go zonexy 67.836113 39.972565 5168 [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -321.012024 Y: 800.714417 Z: 261.517822 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+AltbotMgr::SpawnBot: bot guid GUID Full: 0x0000000000000002 Type: Player Low: 2 (account 1) queued for master GUID Full: 0x0000000000000001 Type: Player Low: 1.
+AltbotMgr::AddAltbot: 'Warriorone' added bot 'Shamanone'.
+Command: altbot add Shamanone [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: 2019.473633 Y: -4687.280762 Z: 28.380348 Map: 1 (Kalimdor) Area: 5168 (V) Zone: O Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+AltbotAI::Update: bot GUID Full: 0x0000000000000002 Type: Player Low: 2 (master GUID Full: 0x0000000000000001 Type: Player Low: 1) has no connected Player ΓÇö session likely destroyed externally (account collision, shutdown, or session-update path). Marking dead for AltbotMgr reap. If the OnLogout hook had fired, this AI would already be gone from _activeBots; reaching this branch means OnLogout did not fire (e.g. session was destroyed before its Player attached).
+AltbotMgr::Update: reaped 1 dead AI(s) for master raw=1 (remaining=0). If you see this without a corresponding 'session likely destroyed externally' WARN above, the AI was marked dead by some other path.
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: 2019.473633 Y: -4687.280762 Z: 28.380348 Map: 1 (Kalimdor) Area: 5168 (V) Zone: O Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]

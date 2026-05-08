@@ -1,54 +1,52 @@
-#1 — Console output / last lines before crash                  
-                                                                                                                                                                                   
-  Server.log shows the server dies mid-startup here:                                                                                                                               
-  Loading Guilds...
-  >> Loaded 1 guild definitions in 3 ms
-  Loading guild ranks...
-  >> Loaded 5 guild ranks in 1 ms
-  Loading guild members...
-  <process exits — nothing after this line>
-  No further output. The crash is 100% during guild member loading.
-
-  ---
-  #2 — Server.log / DBErrors.log
-
-  - server-build/DBErrors.log — empty (0 bytes), nothing useful there
-  - server-build/install/DBErrors.log — has schema errors: Unknown column 'wander_distance' and unit_flags2 in creature table. These are pre-existing DB schema mismatches but are
-  not the crash cause — they're prepared-statement warnings that happen on every run without killing the process
-
-  ---
-  #3 — Stack trace / crash dump
-
-  There are two .dmp files in server-build/install/ from May 4:
-  - worldserver.exe_260504_094456.dmp
-  - worldserver.exe_260504_101326.dmp
-
-  No new .dmp was generated for the current crash — likely the guild member load is an ASSERT or unhandled exception that calls abort() before the crash handler writes a dump. To
-  read the May 4 dumps:
-
-  # In PowerShell — open in WinDbg if you have it:
-  & "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe" `
-    -z "C:\cataclysm\server-build\install\worldserver.exe_260504_094456.dmp"
-  # Then in WinDbg: !analyze -v
-  # or: .ecxr ; k
-
-  ---
-  #4 — Build vs startup crash
-
-  This is a startup crash, not a compile failure. The binary runs, loads world data for ~2 minutes successfully, then crashes specifically at guild member table read. The compile
-  is fine.
-
-  ---
-  Bottom line: The crash shape exactly matches the dangling guild_member row you described in #5 — one guild with 5 ranks, but loading its members hits a missing character GUID.
-  Your DB query will confirm it.
-
-sql
-SELECT guildid, COUNT(*) FROM guild_member GROUP BY guildid ORDER BY 2 DESC LIMIT 5;
-"guildid"	"COUNT(*)"
-"1"	"5"
-
-SELECT gm.guildid, gm.guid
-  FROM guild_member gm
-  LEFT JOIN characters c ON c.guid = gm.guid
-  WHERE c.guid IS NULL;
-/* Affected rows: 0  Found rows: 0  Warnings: 0  Duration for 1 query: 0.016 sec. */
+-- A. The actual rows the loader sees, in load order                     
+  SELECT gm.guildid, gm.guid, gm.`rank`, c.name, c.level, c.class, c.zone, 
+         c.account, c.logout_time, c.achievementPoints                     
+  FROM guild_member gm                                                     
+  LEFT JOIN characters c ON c.guid = gm.guid                               
+  WHERE gm.guildid = 1                                                     
+  ORDER BY gm.guildid;                                                     
+                                                                           
+  -- B. Rank validity (rank id must exist in guild_rank for that guild)    
+  SELECT gm.guildid, gm.guid, gm.`rank`                                    
+  FROM guild_member gm                                                     
+  LEFT JOIN guild_rank gr                                                  
+    ON gr.guildid = gm.guildid AND gr.rid = gm.`rank`
+  WHERE gr.rid IS NULL;                                                    
+                                                                     
+  -- C. Withdraw / reputation join sanity (LEFT JOINs, NULLs are OK but    
+  worth seeing)                                                      
+  SELECT gm.guid,                                                          
+         (SELECT COUNT(*) FROM guild_member_withdraw w WHERE w.guid =
+  gm.guid) AS has_withdraw,                                                
+         (SELECT COUNT(*) FROM character_reputation r WHERE r.guid =
+  gm.guid AND r.faction = 1168) AS has_rep                                 
+  FROM guild_member gm WHERE gm.guildid = 1;                         
+                                                                           
+  -- D. Skill rows for those bots — LoadProfessionDataFromDB iterates these
+  SELECT cs.guid, cs.skill, cs.value, cs.max                               
+  FROM character_skills cs                                                 
+  JOIN guild_member gm ON gm.guid = cs.guid                          
+  WHERE gm.guildid = 1;                                                    
+                                                                     
+  What I'm hunting for in those:                                           
+  - A: level=0 or class=0/out-of-range → CheckStats would reject (not
+  crash), but a NULL name or weird zone might be the trigger.              
+  - B: gm.rank pointing at a rank that doesn't exist for that guild — TC
+  doesn't validate, and the rank index is later used as an array offset    
+  into m_ranks. This is the most likely crash shape for "guild has 5 ranks,
+   member references a 6th."                                               
+  - D: any skill row with max=0 would cause max / 75 in                    
+  LoadProfessionDataFromDB to be 0 — not a crash, but worth seeing what's
+  there.                                                                   
+        
+  Also enable the guild logger before the next start so the rejection      
+  messages actually print:                                                 
+   
+  In worldserver.conf:                                                     
+  Logger.guild=5,Console Server                                      
+  Appender.Console=1,5,,       
+                                                                           
+  Once you have output A and B, the bad row will be obvious and we can     
+  either delete it or fix the value. If A/B look clean, the next step is   
+  reading those May 4 dumps in WinDbg (!analyze -v ; k) — same crash       
+  signature is plausible since the dumps predate today's failed start.  

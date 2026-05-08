@@ -15,11 +15,31 @@ turned up four candidate safety nets; (1) and (2) are now implemented in the
 module. (3) and (4) need information from the actual server-core build before
 they can be written correctly.
 
-## (1) Look up bot Player by GUID — DONE
+## (1) Self-reap on session destruction — DONE (with revision)
 
-`AltbotAI::Update` now uses `ObjectAccessor::FindConnectedPlayer(_botGuid)`
-instead of trusting the cached `_botSession*`. On null lookup, sets
-`_dead = true` and returns. `AltbotMgr::Update` reaps dead AIs at end of tick.
+Initial implementation used `ObjectAccessor::FindConnectedPlayer(_botGuid)`
+in `AltbotAI::Update`, marking the AI dead on null lookup. That broke
+`.altbot add` / `.altbot login`: during the async `HandlePlayerLogin`
+window, the bot isn't yet in `ObjectAccessor`, so we marked dead and reaped
+before the bot ever finished loading.
+
+Current implementation uses `_botSession->GetPlayer()` (the cached pointer).
+On null, distinguishes two cases:
+  - `_botSession->PlayerLoading()` returns true → still loading, just skip
+    the tick. Next tick will see the Player attached.
+  - Player null AND not loading → genuinely gone. Set `_dead = true`,
+    `AltbotMgr::Update` reaps.
+
+Why the cached pointer is safe in this fork: bot sessions live in
+`World::m_altbotSessions` (keyed by character guid) and never go through
+the standard account-collision eviction path in `AddSession_`. The
+`PlayerScript::OnLogout` hook (safety net 2) removes the AI from
+`_activeBots` synchronously when `LogoutPlayer` fires, *before* the
+`WorldSession` destructor runs. So whenever `AltbotMgr::Update` is calling
+us, `_botSession` is valid. `_dead` covers the corner case where the
+session is destroyed without `OnPlayerLogout` ever firing (e.g. session
+destroyed before its Player attached and `~WorldSession` skipped
+`LogoutPlayer` because `_player` was already null).
 
 ## (2) `PlayerScript::OnLogout` hook — DONE
 

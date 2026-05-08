@@ -50,25 +50,38 @@ void AltbotAI::Update(uint32 diff)
     if (_dead)
         return;
 
-    // Look up the bot by guid each tick rather than trusting the cached
-    // _botSession pointer. If the session was destroyed (account collision
-    // in World::AddSession_, KickAll on shutdown, WorldSession::Update
-    // returning false on a null socket, etc.), the cached pointer is dangling
-    // — the GUID lookup returns null cleanly. AltbotMgr::Update reaps any
-    // AI flagged dead here.
-    Player* bot = ObjectAccessor::FindConnectedPlayer(_botGuid);
+    // Trust the cached session pointer here. In this fork bot sessions live
+    // in World::m_altbotSessions (keyed by character guid) and are never
+    // destroyed via the standard account-collision eviction path. The
+    // PlayerScript::OnLogout hook in AltbotLoader removes this AI from
+    // AltbotMgr::_activeBots synchronously when LogoutPlayer fires (TC's
+    // sScriptMgr->OnPlayerLogout call inside LogoutPlayer runs before the
+    // WorldSession destructor would invalidate _botSession), so if
+    // AltbotMgr::Update is still calling us, _botSession is valid.
+    Player* bot = _botSession->GetPlayer();
     if (!bot)
     {
-        // Log on the rising edge only: this branch fires every tick until
-        // AltbotMgr reaps us, and we don't want to spam.
+        // GetPlayer() returns null in two states:
+        //   (a) The bot's async HandlePlayerLogin hasn't yet attached the
+        //       Player to its session. PlayerLoading() returns true during
+        //       this window. Skip the tick — the next one will see it
+        //       attached. *Do not* mark dead here, or `.altbot add` will
+        //       kill the AI before the bot ever finishes loading.
+        //   (b) The session has been logged out via a path that did not fire
+        //       OnPlayerLogout (e.g. session destroyed before its Player
+        //       ever attached, so LogoutPlayer was never reached). Mark
+        //       dead so AltbotMgr::Update reaps us. This is the genuine
+        //       "session is gone" case the safety net is for.
+        if (_botSession->PlayerLoading())
+            return;
+
+        // (b) — log on the rising edge only.
         if (!_dead)
             TC_LOG_WARN("altbot",
-                "AltbotAI::Update: bot %s (master %s) has no connected Player — "
-                "session likely destroyed externally (account collision, shutdown, "
-                "or session-update path). Marking dead for AltbotMgr reap. "
-                "If the OnLogout hook had fired, this AI would already be gone "
-                "from _activeBots; reaching this branch means OnLogout did not "
-                "fire (e.g. session was destroyed before its Player attached).",
+                "AltbotAI::Update: bot %s (master %s) has no Player and is not "
+                "in PlayerLoading state — session looks logged out without our "
+                "OnLogout hook firing (likely destroyed before its Player "
+                "attached). Marking dead for AltbotMgr reap.",
                 _botGuid.ToString().c_str(), _masterGuid.ToString().c_str());
         _dead = true;
         return;
@@ -79,7 +92,7 @@ void AltbotAI::Update(uint32 diff)
     // semaphore state, we drive the ack ourselves so the map swap completes
     // and IsInWorld() flips back to true.
     if (bot->IsBeingTeleportedFar())
-        bot->GetSession()->HandleMoveWorldportAck();
+        _botSession->HandleMoveWorldportAck();
 
     // Bot player may still be loading from DB — wait until it's in the world
     if (!bot->IsInWorld())

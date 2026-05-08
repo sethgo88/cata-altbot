@@ -1,12 +1,37 @@
-TC>TrinityCore rev. e53b90d75b60+ 2026-03-26 22:09:43 +0100 (master branch) (Win64, RelWithDebInfo, Static) (worldserver-daemon) ready...
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
-Command: account onlinelist [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -310.204468 Y: 762.462219 Z: 263.229004 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
-Command: go zonexy 67.836113 39.972565 5168 [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -321.012024 Y: 800.714417 Z: 261.517822 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
-AltbotMgr::SpawnBot: bot guid GUID Full: 0x0000000000000002 Type: Player Low: 2 (account 1) queued for master GUID Full: 0x0000000000000001 Type: Player Low: 1.
-AltbotMgr::AddAltbot: 'Warriorone' added bot 'Shamanone'.
-Command: altbot add Shamanone [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: 2019.473633 Y: -4687.280762 Z: 28.380348 Map: 1 (Kalimdor) Area: 5168 (V) Zone: O Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
-AltbotAI::Update: bot GUID Full: 0x0000000000000002 Type: Player Low: 2 (master GUID Full: 0x0000000000000001 Type: Player Low: 1) has no connected Player ΓÇö session likely destroyed externally (account collision, shutdown, or session-update path). Marking dead for AltbotMgr reap. If the OnLogout hook had fired, this AI would already be gone from _activeBots; reaching this branch means OnLogout did not fire (e.g. session was destroyed before its Player attached).
-AltbotMgr::Update: reaped 1 dead AI(s) for master raw=1 (remaining=0). If you see this without a corresponding 'session likely destroyed externally' WARN above, the AI was marked dead by some other path.
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: 2019.473633 Y: -4687.280762 Z: 28.380348 Map: 1 (Kalimdor) Area: 5168 (V) Zone: O Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+2026-05-07_21:30:45 INFO  [altbot] AltbotMgr::SpawnBot: bot guid GUID Full: 0x0000000000000002 Type: Player Low: 2 (account 1) queued for master GUID Full: 0x0000000000000001 Type: Player Low: 1.
+2026-05-07_21:30:45 INFO  [altbot] AltbotMgr::AddAltbot: 'Warriorone' added bot 'Shamanone'.
+2026-05-07_21:30:45 WARN  [altbot] AltbotAI::Update: bot GUID Full: 0x0000000000000002 Type: Player Low: 2 (master GUID Full: 0x0000000000000001 Type: Player Low: 1) has no connected Player — session likely destroyed externally (account collision, shutdown, or session-update path). Marking dead for AltbotMgr reap. If the OnLogout hook had fired, this AI would already be gone from _activeBots; reaching this branch means OnLogout did not fire (e.g. session was destroyed before its Player attached).
+2026-05-07_21:30:45 INFO  [altbot] AltbotMgr::Update: reaped 1 dead AI(s) for master raw=1 (remaining=0). If you see this without a corresponding 'session likely destroyed externally' WARN above, the AI was marked dead by some other path.
+2026-05-07_21:31:39 INFO  [altbot] AltbotMgr::HandlePlayerLogout: master GUID Full: 0x0000000000000001 Type: Player Low: 1 logged out — tearing down 0 bot(s).
+2026-05-07_21:31:39 INFO  [altbot] AltbotMgr::HandlePlayerLogout: master GUID Full: 0x0000000000000001 Type: Player Low: 1 teardown complete — 0 bot(s) saved+logged out, 0 orphan(s).
+2026-05-07_21:32:04 INFO  [altbot] AltbotMgr::ShutdownAllBots: tearing down 0 active bot(s) before map unload.
+2026-05-07_21:32:04 INFO  [altbot] AltbotMgr::ShutdownAllBots: shutdown teardown complete — 0 bot(s) saved+logged out, 0 orphan(s).
+2026-05-07_21:43:17 ERROR [altbot] AltbotMgr::AddAltbot: Character 'Shamaone' not found in cache.
+2026-05-07_21:43:25 INFO  [altbot] AltbotMgr::SpawnBot: bot guid GUID Full: 0x0000000000000002 Type: Player Low: 2 (account 1) queued for master GUID Full: 0x0000000000000001 Type: Player Low: 1.
+2026-05-07_21:43:25 INFO  [altbot] AltbotMgr::AddAltbot: 'Warriorone' added bot 'Shamanone'.
+2026-05-07_21:43:25 INFO  [altbot] AltbotAI: 'Shamanone' strategy='resto-shaman' (class=7 tree=0 override='resto-shaman')
+2026-05-07_21:43:27 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:43:28 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:43:29 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:43:30 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:43:31 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:43:32 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:43:32 INFO  [altbot] AltbotMgr::HandlePlayerLogout: master GUID Full: 0x0000000000000001 Type: Player Low: 1 logged out — tearing down 1 bot(s).
+2026-05-07_21:43:32 INFO  [altbot] AltbotMgr::HandlePlayerLogout: bot GUID Full: 0x0000000000000002 Type: Player Low: 2 logged out — dropping AI.
+2026-05-07_21:43:32 INFO  [altbot] AltbotMgr::HandlePlayerLogout: master GUID Full: 0x0000000000000001 Type: Player Low: 1 teardown complete — 1 bot(s) saved+logged out, 0 orphan(s).
+2026-05-07_21:48:52 INFO  [altbot] AltbotMgr::ShutdownAllBots: tearing down 0 active bot(s) before map unload.
+2026-05-07_21:48:52 INFO  [altbot] AltbotMgr::ShutdownAllBots: shutdown teardown complete — 0 bot(s) saved+logged out, 0 orphan(s).
+2026-05-07_21:51:12 INFO  [altbot] AltbotMgr::SpawnBot: bot guid GUID Full: 0x0000000000000002 Type: Player Low: 2 (account 1) queued for master GUID Full: 0x0000000000000001 Type: Player Low: 1.
+2026-05-07_21:51:12 INFO  [altbot] AltbotMgr::AddAltbot: 'Warriorone' added bot 'Shamanone'.
+2026-05-07_21:51:12 INFO  [altbot] AltbotAI: 'Shamanone' strategy='resto-shaman' (class=7 tree=0 override='resto-shaman')
+2026-05-07_21:51:14 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:15 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:16 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:17 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:18 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:19 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:20 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:21 DEBUG [altbot] AltbotFollow::Update bot='Shamanone' botMap=1 masterMap=1 dist=0.0
+2026-05-07_21:51:22 INFO  [altbot] AltbotMgr::HandlePlayerLogout: master GUID Full: 0x0000000000000001 Type: Player Low: 1 logged out — tearing down 1 bot(s).
+2026-05-07_21:51:22 INFO  [altbot] AltbotMgr::HandlePlayerLogout: bot GUID Full: 0x0000000000000002 Type: Player Low: 2 logged out — dropping AI.
+2026-05-07_21:51:22 INFO  [altbot] AltbotMgr::HandlePlayerLogout: master GUID Full: 0x0000000000000001 Type: Player Low: 1 teardown complete — 1 bot(s) saved+logged out, 0 orphan(s).

@@ -1,242 +1,48 @@
-
-outputs
-a
-"guildid"	"guid"	"rank"	"name"	"level"	"class"	"zone"	"account"	"logout_time"	"achievementPoints"
-"1"	"1"	"0"	"Warriorone"	"82"	"1"	"1637"	"1"	"1778218235"	"530"
-"1"	"2"	"1"	"Shamanone"	"82"	"7"	"1637"	"1"	"1778218228"	"500"
-"1"	"3"	"1"	"Hunterone"	"82"	"3"	"1637"	"1"	"1778218289"	"150"
-"1"	"4"	"1"	"Warlockone"	"82"	"9"	"1637"	"1"	"1778218232"	"500"
-"1"	"5"	"1"	"Mageone"	"82"	"8"	"1637"	"1"	"1778218292"	"500"
-
-b
-SELECT gm.guildid, gm.guid, gm.`rank`                                    
-  FROM guild_member gm                                                     
-  LEFT JOIN guild_rank gr                                                  
-    ON gr.guildid = gm.guildid AND gr.rid = gm.`rank`
-  WHERE gr.rid IS NULL;
-/* Affected rows: 0  Found rows: 0  Warnings: 0  Duration for 1 query: 0.016 sec. */
-
-c
-"guid"	"has_withdraw"	"has_rep"
-"1"	"0"	"1"
-"2"	"0"	"1"
-"3"	"0"	"1"
-"4"	"0"	"1"
-"5"	"0"	"1"
-
-d
-"guid"	"skill"	"value"	"max"
-"1"	"26"	"410"	"410"
-"1"	"43"	"1"	"410"
-"1"	"44"	"1"	"410"
-"1"	"45"	"1"	"410"
-"1"	"46"	"1"	"410"
-"1"	"54"	"1"	"410"
-"1"	"55"	"1"	"410"
-"1"	"95"	"1"	"410"
-"1"	"98"	"1"	"300"
-"1"	"109"	"300"	"300"
-"1"	"111"	"1"	"300"
-"1"	"113"	"1"	"300"
-"1"	"115"	"1"	"300"
-"1"	"125"	"410"	"410"
-"1"	"129"	"525"	"525"
-"1"	"136"	"1"	"410"
-"1"	"137"	"1"	"300"
-"1"	"138"	"300"	"300"
-"1"	"139"	"1"	"300"
-"1"	"140"	"300"	"300"
-"1"	"141"	"1"	"300"
-"1"	"160"	"1"	"410"
-"1"	"162"	"1"	"410"
-"1"	"164"	"525"	"525"
-"1"	"165"	"525"	"525"
-"1"	"171"	"525"	"525"
-"1"	"172"	"1"	"410"
-"1"	"173"	"1"	"410"
-"1"	"176"	"1"	"410"
-"1"	"182"	"525"	"525"
-"1"	"183"	"410"	"410"
-"1"	"185"	"525"	"525"
-"1"	"186"	"525"	"525"
-"1"	"202"	"525"	"525"
-"1"	"226"	"1"	"410"
-"1"	"229"	"1"	"410"
-"1"	"256"	"410"	"410"
-"1"	"257"	"410"	"410"
-"1"	"293"	"1"	"1"
-"1"	"313"	"1"	"300"
-"1"	"315"	"1"	"300"
-"1"	"333"	"525"	"525"
-"1"	"356"	"525"	"525"
-"1"	"393"	"525"	"525"
-"1"	"413"	"1"	"1"
-"1"	"414"	"1"	"1"
-"1"	"415"	"1"	"1"
-"1"	"433"	"1"	"1"
-"1"	"473"	"1"	"410"
-"1"	"673"	"1"	"300"
-"1"	"755"	"525"	"525"
-"1"	"759"	"1"	"300"
-"1"	"762"	"300"	"300"
-"1"	"773"	"525"	"525"
-"1"	"777"	"1"	"410"
-"1"	"791"	"1"	"300"
-"1"	"792"	"1"	"300"
-"1"	"794"	"525"	"525"
-"1"	"803"	"1"	"410"
-"1"	"810"	"1"	"410"
-"2"	"44"	"1"	"410"
-"2"	"54"	"1"	"410"
-"2"	"95"	"1"	"410"
-"2"	"109"	"300"	"300"
-"2"	"125"	"410"	"410"
-"2"	"129"	"525"	"525"
-"2"	"136"	"1"	"410"
-"2"	"160"	"1"	"410"
-"2"	"162"	"1"	"410"
-"2"	"164"	"525"	"525"
-"2"	"165"	"525"	"525"
-"2"	"171"	"525"	"525"
-"2"	"172"	"1"	"410"
-"2"	"173"	"1"	"410"
-"2"	"182"	"525"	"525"
-"2"	"183"	"410"	"410"
-"2"	"185"	"525"	"525"
-"2"	"197"	"525"	"525"
-"2"	"202"	"525"	"525"
-"2"	"333"	"525"	"525"
-"2"	"356"	"525"	"525"
-"2"	"373"	"410"	"410"
-"2"	"374"	"410"	"410"
-"2"	"375"	"410"	"410"
-"2"	"393"	"525"	"525"
-"2"	"413"	"1"	"1"
-"2"	"414"	"1"	"1"
-"2"	"415"	"1"	"1"
-"2"	"433"	"1"	"1"
-"2"	"473"	"1"	"410"
-"2"	"755"	"525"	"525"
-"2"	"762"	"225"	"225"
-"2"	"773"	"525"	"525"
-"2"	"777"	"1"	"410"
-"2"	"794"	"525"	"525"
-"2"	"801"	"1"	"410"
-"2"	"810"	"1"	"410"
-"3"	"43"	"1"	"410"
-"3"	"44"	"1"	"410"
-"3"	"45"	"1"	"410"
-"3"	"46"	"1"	"410"
-"3"	"50"	"410"	"410"
-"3"	"51"	"410"	"410"
-"3"	"55"	"1"	"410"
-"3"	"95"	"1"	"410"
-"3"	"109"	"300"	"300"
-"3"	"118"	"410"	"410"
-"3"	"136"	"1"	"410"
-"3"	"162"	"1"	"410"
-"3"	"163"	"410"	"410"
-"3"	"172"	"1"	"410"
-"3"	"173"	"1"	"410"
-"3"	"183"	"410"	"410"
-"3"	"226"	"1"	"410"
-"3"	"229"	"1"	"410"
-"3"	"315"	"300"	"300"
-"3"	"413"	"1"	"1"
-"3"	"414"	"1"	"1"
-"3"	"415"	"1"	"1"
-"3"	"473"	"1"	"410"
-"3"	"733"	"410"	"410"
-"3"	"762"	"225"	"225"
-"3"	"777"	"1"	"410"
-"3"	"795"	"1"	"410"
-"3"	"810"	"1"	"410"
-"4"	"43"	"1"	"410"
-"4"	"95"	"1"	"410"
-"4"	"109"	"300"	"300"
-"4"	"111"	"1"	"300"
-"4"	"113"	"1"	"300"
-"4"	"115"	"1"	"300"
-"4"	"129"	"525"	"525"
-"4"	"136"	"1"	"410"
-"4"	"137"	"1"	"300"
-"4"	"138"	"300"	"300"
-"4"	"139"	"1"	"300"
-"4"	"140"	"300"	"300"
-"4"	"141"	"1"	"300"
-"4"	"162"	"1"	"410"
-"4"	"164"	"525"	"525"
-"4"	"165"	"525"	"525"
-"4"	"171"	"525"	"525"
-"4"	"173"	"1"	"410"
-"4"	"182"	"525"	"525"
-"4"	"183"	"410"	"410"
-"4"	"185"	"525"	"525"
-"4"	"197"	"525"	"525"
-"4"	"202"	"525"	"525"
-"4"	"220"	"410"	"410"
-"4"	"228"	"410"	"410"
-"4"	"313"	"1"	"300"
-"4"	"315"	"1"	"300"
-"4"	"333"	"525"	"525"
-"4"	"354"	"410"	"410"
-"4"	"355"	"410"	"410"
-"4"	"356"	"525"	"525"
-"4"	"393"	"525"	"525"
-"4"	"415"	"1"	"1"
-"4"	"593"	"410"	"410"
-"4"	"673"	"300"	"300"
-"4"	"755"	"525"	"525"
-"4"	"759"	"1"	"300"
-"4"	"762"	"225"	"225"
-"4"	"773"	"525"	"525"
-"4"	"777"	"1"	"410"
-"4"	"791"	"1"	"300"
-"4"	"792"	"1"	"300"
-"4"	"794"	"525"	"525"
-"4"	"802"	"1"	"410"
-"4"	"810"	"1"	"410"
-"5"	"6"	"410"	"410"
-"5"	"8"	"410"	"410"
-"5"	"43"	"1"	"410"
-"5"	"95"	"1"	"410"
-"5"	"109"	"300"	"300"
-"5"	"129"	"525"	"525"
-"5"	"136"	"1"	"410"
-"5"	"137"	"300"	"300"
-"5"	"162"	"1"	"410"
-"5"	"164"	"525"	"525"
-"5"	"165"	"525"	"525"
-"5"	"171"	"525"	"525"
-"5"	"173"	"1"	"410"
-"5"	"182"	"525"	"525"
-"5"	"183"	"410"	"410"
-"5"	"185"	"525"	"525"
-"5"	"197"	"525"	"525"
-"5"	"202"	"525"	"525"
-"5"	"228"	"410"	"410"
-"5"	"237"	"410"	"410"
-"5"	"333"	"525"	"525"
-"5"	"356"	"525"	"525"
-"5"	"393"	"525"	"525"
-"5"	"415"	"1"	"1"
-"5"	"755"	"525"	"525"
-"5"	"756"	"410"	"410"
-"5"	"762"	"225"	"225"
-"5"	"773"	"525"	"525"
-"5"	"777"	"1"	"410"
-"5"	"794"	"525"	"525"
-"5"	"799"	"1"	"410"
-"5"	"810"	"1"	"410"
-
+>> Loaded 19834 gameobject loot templates in 61 ms
+Loading item loot templates...
+>> Loaded 5031 item loot templates in 25 ms
+Loading mail loot templates...
+>> Loaded 90 mail loot templates in 3 ms
+Loading milling loot templates...
+>> Loaded 51 milling loot templates in 8 ms
+Loading pickpocketing loot templates...
+>> Loaded 10981 pickpocketing loot templates in 46 ms
+Loading skinning loot templates...
+>> Loaded 3390 skinning loot templates in 23 ms
+Loading disenchanting loot templates...
+>> Loaded 180 disenchanting loot templates in 4 ms
+Loading prospecting loot templates...
+>> Loaded 43 prospecting loot templates in 8 ms
+Loading spell loot templates...
+>> Loaded 292 spell loot templates in 7 ms
+Loading reference loot templates...
+>> Loaded refence loot templates in 76 ms
+Loading Skill Discovery Table...
+>> Loaded 347 skill discovery definitions in 7 ms.
+Loading Skill Extra Item Table...
+>> Loaded 225 spell specialization definitions in 3 ms
+Loading Skill Perfection Data Table...
+>> Loaded 72 spell perfection definitions in 2 ms.
+Loading Skill Fishing base level requirements...
+>> Loaded 95 areas for fishing base skill level in 2 ms
+Loading Archaeology store...
+>> Loaded 180 archaeology sites in 3 ms
+>> Loaded 180 archaeology site polygons in 91 ms
+>> Loaded 9 archaeology branches in 0 ms
+>> Loaded 139 archaeology projects in 2 ms
+>> Calculated 9 archaeology branch chances in 0 ms
+Loading Achievements...
+>> Loaded 47 achievement references in 0 ms.
+Loading Achievement Criteria Lists...
+>> Loaded 9803 achievement criteria and 952 guild achievement crieteria in 4 ms.
 Loading Achievement Criteria Data...
->> Loaded 1291 additional achievement criteria data in 4 ms
+>> Loaded 1291 additional achievement criteria data in 5 ms
 Loading Achievement Rewards...
->> Loaded 120 achievement rewards in 4 ms.
+>> Loaded 120 achievement rewards in 3 ms.
 Loading Achievement Reward Locales...
 >> Loaded 0 achievement reward locale strings.  DB table `achievement_reward_locale` is empty.
 Loading Completed Achievements...
->> Loaded 77 realm first completed achievements in 4 ms.
+>> Loaded 77 realm first completed achievements in 3 ms.
 Loading Item Auctions...
 >> Loaded 0 auction items. DB table `auctionhouse` or `item_instance` is empty!
 Loading Auctions...
@@ -244,7 +50,7 @@ Loading Auctions...
 Loading Guild XP for level...
 >> Loaded 24 xp for guild level definitions in 2 ms
 Loading Guild rewards...
->> Loaded 42 guild reward definitions in 3 ms
+>> Loaded 42 guild reward definitions in 2 ms
 Initializing Guild Profession Data Store...
 Loading Guild Challenges...
 >> Loaded 4 guild challenge definitions in 2 ms

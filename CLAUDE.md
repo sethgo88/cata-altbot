@@ -161,6 +161,7 @@ are the reference.
 - `server-core/src/server/game/DungeonFinding/LFGMgr.h` near `GetTicket` — `GetPendingProposalIdForPlayer(ObjectGuid)` declared (public). Scans `ProposalsStore` so bots can auto-accept LFG proposals via `UpdateProposal`.
 - `server-core/src/server/game/DungeonFinding/LFGMgr.cpp` after `GetTicket` impl — implementation of the above.
 - `server-core/src/server/game/Groups/Group.h` near `GetRoll`/`CountRollVote` — `GetRolls()` public read-only accessor for `RollId` (the `Rolls` typedef is `protected`, so the return type is spelled inline). Lets `AltbotLoot::Tick` find pending rolls and auto-vote PASS / DISENCHANT.
+- `server-core/src/server/game/Guilds/Guild.cpp` `Guild::Member::LoadProfessionDataFromDB` — bounds-check `m_professions[professionIndex]` against `GUILD_PROFESSION_COUNT` (=2) and break the outer loop once full. Stock TC assumes a player has ≤2 profession-category skills; bots seeded with all professions overran `m_professions` and crashed startup at "Loading guild members...".
 
 ## AltbotLogin Flow
 ```

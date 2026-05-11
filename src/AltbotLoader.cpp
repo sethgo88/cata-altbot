@@ -9,12 +9,16 @@
 
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
+#include "CharacterCache.h"
 #include "Chat.h"
 #include "RBAC.h"
 #include "AltbotAccountLink.h"
+#include "AltbotCombatLog.h"
 #include "AltbotConfig.h"
 #include "AltbotMgr.h"
+#include "ObjectGuid.h"
 #include "Player.h"
+#include "Unit.h"
 #include <sstream>
 
 class altbot_commandscript : public CommandScript
@@ -42,6 +46,9 @@ public:
             { "unlink", rbac::RBAC_PERM_COMMAND_ALTBOT_ADD, false, &HandleAltbotUnlinkCommand, "" },
             // .altbot links          — show currently-linked accounts
             { "links",  rbac::RBAC_PERM_COMMAND_ALTBOT_ADD, false, &HandleAltbotLinksCommand,  "" },
+            // .altbot trace <name> on|off — per-bot opt-in verbose telemetry
+            //   (overrides Altbot.Telemetry.PerCastLog for a single bot)
+            { "trace",  rbac::RBAC_PERM_COMMAND_ALTBOT_ADD, false, &HandleAltbotTraceCommand,  "" },
         };
         static std::vector<ChatCommand> commandTable =
         {
@@ -202,6 +209,41 @@ public:
         return true;
     }
 
+    static bool HandleAltbotTraceCommand(ChatHandler* handler, char const* args)
+    {
+        if (!args || !*args)
+        {
+            handler->SendSysMessage("Usage: .altbot trace <charactername> on|off");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        // Tokenise "<botname> <on|off>".
+        std::istringstream iss(args);
+        std::string botName, mode;
+        iss >> botName >> mode;
+        if (botName.empty() || mode.empty())
+        {
+            handler->SendSysMessage("Usage: .altbot trace <charactername> on|off");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        ObjectGuid botGuid = sCharacterCache->GetCharacterGuidByName(botName);
+        if (botGuid.IsEmpty())
+        {
+            handler->PSendSysMessage("Altbot trace: character '%s' not found.", botName.c_str());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        bool enable = (mode == "on" || mode == "true" || mode == "1");
+        AltbotCombatLog::SetTrace(botGuid, enable);
+        handler->PSendSysMessage("Altbot trace: '%s' verbose telemetry %s.",
+            botName.c_str(), enable ? "ENABLED" : "disabled");
+        return true;
+    }
+
     static bool HandleAltbotLinksCommand(ChatHandler* handler, char const* /*args*/)
     {
         Player* player = handler->GetSession()->GetPlayer();
@@ -274,6 +316,35 @@ public:
 // INVITE, anything reached the server). Add new player-side hooks to
 // AltbotCommands.cpp's class instead.
 
+// Phase 1 telemetry: forward server-wide damage events to AltbotCombatLog
+// so the per-fight summary can compute DPS without us having to count every
+// SpellHit ourselves. The hook fires for every damage event in the world,
+// so the IsAltbot early-out is the perf-critical line — `_altbotGuids` is
+// O(1) lookup and typically <10 entries.
+class altbot_unitscript : public UnitScript
+{
+public:
+    altbot_unitscript() : UnitScript("altbot_unitscript") { }
+
+    void OnDamage(Unit* attacker, Unit* /*victim*/, uint32& damage) override
+    {
+        if (!attacker || damage == 0)
+            return;
+
+        // Resolve to the owning Player. Pets / minions / totems roll up via
+        // GetCharmerOrOwnerPlayerOrPlayerItself, so warlock-pet damage and
+        // shaman-totem damage both count toward the bot's fight totals.
+        Player* p = attacker->GetCharmerOrOwnerPlayerOrPlayerItself();
+        if (!p)
+            return;
+
+        if (!sAltbotMgr->IsAltbot(p->GetGUID()))
+            return;
+
+        AltbotCombatLog::OnDamageDealt(p->GetGUID(), damage);
+    }
+};
+
 void AddSC_AltbotCommands();
 void AddSC_AltbotQuest();
 
@@ -281,6 +352,7 @@ void AddSC_AltbotLoader()
 {
     new altbot_commandscript();
     new altbot_worldscript();
+    new altbot_unitscript();
     AddSC_AltbotCommands();
     AddSC_AltbotQuest();
 }

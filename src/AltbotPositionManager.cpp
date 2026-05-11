@@ -1,6 +1,11 @@
 #include "AltbotPositionManager.h"
 #include "AltbotPosition.h"
 #include "AltbotTickContext.h"
+#include "AreaTrigger.h"
+#include "CellImpl.h"
+#include "DynamicObject.h"
+#include "EncounterMechanics.h"
+#include "GridNotifiers.h"
 #include "Log.h"
 #include "MotionMaster.h"
 #include "Player.h"
@@ -21,6 +26,77 @@ namespace
     constexpr uint32 kFireMoveCooldownMs = 3000;
     constexpr uint32 kLosCacheTtlMs      = 750;
     constexpr float kMeleeAttackerRadius = 8.0f;
+
+    // Bot's hazard scan only walks its current grid cell — keep the radius
+    // small so the cell-bounded VisitGridObjects walk stays cheap.
+    constexpr float kHazardScanRadiusY   = 12.0f;
+}
+
+namespace
+{
+    // Visitor that records the smallest-radius `avoidable` mechanic the bot
+    // is currently inside. Used by `DetectMechanicHazard`. Visits both grid
+    // object types that carry a SpellId we can resolve: DynamicObject (for
+    // ground-targeted spells like Blizzard / Crystal Storm) and AreaTrigger
+    // (for area-bound effects like Noxious Mire patches).
+    struct HazardVisitor
+    {
+        Player const* bot;
+        bool          inHazard = false;
+        uint32        worstSpellId = 0;
+        float         worstRadius  = 0.0f;
+
+        void Consider(uint32 spellId, float x, float y)
+        {
+            if (!spellId)
+                return;
+            float radius = EncounterMechanics::AvoidRadius(spellId);
+            if (radius <= 0.0f)
+                return;
+            if (!EncounterMechanics::IsAvoidable(spellId))
+                return;
+            float dx = bot->GetPositionX() - x;
+            float dy = bot->GetPositionY() - y;
+            float dist2 = dx * dx + dy * dy;
+            float r2    = radius * radius;
+            if (dist2 > r2)
+                return;
+            // Prefer the entry with the largest radius — the spell whose
+            // footprint we're most clearly inside. Logged once on retreat.
+            if (radius > worstRadius)
+            {
+                worstSpellId = spellId;
+                worstRadius  = radius;
+            }
+            inHazard = true;
+        }
+
+        // Cell visitor entry points. `Visit(...)` overloads are dispatched by
+        // TypeContainerVisitor based on the GridTypeMapContainer typelist.
+        void Visit(DynamicObjectMapType& m)
+        {
+            for (auto iter = m.begin(); iter != m.end(); ++iter)
+            {
+                DynamicObject* obj = iter->GetSource();
+                if (!obj) continue;
+                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY());
+            }
+        }
+
+        void Visit(AreaTriggerMapType& m)
+        {
+            for (auto iter = m.begin(); iter != m.end(); ++iter)
+            {
+                AreaTrigger* obj = iter->GetSource();
+                if (!obj) continue;
+                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY());
+            }
+        }
+
+        // No-op visits for the rest of GridTypeMapContainer; required so the
+        // TypeContainerVisitor template instantiation succeeds.
+        template <class T> void Visit(GridRefManager<T>&) {}
+    };
 }
 
 void AltbotPositionManager::Reset()
@@ -124,6 +200,37 @@ void AltbotPositionManager::FastTick(Player* master, uint32 nowMs)
     // Tick (or here, if ShouldEscapeFire fires and a cooldown allows).
     if (DetectUnexpectedDamage(nowMs))
         _firstFireSeenMs = nowMs;
+
+    // Phase 2 deterministic detector: scan grid for `avoidable` spells the
+    // bot is currently standing inside. Trips the same retreat flag the HP
+    // heuristic uses, so the existing FindSafeRetreatPosition path runs
+    // without a separate code path. The HP heuristic stays as a fallback for
+    // unmapped spells and for damage that doesn't come from a DynamicObject /
+    // AreaTrigger.
+    if (DetectMechanicHazard(nowMs))
+        _firstFireSeenMs = nowMs;
+}
+
+bool AltbotPositionManager::DetectMechanicHazard(uint32 /*nowMs*/)
+{
+    if (!_bot || !_bot->IsAlive() || !_bot->IsInWorld())
+        return false;
+
+    HazardVisitor v;
+    v.bot = _bot;
+    Cell::VisitGridObjects(_bot, v, kHazardScanRadiusY);
+
+    if (v.inHazard)
+    {
+        // Single log line on first detection — keeps the channel quiet on
+        // sustained hazards. The retreat path will reset the fire flag;
+        // re-entering an unrelated hazard re-trips this branch.
+        if (_firstFireSeenMs == 0)
+            TC_LOG_INFO("altbot",
+                "AltbotPositionManager [%s]: hazard-detected spell %u (radius %.1fy) — retreating",
+                _bot->GetName().c_str(), v.worstSpellId, v.worstRadius);
+    }
+    return v.inHazard;
 }
 
 void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& ctx, uint32 nowMs)
@@ -134,6 +241,11 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& ctx, u
     // Re-sample HP on the slow tick too — the fast tick may have skipped if
     // the bot only entered combat between fast ticks.
     if (DetectUnexpectedDamage(nowMs))
+        _firstFireSeenMs = nowMs;
+    // Likewise re-run the mechanic-hazard scan — the deterministic detector
+    // can fire on the slow tick when the fast pass didn't (e.g. bot just
+    // entered a fresh DynamicObject between sample windows).
+    if (DetectMechanicHazard(nowMs))
         _firstFireSeenMs = nowMs;
 
     // Stationary intent: strategy explicitly asked us to not move. Used by

@@ -192,7 +192,7 @@ mechanics:
     effect: tank-only DoT; healer pressure on tank
 
   - name: Call Bonecrushers
-    spell_id: 75319                      # UNVERIFIED summon
+    spell_id: SKIPPED-AWAITING-INGAME    # 2026-05-10: was 75319 = "Omen Event Credit" per DBC; not bound in TC BRC scripts. Confirm in-game
     cast_by: rom_ogg_bonecrusher
     cast_kind: scripted
     target: ground_random_corners
@@ -274,7 +274,7 @@ mechanics:
     dispel_type: none
 
   - name: Twilight Evolution (debuff on intercepter)
-    spell_id: 75571                      # UNVERIFIED
+    spell_id: 75732                      # verified 2026-05-10 via DBC (was 75571 = "Wounding Strike")
     cast_by: evolution_beam_passive
     cast_kind: stacking_aura
     target: ally_in_beam
@@ -374,7 +374,7 @@ mechanics:
     cadence_heroic: ~8-10s
 
   - name: Cinderbreath
-    spell_id: 75763                      # ID WRONG 2026-05-03: Spell.dbc 75763 = "Umbral Mending" (heals target for % max health) — unrelated to Karsh. Find correct ID via .lookup spell in-game
+    spell_id: SKIPPED-AWAITING-INGAME    # 2026-05-10: was 75763 = "Umbral Mending" per DBC; "Cinderbreath" not present in Spell.dbc. Karsh's known spells are SPELL_HEAT_WAVE 75851 / SPELL_BOUND_FLAMES 93499 (TC source). Confirm in-game with .lookup spell
     cast_by: karsh_steelbender
     cast_kind: cast
     target: frontal_cone
@@ -387,7 +387,7 @@ mechanics:
     avoidance: stand BEHIND or to the SIDE of Karsh
 
   - name: Searing Lava (central plume)
-    spell_id: 75852                      # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME    # 2026-05-10: was 75852 = "[DND] Summon" per DBC. Karsh fire kit in TC: SPELL_HEAT_WAVE 75851, SPELL_FORCECAST_LAVA_SPOUT 88538, SPELL_BOUND_FLAMES 93499. Confirm in-game
     cast_by: environmental
     cast_kind: passive
     target: ground_center_plume
@@ -594,7 +594,7 @@ mechanics:
     stack_count_for_swap_normal: UNVERIFIED   # 3 vs 5 vs irrelevant — see survey Disagreement #7
 
   - name: Crepuscular Veil (debuff on player)
-    spell_id: 75476                      # ID WRONG 2026-05-03: Spell.dbc 75476 = "Dusk Shroud" (AoE shadow damage aura on caster) — not a player debuff. Dispel-blacklist entry below uses this wrong ID. Find correct ID via .lookup spell in-game
+    spell_id: 76189                      # verified 2026-05-10 via DBC (was 75476 = "Dusk Shroud"). DBC also has 76190 — likely heroic variant; both share the name
     cast_by: obsidius
     cast_kind: scripted
     target: ally_random_non_tank
@@ -619,7 +619,7 @@ mechanics:
     cadence: every ~30-45s (UNVERIFIED)
 
   - name: Shadow Prison / shadow puddles
-    spell_id: 75763                      # ID WRONG 2026-05-03: Spell.dbc 75763 = "Umbral Mending" (% health heal) — may be Shadow of Obsidius self-heal, NOT the clone-activation trigger. Find correct ID via .lookup spell in-game
+    spell_id: 76686                      # verified 2026-05-10 via DBC (was 75763 = "Umbral Mending"). DBC also has 76687 — likely heroic variant; pick lower for normal
     cast_by: shadow_of_obsidius
     cast_kind: passive
     target: ground_around_clone

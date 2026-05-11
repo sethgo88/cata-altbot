@@ -239,8 +239,8 @@ mechanics:
       Bot tank: do NOT chase Baine to ranged platform; let him leap, then
       group migrates AFTER landing. Boss returns to tank threat after leap.
 
-  - name: Molten Mace                          # aka Molten Axe (wording varies — see survey Disagreement #1)
-    spell_id: 101836                           # UNVERIFIED
+  - name: Molten Axe                           # canonical DBC name; some guides call it "Molten Mace" — see survey Disagreement #1
+    spell_id: 101836                           # verified 2026-05-10 via DBC ("Molten Axe"); 101834 also exists as a rank/heroic variant
     cast_by: echo_of_baine
     cast_kind: passive
     target: self_buff

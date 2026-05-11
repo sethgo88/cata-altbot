@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class AltbotAI;
@@ -92,6 +93,12 @@ public:
     //       just remove the now-unsafe cached pointer.
     void HandlePlayerLogout(ObjectGuid playerGuid);
 
+    // Fast O(1) check used by the UnitScript::OnDamage hook in AltbotLoader.
+    // The hook fires for every damage event server-wide — the early-out
+    // matters more than `FindAnyBotAI`-style traversal. The set is mutated
+    // on bot login/logout (SpawnBot / HandlePlayerLogout).
+    bool IsAltbot(ObjectGuid playerGuid) const;
+
 private:
     AltbotMgr() = default;
 
@@ -99,6 +106,10 @@ private:
 
     // masterGuid.GetRawValue() -> active bot AIs owned by that master
     std::unordered_map<uint64, std::vector<std::unique_ptr<AltbotAI>>> _activeBots;
+
+    // Bot-guid set used by IsAltbot.  Maintained alongside _activeBots in
+    // SpawnBot / HandlePlayerLogout / ShutdownAllBots.
+    std::unordered_set<uint64> _altbotGuids;
 };
 
 #define sAltbotMgr AltbotMgr::instance()

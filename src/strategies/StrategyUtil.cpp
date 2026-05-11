@@ -1,4 +1,5 @@
 #include "StrategyUtil.h"
+#include "AltbotCombatLog.h"
 #include "Group.h"
 #include "Log.h"
 #include "Player.h"
@@ -123,12 +124,27 @@ bool AllAtFullHp(Player* bot, Player* master, float minPct)
 
 SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId, char const* specLabel)
 {
+    return CastWithLog(bot, target, spellId, specLabel, /*tierIdx*/ -999, /*tierName*/ nullptr);
+}
+
+SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId,
+                            char const* specLabel, int tierIdx, char const* tierName)
+{
     SpellCastResult result = bot->CastSpell(target, spellId, false);
+
+    // Failure log on the existing "altbot" channel — kept verbatim so existing
+    // log-grep workflows still work. The new "altbot.combat" channel via
+    // AltbotCombatLog provides the structured per-cast trace + fight summary.
     if (result != SPELL_CAST_OK)
     {
         TC_LOG_INFO("altbot", "%s[%s] CastSpell %u failed: SpellCastResult=%u",
                     specLabel, bot->GetName().c_str(), spellId, uint32(result));
     }
+
+    // Forward every cast — success or failure — to the telemetry sink. Sink
+    // is a no-op when Altbot.Telemetry.Enabled is false.
+    AltbotCombatLog::OnCastIssued(bot, target, spellId, specLabel, tierIdx, tierName, result);
+
     return result;
 }
 

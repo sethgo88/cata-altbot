@@ -415,7 +415,7 @@ mechanics:
       See survey Disagreement #6.
 
   - name: Throw Knife
-    spell_id: 103587
+    spell_id: 103597                     # verified 2026-05-10 via DBC (was 103587 = "Silenced" — single-digit typo)
     cast_by: asira_dawnslayer
     cast_kind: instant_projectile
     target: marked_player
@@ -599,7 +599,7 @@ mechanics:
     notes: rotate kicks across DPS/tank
 
   - name: Righteous Shear
-    spell_id: 103161
+    spell_id: 103149                     # verified 2026-05-10 via DBC (was 103161 — DBC has 103149/103151 spelled "Rigtheous Shear" [sic])
     cast_by: archbishop_benedictus
     phase: 1
     cast_kind: instant
@@ -691,8 +691,8 @@ mechanics:
     interruptible: false
 
   # Phase 2
-  - name: Twilight Blast (cast)
-    spell_id: 103777
+  - name: Twilight Bolt (cast)
+    spell_id: 103777                          # verified 2026-05-10 via DBC — internal name is "Twilight Bolt" (some Wowhead guides label it "Twilight Blast")
     cast_by: archbishop_benedictus
     phase: 2
     cast_kind: cast

@@ -55,6 +55,11 @@ void AltbotConfig::Reload()
     _followIntervalMs = getInt ("Altbot.UpdateInterval.Follow",   1000);
     _combatIntervalMs = getInt ("Altbot.UpdateInterval.Combat",   1500);
 
+    _telemetryEnabled        = getBool("Altbot.Telemetry.Enabled",         false);
+    _telemetryWhisperSummary = getBool("Altbot.Telemetry.WhisperSummary",  true);
+    _telemetryPerCastLog     = getBool("Altbot.Telemetry.PerCastLog",      false);
+    _telemetryMinFightMs     = getInt ("Altbot.Telemetry.MinFightMs",      15000);
+
     if (_autoEquip)
         TC_LOG_WARN("altbot", "Altbot.AutoEquip is enabled but the auto-equip module is WIP — no-op.");
     if (_autoTalent)

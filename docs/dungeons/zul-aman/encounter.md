@@ -244,7 +244,7 @@ mechanics:
     notes: rotate kicks across DPS/tank
 
   - name: Soaring Eagles (add summon)
-    spell_id: 43654                        # UNVERIFIED summon
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43654 = "Electrical Arc" per DBC; no clean DBC match for "Soaring Eagles" summon. Akilzon TC stub is empty. Confirm in-game
     cast_by: akil_zon
     cast_kind: scripted
     target: platform_perimeter
@@ -332,7 +332,7 @@ phases:
 
 mechanics:
   - name: Mojo Volley
-    spell_id: 43375                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43375 = "Mixing Vrykul Blood" per DBC. DBC has 54847/54849 = "Mojo Volley" but Cata-context unconfirmed. Nalorakk TC stub is empty. Confirm in-game
     cast_by: nalorakk
     cast_kind: cast (channeled)
     target: pbaoe_random
@@ -346,7 +346,7 @@ mechanics:
     notes: PRIMARY kick target on troll form
 
   - name: Brutal Swipe
-    spell_id: 24237                        # UNVERIFIED — TBC carryover
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 24237 — not in Cata Spell.dbc. DBC has 55319/55324/56586 = "Brutal Swipe" (other mobs). Nalorakk TC stub is empty. Confirm in-game
     cast_by: nalorakk (bear form only)
     cast_kind: cast
     target: frontal_cone
@@ -359,7 +359,7 @@ mechanics:
     avoidance: face boss away from group; melee position behind/side
 
   - name: Mangle
-    spell_id: 44955                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 44955 — not in Cata Spell.dbc. DBC has many "Mangle" entries (19820/22689/31041/33876/...) but Nalorakk-specific binding is unknown without TC source (boss_nalorakk.cpp is a stub). Confirm in-game
     cast_by: nalorakk (bear form only)
     cast_kind: melee_application
     target: tank
@@ -370,7 +370,7 @@ mechanics:
     avoidable: false
 
   - name: Surge
-    spell_id: 27797                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 27797 = "Reduced Reincarnation Cooldown" per DBC. Many Surge variants exist (19196/25787/32012/...) but Nalorakk-specific binding is unknown. Confirm in-game
     cast_by: nalorakk
     cast_kind: instant
     target: ally_random
@@ -382,7 +382,7 @@ mechanics:
     avoidance: spread to prevent multi-hit
 
   - name: Lacerating Slash
-    spell_id: 43267                        # UNVERIFIED — collision with Halazzi Saber Lash
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43267 = "Lifesteal" per DBC. DBC has 42395 = "Lacerating Slash". Nalorakk TC stub is empty. Confirm in-game
     cast_by: nalorakk
     cast_kind: UNVERIFIED                  # may be tank-melee bleed or hardcast
     target: tank
@@ -466,7 +466,7 @@ phases:
 
 mechanics:
   - name: Flame Breath
-    spell_id: 43124                        # UNVERIFIED
+    spell_id: 43140                        # verified 2026-05-10 via TC source boss_janalai.cpp:47 (was 43124 = "Lifesteal")
     cast_by: jan_alai
     cast_kind: cast
     target: frontal_cone
@@ -479,7 +479,7 @@ mechanics:
     avoidance: face boss away from group; melee behind/side; ranged out of arc
 
   - name: Fire Bomb
-    spell_id: 43137                        # UNVERIFIED
+    spell_id: 42621                        # verified 2026-05-10 via TC source boss_janalai.cpp:52 (was 43137 = "Zap")
     cast_by: jan_alai
     cast_kind: ground_target
     target: ally_random_position
@@ -510,7 +510,7 @@ mechanics:
     priority: KILL_ON_SIGHT
 
   - name: Hatcher's Hatch (channel)
-    spell_id: 43734                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43734 = "Hatch Eggs" per DBC (semantically right but doc-name mismatch). Cata-era hatcher channel ID unconfirmed. Confirm in-game
     cast_by: amani_dragonhawk_hatcher (add)
     cast_kind: channel
     target: egg_pile
@@ -643,7 +643,7 @@ mechanics:
     priority: MELEE_POSITIONING_RULE
 
   - name: Frenzy
-    spell_id: 43139                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43139 = "Enrage" per DBC. Halazzi TC stub is empty. Confirm in-game (likely a "Frenzy" entry in Spell.dbc bound to Halazzi)
     cast_by: halazzi
     cast_kind: proc
     target: self
@@ -657,7 +657,7 @@ mechanics:
     priority: SHOULD_DISPEL
 
   - name: Flame Shock (Halazzi)
-    spell_id: 43411                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43411 = "Shooting Gallery!" per DBC. DBC has many Flame Shock entries (8050/13729/...) but Halazzi-specific binding is unknown (TC stub is empty). Confirm in-game
     cast_by: halazzi
     cast_kind: cast
     target: ally_random
@@ -670,7 +670,7 @@ mechanics:
     priority: SHOULD_DISPEL
 
   - name: Lightning Totem
-    spell_id: 43461                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43461 = "Wound Poison" per DBC. DBC has 28294/43302/97492 = "Lightning Totem" but Halazzi-specific binding is unknown. Confirm in-game
     cast_by: halazzi
     cast_kind: summon
     target: ground_random
@@ -781,7 +781,7 @@ phases:
 
 mechanics:
   - name: Soul Drain
-    spell_id: 43706                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43706 = "Drink" per DBC. DBC has 7295/41303/93863/93920 = "Soul Drain" but Hex Lord-specific binding is unknown (boss_hexlord.cpp is a stub). Confirm in-game
     cast_by: hex_lord_malacrass
     cast_kind: channel
     target: ally_random
@@ -947,7 +947,7 @@ mechanics_troll_form:
 
 mechanics_bear_form:
   - name: Charge (bear)
-    spell_id: 24033                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 24033 — not in Cata Spell.dbc. boss_daakara.cpp is a stub. Confirm in-game
     cast_by: daakara (bear form)
     cast_kind: instant
     target: ally_random
@@ -956,7 +956,7 @@ mechanics_bear_form:
     avoidance: spread for charge
 
   - name: Bear Claw
-    spell_id: 24239                        # UNVERIFIED
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 24239 — not in Cata Spell.dbc. boss_daakara.cpp is a stub. Confirm in-game
     cast_by: daakara (bear form)
     cast_kind: melee_cone
     target: frontal_cone
@@ -966,7 +966,7 @@ mechanics_bear_form:
 
 mechanics_eagle_form:
   - name: Cyclone (eagle)
-    spell_id: 43661                        # UNVERIFIED — collision with Akil'zon Call Lightning
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43661 = "Call Lightning" per DBC. Confirm in-game (likely a Daakara-eagle Cyclone variant in 86xxx-100xxx range)
     cast_by: daakara (eagle form)
     cast_kind: ground_target
     target: ally_random_position
@@ -974,8 +974,8 @@ mechanics_eagle_form:
     interruptible: false
     avoidance: move out
 
-  - name: Static Charge (eagle)
-    spell_id: 43622                        # UNVERIFIED — collision with Akil'zon Static Disruption
+  - name: Static Disruption (eagle)
+    spell_id: SKIPPED-AWAITING-INGAME      # 2026-05-10: was 43622 = "Static Disruption" per DBC (name match — likely the right ID, but boss_daakara.cpp stub can't confirm Cata binding). Renamed doc field to match DBC. Confirm in-game
     cast_by: daakara (eagle form)
     cast_kind: cast
     target: ally_random
@@ -996,7 +996,7 @@ mechanics_lynx_form:
     priority: TANK_BURST_DEFENSIVE
 
   - name: Lynx Rush
-    spell_id: 43151                        # UNVERIFIED
+    spell_id: 43152                        # verified 2026-05-10 via DBC (was 43151 = "Necrolord: Purple Beam"; DBC has 43152/43153/97673 = "Lynx Rush", lowest picked)
     cast_by: daakara (lynx form)
     cast_kind: charge_chain
     target: multiple_allies_in_sequence

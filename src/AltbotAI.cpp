@@ -1,5 +1,6 @@
 #include "AltbotAI.h"
 #include "AltbotCombat.h"
+#include "AltbotCombatLog.h"
 #include "AltbotFollow.h"
 #include "AltbotInvite.h"
 #include "AltbotLfg.h"
@@ -9,6 +10,7 @@
 #include "AltbotQuest.h"
 #include "AltbotRelease.h"
 #include "AltbotTickContext.h"
+#include "Creature.h"
 #include "Log.h"
 #include "Map.h"
 #include "MotionMaster.h"
@@ -158,10 +160,19 @@ void AltbotAI::Update(uint32 diff)
         {
             _combatElapsedMs = 0;
             _wasInCombat     = true;
+            // Rising edge — open a fight-summary window in the telemetry sink.
+            AltbotCombatLog::OnCombatEnter(bot);
         }
     }
     else
     {
+        if (_wasInCombat)
+        {
+            // Falling edge — close the window with the elapsed total. The
+            // telemetry sink decides whether to whisper / log based on
+            // MinFightMs and the per-bot trace flag.
+            AltbotCombatLog::OnCombatLeave(bot, master, _combatElapsedMs);
+        }
         _wasInCombat     = false;
         _combatElapsedMs = 0;
     }
@@ -173,6 +184,30 @@ void AltbotAI::Update(uint32 diff)
     {
         ctx.inDungeon = map->IsDungeon() && !map->IsRaid();
         ctx.inRaid    = map->IsRaid();
+    }
+
+    // Phase 3: surface boss-state from master's current target. Most fights
+    // have the tank/master targeting the boss; reading their target gives
+    // us a reasonable bossNpcEntry / bossHpPct without hand-rolling
+    // per-instance script bindings. Phase derivation lives in
+    // EncounterPhases::Resolve and is deferred until the table grows past a
+    // handful of entries.
+    if (ctx.InInstance() && master->IsInCombat())
+    {
+        if (Unit* mTarget = master->GetSelectedUnit())
+        {
+            if (Creature* c = mTarget->ToCreature())
+            {
+                bool bossish = c->IsDungeonBoss() || c->isWorldBoss()
+                               || c->GetCreatureTemplate()->rank == CREATURE_ELITE_WORLDBOSS
+                               || c->GetCreatureTemplate()->rank == CREATURE_ELITE_RAREELITE;
+                if (bossish)
+                {
+                    ctx.bossNpcEntry = c->GetEntry();
+                    ctx.bossHpPct    = uint8(c->GetHealthPct());
+                }
+            }
+        }
     }
 
     uint32 nowMs = getMSTime();

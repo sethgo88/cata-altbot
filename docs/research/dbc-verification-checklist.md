@@ -35,11 +35,55 @@ Every `docs/specs/<spec>.md` has an `## UNVERIFIED items` table at the bottom. E
 
 **Approximate total: ~370 UNVERIFIED items across all specs.** Many are duplicates or trivial confirmations (level gates, durations); a smaller subset (proc rates, mastery formulas, talent-rank scaling) is high-impact.
 
-### Dungeon bundles (2)
-- `docs/dungeons/throne-of-the-tides/encounter.md` — 16 mechanic spell IDs, mostly Wowhead-verified
-- `docs/dungeons/blackrock-caverns/encounter.md` + `docs/research/blackrock-caverns-guide-survey.md` — 18 items including:
-  - **Spell ID 75763** — ⚠️ DBC CHECKED 2026-05-03: row 75763 = `"Umbral Mending"` (heals target for % max health). Matches neither Karsh's lava-kite mechanic nor Obsidius clone-activation. **Both doc entries using this ID are wrong.** Find correct IDs via `.lookup spell` in-game.
-  - **Crepuscular Veil 75476** — ⚠️ DBC CHECKED 2026-05-03: row 75476 = `"Dusk Shroud"` (AoE shadow damage aura on caster). NOT a player debuff. **Dispel-blacklist entry in encounter.md uses this wrong ID — bot will fail to protect the correct debuff.** Find real Crepuscular Veil ID via `.lookup spell Crepuscular` in-game before shipping encounter logic.
+### Dungeon bundles — Phase 0 sweep complete 2026-05-10
+- All 12 `docs/dungeons/*/encounter.md` files audited via `tools/dbc-extract.py --verify-encounters`.
+- Output artifact: **`docs/data/dungeon-mechanic-db.csv`** (399 rows) — canonical mechanic table consumed by Phase 2 codegen.
+- Final disposition (per-dungeon breakdown printed by the verifier):
+
+  | Status | Count | Meaning |
+  |---|---|---|
+  | `verified` | 126 | DBC name matches AND TC script references the ID |
+  | `unbound` | 109 | DBC name matches; TC script doesn't reference (bound via SQL `spell_script_names` / `creature_template_addon`, or boss script is a stub) |
+  | `placeholder` | 134 | doc spell_id non-numeric (`UNVERIFIED` literal) — awaiting in-game lookup |
+  | `skipped` | 18 | doc had a wrong numeric ID; corrected to `SKIPPED-AWAITING-INGAME` marker so Phase 2 codegen drops it cleanly |
+  | `name-mismatch`/`not-found` | 0 | all corrected or reclassified to `skipped` |
+
+- **Gating note for Phase 2 codegen:** the original plan said "every `avoidable` row must be `status==verified`." That's too strict — many TC bosses are empty stubs and even legitimate Cata mechanics show as `unbound`. Phase 2 should accept `verified` OR `unbound` (DBC-name-match is the authoritative check). It must reject `name-mismatch`, `not-found`, `skipped`, `placeholder`.
+
+#### Per-dungeon corrections applied 2026-05-10
+
+Numeric ID swaps based on DBC name match (and TC source citation where available):
+
+| Dungeon | Mechanic | Old ID | New ID | Source |
+|---|---|---|---|---|
+| blackrock-caverns | Twilight Evolution | 75571 | **75732** | DBC: 75571=Wounding Strike, 75732=Twilight Evolution |
+| blackrock-caverns | Crepuscular Veil | 75476 | **76189** | DBC: 75476=Dusk Shroud, 76189/76190=Crepuscular Veil |
+| blackrock-caverns | Shadow Prison | 75763 | **76686** | DBC: 75763=Umbral Mending, 76686/76687=Shadow Prison |
+| hour-of-twilight | Throw Knife | 103587 | **103597** | DBC: 103587=Silenced (single-digit typo) |
+| hour-of-twilight | Righteous Shear | 103161 | **103149** | DBC: 103149/103151="Rigtheous Shear" [sic] |
+| hour-of-twilight | Twilight Blast → Twilight Bolt | 103777 | **103777** (rename only) | DBC name is "Twilight Bolt"; doc renamed |
+| end-time | Molten Mace → Molten Axe | 101836 | **101836** (rename only) | DBC name is "Molten Axe"; doc renamed |
+| zul-aman | Flame Breath (Jan'alai) | 43124 | **43140** | TC `boss_janalai.cpp:47` confirms |
+| zul-aman | Fire Bomb (Jan'alai) | 43137 | **42621** | TC `boss_janalai.cpp:52` confirms |
+| zul-aman | Lynx Rush (Daakara) | 43151 | **43152** | DBC: 43151=Necrolord placeholder, 43152/43153=Lynx Rush |
+| zul-aman | Static Charge → Static Disruption | 43622 | **(skipped)** | DBC name is "Static Disruption"; doc renamed but ID flagged for in-game confirm |
+
+Marked `SKIPPED-AWAITING-INGAME` (DBC mismatch + TC source has empty stub):
+
+- blackrock-caverns: Cinderbreath, Searing Lava (central plume), Call Bonecrushers
+- zul-aman (Nalorakk): Brutal Swipe, Surge, Lacerating Slash, Mojo Volley, Mangle
+- zul-aman (Akil'zon): Soaring Eagles
+- zul-aman (Jan'alai): Hatcher's Hatch
+- zul-aman (Halazzi): Frenzy, Flame Shock, Lightning Totem
+- zul-aman (Hex Lord): Soul Drain
+- zul-aman (Daakara): Charge (bear), Bear Claw, Cyclone (eagle), Static Disruption (eagle)
+
+These are blocked on in-game `.lookup spell <name>` confirmation. The TC fork's ZA boss scripts are all empty stubs (`enum Spells {};`), so the source-of-truth for ZA mechanic IDs is the running server's spell DB, not the C++ source.
+
+#### Watch-list status (from earlier checklist)
+
+- ✅ **Spell 75763 BRC misuses** — both encounter.md entries previously using 75763 ("Umbral Mending" per DBC) are corrected: Cinderbreath → SKIPPED, Shadow Prison → 76686. The legitimate use in `docs/dungeons/grim-batol/encounter.md:805` (an actual Umbral Mending heal) remains verified.
+- ✅ **Crepuscular Veil 75476** — corrected to 76189. Dispel-blacklist entry now points at the right debuff.
 
 ---
 

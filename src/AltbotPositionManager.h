@@ -87,6 +87,16 @@ private:
 
     bool ShouldEscapeFire(uint32 nowMs) const;
     bool DetectUnexpectedDamage(uint32 nowMs);
+
+    // Phase 2: scan grid-resident DynamicObject + AreaTrigger entities within
+    // a small radius for spell IDs flagged `avoidable` in the mechanic DB.
+    // Returns true when the bot is currently inside one — caller (FastTick /
+    // Tick) sets `_firstFireSeenMs` so the standard retreat path runs.
+    //
+    // Cheap because the search radius is small (12y) and the per-tick scan
+    // walks only the bot's current grid cell. Lookup is O(log N) per object.
+    bool DetectMechanicHazard(uint32 nowMs);
+
     bool LeashOk(float destX, float destY) const;
     bool LosOk(Unit* losTarget, uint32 nowMs);
 };

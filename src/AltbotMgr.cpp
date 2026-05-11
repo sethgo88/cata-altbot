@@ -83,11 +83,17 @@ bool AltbotMgr::SpawnBot(ObjectGuid masterGuid, ObjectGuid botGuid)
     }
 
     bots.push_back(std::move(ai));
+    _altbotGuids.insert(botGuid.GetRawValue());
 
     TC_LOG_INFO("altbot", "AltbotMgr::SpawnBot: bot guid %s (account %u) queued for master %s.",
         botGuid.ToString().c_str(), botAccountId, masterGuid.ToString().c_str());
 
     return true;
+}
+
+bool AltbotMgr::IsAltbot(ObjectGuid playerGuid) const
+{
+    return _altbotGuids.find(playerGuid.GetRawValue()) != _altbotGuids.end();
 }
 
 bool AltbotMgr::AddAltbot(Player* master, std::string const& botName)
@@ -512,6 +518,7 @@ void AltbotMgr::ShutdownAllBots()
     // already erased the per-bot AIs as their LogoutPlayer fired. clear()
     // wipes any master entries left holding orphan AIs.
     _activeBots.clear();
+    _altbotGuids.clear();
 }
 
 void AltbotMgr::Update(uint32 diff)
@@ -595,6 +602,8 @@ void AltbotMgr::HandlePlayerLogout(ObjectGuid playerGuid)
         // Recursive Case B drains the list during the loop above, but if a
         // bot's session was already gone (no Player to LogoutPlayer), its AI
         // lingers — erase the whole map entry to drop those orphans too.
+        for (ObjectGuid g : botGuids)
+            _altbotGuids.erase(g.GetRawValue());
         _activeBots.erase(masterIt);
         return;
     }
@@ -613,6 +622,7 @@ void AltbotMgr::HandlePlayerLogout(ObjectGuid playerGuid)
                 "AltbotMgr::HandlePlayerLogout: bot %s logged out — dropping AI.",
                 playerGuid.ToString().c_str());
             bots.erase(it);
+            _altbotGuids.erase(playerGuid.GetRawValue());
             return;
         }
     }

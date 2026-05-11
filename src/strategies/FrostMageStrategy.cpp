@@ -1,4 +1,5 @@
 #include "FrostMageStrategy.h"
+#include "AltbotCombatLog.h"
 #include "AltbotPosition.h"
 #include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
@@ -156,6 +157,7 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
     if (Tier_Frostbolt(bot, target))       { TC_LOG_DEBUG("altbot", "  -> Frostbolt");    return; }
 
     TC_LOG_INFO("altbot", "  -> NO TIER FIRED");
+    AltbotCombatLog::OnNoTierFired(bot, "FrostMage");
 }
 
 void FrostMageStrategy::ResolveSpellCache(Player* bot)

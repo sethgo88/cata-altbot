@@ -18,5 +18,20 @@ struct AltbotTickContext
     // flow; AltbotAI populates it before invoking AltbotCombat::Update.
     AltbotPositionManager* positionManager = nullptr;
 
+    // Phase 3 boss-state surface. Populated in AltbotAI::Update from
+    // master->GetMap()->ToInstanceMap()->GetInstanceScript() when both exist.
+    // Strategies *may* branch on bossPhase / bossHpPct (additive — no existing
+    // strategy is required to consume these fields).
+    //
+    // bossNpcEntry == 0 means "no boss state available" (out of instance,
+    // pre-engagement, or instance script doesn't expose it). bossPhase
+    // derivation is encounter-specific (`EncounterPhases::Resolve(npc, hp)`)
+    // and starts at 1 once a boss has been engaged.
+    uint32 bossNpcEntry  = 0;
+    uint8  bossPhase     = 0;
+    uint8  bossStateRaw  = 0;   // EncounterState enum value
+    uint8  bossHpPct     = 0;
+
     bool InInstance() const { return inDungeon || inRaid; }
+    bool BossEngaged() const { return bossNpcEntry != 0; }
 };

@@ -17,6 +17,13 @@ public:
     uint32 FollowIntervalMs()      const { return _followIntervalMs; }
     uint32 CombatIntervalMs()      const { return _combatIntervalMs; }
 
+    // Phase 1 — combat telemetry (AltbotCombatLog).  All gated on Enabled;
+    // the module is dormant until that key flips true.
+    bool   TelemetryEnabled()         const { return _telemetryEnabled;        }
+    bool   TelemetryWhisperSummary()  const { return _telemetryWhisperSummary; }
+    bool   TelemetryPerCastLog()      const { return _telemetryPerCastLog;     }
+    uint32 TelemetryMinFightMs()      const { return _telemetryMinFightMs;     }
+
 private:
     AltbotConfig() { Reload(); }
 
@@ -26,6 +33,11 @@ private:
     uint32 _linkPasswordTtl  = 60;
     uint32 _followIntervalMs = 1000;
     uint32 _combatIntervalMs = 1500;
+
+    bool   _telemetryEnabled        = false;
+    bool   _telemetryWhisperSummary = true;
+    bool   _telemetryPerCastLog     = false;
+    uint32 _telemetryMinFightMs     = 15000;
 };
 
 #define sAltbotConfig AltbotConfig::instance()

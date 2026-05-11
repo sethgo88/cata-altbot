@@ -39,5 +39,16 @@ namespace StrategyUtil
     // `specLabel` is a short stable string ("FrostMage", "AffWarlock", etc.)
     // used only as the log prefix; each strategy defines a `SPEC_LABEL`
     // constexpr in its anonymous namespace and passes it here.
+    //
+    // The 6-arg overload accepts tier metadata (`tierIdx`, `tierName`) for
+    // the AltbotCombatLog telemetry pipeline. Convention:
+    //   tierIdx = -1, tierName = "maint"     : maintenance / pet / armor
+    //   tierIdx = -2, tierName = "encounter" : Phase 3 interrupt/dispel/purge
+    //   tierIdx >= 0                         : ordinary rotation tier index
+    // The 4-arg shim defers to the thread-local `AltbotCombatLog::SetCurrentTier`
+    // value (defaults to (-1, "maint")), so existing call sites do not need
+    // to change.
     SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId, char const* specLabel);
+    SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId,
+                                char const* specLabel, int tierIdx, char const* tierName);
 }

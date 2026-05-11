@@ -64,3 +64,55 @@ Altbot.UpdateInterval.Follow = 1000
 #
 
 Altbot.UpdateInterval.Combat = 1500
+
+###############################################################################
+# Combat telemetry (Phase 1)                                                  #
+#                                                                             #
+# AltbotCombatLog captures every cast, accumulates per-fight totals via       #
+# UnitScript::OnDamage, and emits a per-fight summary line on combat-leave.   #
+# All keys here are gated on Altbot.Telemetry.Enabled — leaving Enabled = 0   #
+# makes the entire telemetry surface dormant (no per-cast hot path overhead). #
+###############################################################################
+
+#
+#    Altbot.Telemetry.Enabled
+#        Description: Master toggle for the combat-log pipeline. When 0, no
+#                     per-cast / per-fight events are recorded and the
+#                     UnitScript::OnDamage hook early-outs after the
+#                     IsAltbot check.
+#        Default:     0
+#
+
+Altbot.Telemetry.Enabled = 0
+
+#
+#    Altbot.Telemetry.WhisperSummary
+#        Description: When Enabled = 1, each bot whispers a one-line per-fight
+#                     summary to its master on combat-leave (subject to
+#                     MinFightMs). Set to 0 to keep the data in logs only.
+#        Default:     1
+#
+
+Altbot.Telemetry.WhisperSummary = 1
+
+#
+#    Altbot.Telemetry.PerCastLog
+#        Description: When Enabled = 1, every cast attempt also emits a
+#                     pipe-separated key=value line on the "altbot.combat"
+#                     log channel. High volume — opt-in for diagnostic
+#                     sessions, off otherwise. Per-bot trace via
+#                     `.altbot trace <name> on` overrides this for one bot.
+#        Default:     0
+#
+
+Altbot.Telemetry.PerCastLog = 0
+
+#
+#    Altbot.Telemetry.MinFightMs
+#        Description: Combat duration (ms) below which the per-fight summary
+#                     is suppressed. Avoids whisper spam on trash skirmishes.
+#                     Per-bot trace bypasses this floor.
+#        Default:     15000
+#
+
+Altbot.Telemetry.MinFightMs = 15000

@@ -66,7 +66,7 @@ namespace
         uint32        worstSpellId = 0;
         float         worstRadius  = 0.0f;
 
-        void Consider(uint32 spellId, float x, float y)
+        void Consider(uint32 spellId, float x, float y, float z)
         {
             if (!spellId)
                 return;
@@ -80,6 +80,15 @@ namespace
             float dist2 = dx * dx + dy * dy;
             float r2    = radius * radius;
             if (dist2 > r2)
+                return;
+            // Z bound: a bot stranded under the platform was tripping on
+            // ground patches 40y above (Throne of the Tides upper deck →
+            // lower mire floor). Patches are flat circles in 3D, so a Z
+            // delta exceeding the patch radius means the bot is on a
+            // different vertical layer — skip. Tolerates real height
+            // variation inside the patch (jumps, slight inclines).
+            float dz = bot->GetPositionZ() - z;
+            if (std::fabs(dz) > radius)
                 return;
             // Prefer the entry with the largest radius — the spell whose
             // footprint we're most clearly inside. Logged once on retreat.
@@ -99,7 +108,7 @@ namespace
             {
                 DynamicObject* obj = iter->GetSource();
                 if (!obj) continue;
-                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY());
+                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ());
             }
         }
 
@@ -109,7 +118,7 @@ namespace
             {
                 AreaTrigger* obj = iter->GetSource();
                 if (!obj) continue;
-                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY());
+                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ());
             }
         }
 
@@ -122,7 +131,7 @@ namespace
             {
                 GameObject* obj = iter->GetSource();
                 if (!obj) continue;
-                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY());
+                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ());
             }
         }
 
@@ -155,7 +164,7 @@ namespace
                     if (!app || !app->GetBase()) continue;
                     if (EncounterMechanics::IsAvoidable(auraSpellId))
                     {
-                        Consider(auraSpellId, c->GetPositionX(), c->GetPositionY());
+                        Consider(auraSpellId, c->GetPositionX(), c->GetPositionY(), c->GetPositionZ());
                         break;
                     }
                     // Diagnostic: surface candidate hazard auras the DB

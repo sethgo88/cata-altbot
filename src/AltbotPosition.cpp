@@ -14,6 +14,23 @@
 namespace AltbotPosition
 {
 
+namespace
+{
+    // A retreat / LOS / kite-out sample whose Z snaps more than this many
+    // yards from the bot's current Z is almost certainly off a ledge: the
+    // sample's XY landed in open space, and UpdateAllowedPositionZ pulled it
+    // down to the next deck. Normal terrain bumps stay under 2y; platform
+    // edges in Cata dungeons (Throne of the Tides upper deck → lower mire
+    // floor) jump 40y+. 5y catches the bad case and tolerates real slopes.
+    constexpr float kMaxRetreatDropY = 5.0f;
+
+    bool ZDeltaSafe(Player* bot, float sampleZ)
+    {
+        if (!bot) return false;
+        return std::fabs(sampleZ - bot->GetPositionZ()) <= kMaxRetreatDropY;
+    }
+}
+
 void MaintainRange(Player* bot, Unit* target, float range)
 {
     if (!bot || !target)
@@ -92,13 +109,38 @@ void BackUpToRange(Player* bot, Unit* anchor, float desiredRange)
         dy = std::sin(bot->GetOrientation() + float(M_PI));
         currentDist = 1.0f;
     }
-    float scale = desiredRange / currentDist;
-    float destX = anchor->GetPositionX() + dx * scale;
-    float destY = anchor->GetPositionY() + dy * scale;
-    float destZ = bot->GetPositionZ();
-    bot->UpdateAllowedPositionZ(destX, destY, destZ);
 
-    bot->GetMotionMaster()->MovePoint(0, destX, destY, destZ);
+    // Anchor-radial backup. If that direction snaps off a ledge, sweep
+    // alternates so we don't stamp the bot 40y below the platform.
+    // Throne of the Tides upper deck → lower mire floor was the canonical
+    // failure: a hunter dead-zone backup picked a vector pointing at the
+    // ledge, UpdateAllowedPositionZ snapped to the lower deck, and the bot
+    // spent the rest of the fight firing LOS=49 shots from underneath.
+    constexpr float kOffsets[] = { 0.0f, 0.524f, -0.524f, 1.047f, -1.047f }; // 0°, ±30°, ±60°
+    float ax = anchor->GetPositionX();
+    float ay = anchor->GetPositionY();
+    float scale = desiredRange / currentDist;
+    float baseDx = dx * scale;
+    float baseDy = dy * scale;
+
+    for (float off : kOffsets)
+    {
+        float cs = std::cos(off);
+        float sn = std::sin(off);
+        float destX = ax + baseDx * cs - baseDy * sn;
+        float destY = ay + baseDx * sn + baseDy * cs;
+        float destZ = bot->GetPositionZ();
+        bot->UpdateAllowedPositionZ(destX, destY, destZ);
+
+        if (!ZDeltaSafe(bot, destZ))
+            continue;
+
+        bot->GetMotionMaster()->MovePoint(0, destX, destY, destZ);
+        return;
+    }
+    // No safe direction — better to stand still and eat pushback than to
+    // walk off the deck. Strategy will retry next tick once the geometry
+    // changes (target moves, bot rotates, etc.).
 }
 
 bool HasLineOfSight(Player* bot, Unit* target)
@@ -163,6 +205,8 @@ bool FindLOSPosition(Player* bot, Unit* target, float desiredRange,
         float sz = bot->GetPositionZ();
         bot->UpdateAllowedPositionZ(sx, sy, sz);
 
+        if (!ZDeltaSafe(bot, sz))
+            continue;
         if (!target->IsWithinLOS(sx, sy, sz))
             continue;
         if (!IsPathReachable(bot, sx, sy, sz))
@@ -262,6 +306,13 @@ bool FindSafeRetreatPosition(Player* bot, Unit* anchor, float desiredRange,
         float sy = ay + std::sin(angle) * desiredRange;
         float sz = bot->GetPositionZ();
         bot->UpdateAllowedPositionZ(sx, sy, sz);
+
+        // Z-delta is a HARD constraint, same priority as leash. A sample
+        // whose Z snapped 40y down is over a ledge — picking it strands the
+        // bot below the platform with LOS=49 on every shot. Better to eat
+        // the fire than walk off.
+        if (!ZDeltaSafe(bot, sz))
+            continue;
 
         // Leash is a HARD constraint (not a score component). A sample that
         // violates the leash never qualifies — eat-the-fire fallback in the

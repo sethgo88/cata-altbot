@@ -365,7 +365,7 @@ bool AltbotPositionManager::DetectMechanicHazard(uint32 /*nowMs*/)
     return v.inHazard;
 }
 
-void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& ctx, uint32 nowMs)
+void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*/, uint32 nowMs)
 {
     if (!_bot || !_bot->IsAlive() || !master)
         return;

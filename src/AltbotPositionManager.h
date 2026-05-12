@@ -26,7 +26,7 @@ namespace AltbotPosition
         float  leashRange           = 12.0f;
         Unit*  losTarget            = nullptr;     // require LOS to this unit
         bool   canMoveWhileCasting  = false;       // manager flips this for fire emergencies
-        bool   requireDeadZoneEscape = false;      // physical-shot specs (hunter)
+        bool   requireDeadZoneEscape = false;      // ranged DPS: kite out when inside deadZoneInner
         float  deadZoneInner        = 0.0f;
         float  deadZoneBackup       = 0.0f;
         float  masterStackRange     = 10.0f;       // skip dead-zone escape when master is stacked

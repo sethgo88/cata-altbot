@@ -24,6 +24,15 @@ namespace
     constexpr float kHealerSpreadRange   = 30.0f;
     constexpr float kHealerStackRange    = 8.0f;
     constexpr float kRangedDesiredRange  = 25.0f;
+    // Casters can technically cast at melee but eat pushback + auto-attack
+    // damage + AoE cluster mechanics. After an emergency-fire-move overshoots
+    // toward the target (or the target charges the caster), MoveChase doesn't
+    // pull a too-close bot back out — it only enforces max range. These give
+    // RangedDPS bots a baseline kite-out: if inside `kCasterDeadZone`, back up
+    // to `kCasterDeadZoneBackup`. Hunter strategies override to a tighter
+    // threshold (Steady Shot's 5y min-range cutoff).
+    constexpr float kCasterDeadZone        = 10.0f;
+    constexpr float kCasterDeadZoneBackup  = 15.0f;
 
     // 5% single-sample trip catches Cata ground-patch tick rates (Noxious
     // Mire ~5k/s on an 85, ~4-5% of max HP per FastTick window). Bumped down
@@ -155,20 +164,25 @@ namespace
                     // signature for ground patches.
                     Aura const* a = app->GetBase();
                     SpellInfo const* info = a ? a->GetSpellInfo() : nullptr;
-                    if (info)
+                    if (!info) continue;
+                    // Skip our own AoE: a friendly caster's persistent-area
+                    // aura (mage Blizzard, warlock Rain of Fire, etc.) gets
+                    // applied to mobs we are killing and would otherwise spam
+                    // this diagnostic every tick from every nearby bot.
+                    Unit* caster = a->GetCaster();
+                    if (caster && bot->IsFriendlyTo(caster)) continue;
+                    if (info->IsPassive()) continue;
+                    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
                     {
-                        for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+                        if (info->Effects[i].ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL)
                         {
-                            if (info->Effects[i].ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL)
-                            {
-                                TC_LOG_INFO("altbot",
-                                    "AltbotPositionManager [%s]: NEAR creature '%s' (entry=%u) with"
-                                    " periodic-trigger aura %u ('%s') trig=%u — not in mechanic DB",
-                                    bot->GetName().c_str(), c->GetName().c_str(), c->GetEntry(),
-                                    auraSpellId, info->SpellName ? info->SpellName : "?",
-                                    info->Effects[i].TriggerSpell);
-                                break;
-                            }
+                            TC_LOG_INFO("altbot",
+                                "AltbotPositionManager [%s]: NEAR creature '%s' (entry=%u) with"
+                                " periodic-trigger aura %u ('%s') trig=%u — not in mechanic DB",
+                                bot->GetName().c_str(), c->GetName().c_str(), c->GetEntry(),
+                                auraSpellId, info->SpellName ? info->SpellName : "?",
+                                info->Effects[i].TriggerSpell);
+                            break;
                         }
                     }
                 }
@@ -421,6 +435,14 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
             _bot->GetMotionMaster()->MovePoint(0, retX, retY, retZ);
             _firstFireSeenMs = 0;
             _lastEmergencyMoveMs = nowMs;
+            // Zero the rolling HP-loss ring. The deltas it carries are from
+            // *before* the move — leaving them in place trips the cumulative
+            // threshold again on the next FastTick even after the bot has
+            // stepped out of the patch and stopped taking damage, producing
+            // log spam (and would re-fire the retreat if the cooldown wasn't
+            // also gating it). The next damage sample re-seeds _lastHpAbs.
+            for (size_t i = 0; i < kHpRingSize; ++i) _hpRing[i] = HpDelta{};
+            _hpRingHead = 0;
             return;
         }
         else
@@ -432,6 +454,11 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
                 _bot->GetName().c_str());
             _firstFireSeenMs = 0;
             _lastEmergencyMoveMs = nowMs;
+            // We're stuck taking damage; clear the ring anyway so we measure
+            // from "we're stuck here" forward rather than re-tripping every
+            // tick on the cumulative tail.
+            for (size_t i = 0; i < kHpRingSize; ++i) _hpRing[i] = HpDelta{};
+            _hpRingHead = 0;
             // Fall through to other movement decisions — but they'll still be
             // gated by IsBotCasting() if we were mid-cast.
         }
@@ -448,14 +475,14 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
         return;
     }
 
-    // 3) Dead-zone escape (hunter): physical shots reject inside ~8y. The
-    // original `masterAtRange` gate suppressed the escape when the master
-    // was *also* at melee range with the target — intended for stack
-    // mechanics (Bronjahm Soulstorm), but in a normal tank pull the master
-    // IS in melee with the mob, so the gate inverted and the hunter sat in
-    // melee getting SPELL_FAILED_TOO_CLOSE (130) every shot. Default behavior
-    // is now: if the hunter is too close, always back up. Stack mechanics
-    // override per-encounter by clearing `requireDeadZoneEscape` on the intent.
+    // 3) Dead-zone escape: ranged DPS pushed too close to the anchor backs
+    // out to `deadZoneBackup`. Hunters hard-need this (Steady Shot fails
+    // SPELL_FAILED_TOO_CLOSE inside 5y); casters need it because an emergency-
+    // fire-move can drop them into melee with the target and MoveChase only
+    // enforces max range — it won't pull a too-close bot away. Defaults are
+    // set in MakeRangedDpsIntent (10y inner / 15y backup); hunter strategies
+    // tighten to 8/11. Stack mechanics (Bronjahm Soulstorm etc.) override
+    // per-encounter by clearing `requireDeadZoneEscape` on the intent.
     if (_intent.requireDeadZoneEscape && _intent.anchor && _intent.deadZoneInner > 0.0f)
     {
         float distToAnchor = _bot->GetDistance(_intent.anchor);
@@ -554,6 +581,9 @@ PositionIntent AltbotPositionManager::MakeRangedDpsIntent(Unit* target, Unit* ma
     intent.leashAnchor  = master;
     intent.leashRange   = kRangedLeashRange;
     intent.losTarget    = target;
+    intent.requireDeadZoneEscape = true;
+    intent.deadZoneInner   = kCasterDeadZone;
+    intent.deadZoneBackup  = kCasterDeadZoneBackup;
     return intent;
 }
 

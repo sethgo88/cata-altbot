@@ -3,6 +3,8 @@
 #include "AltbotPosition.h"
 #include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
+#include "EncounterMechanics.h"
+#include "EncounterReactions.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Pet.h"
@@ -149,6 +151,17 @@ void FrostMageStrategy::Update(Player* bot, Player* master, AltbotTickContext co
             return;
     }
 
+    // Phase 3 encounter-override: Counterspell on any nearby hostile mid-cast
+    // whose spell is flagged MustInterrupt in the mechanic DB. Runs ahead of
+    // the rotation so a kick doesn't get pushed behind a 2.5s Frostbolt.
+    if (uint32 cs = GetSpell(Spell::Counterspell))
+    {
+        if (EncounterReactions::TryInterruptNearbyCast(bot, cs, "FrostMage",
+                /*radius*/ 30.0f,
+                EncounterMechanics::InterruptPriority::MustInterrupt))
+            return;
+    }
+
     if (Tier_DeepFreeze(bot, target))      { TC_LOG_DEBUG("altbot", "  -> DeepFreeze");    return; }
     if (Tier_FFB_BothProcs(bot, target))   { TC_LOG_DEBUG("altbot", "  -> FFB+BothProcs"); return; }
     if (Tier_FFB_BrainFreeze(bot, target)) { TC_LOG_DEBUG("altbot", "  -> FFB+BF");        return; }
@@ -182,6 +195,7 @@ void FrostMageStrategy::ResolveSpellCache(Player* bot)
     _cache[size_t(Spell::IceBlock)]             = find("Ice Block");
     _cache[size_t(Spell::MageWard)]             = find("Mage Ward");
     _cache[size_t(Spell::Blink)]                = find("Blink");
+    _cache[size_t(Spell::Counterspell)]         = find("Counterspell");
 
     // Proc auras (Brain Freeze, Fingers of Frost) aren't cacheable here —
     // they aren't in the bot's spellbook, only on `bot->GetAppliedAuras()`

@@ -7,53 +7,88 @@ namespace AltbotMechanicDb
     {    1680,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Whirlwind" },  // unbound
     {    1943,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "ozruk", "Rupture" },  // unbound
     {    7964,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Smoke Bomb" },  // unbound
+    {   16098,   6.0f, MechanicClass::Dispel, DispelType::Curse, InterruptPriority::Default, "the-stonecore", "high_priestess_azil", "Curse of Blood" },  // unbound
+    {   22428,   6.0f, MechanicClass::Dispel, DispelType::EnragePurge, InterruptPriority::Default, "throne-of-the-tides", "Tainted Sentry", "Enrage" },  // unbound
     {   24236,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-aman", "daakara", "Whirlwind" },  // unbound
+    {   33589,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_tyrande", "Lunar Guidance" },  // unbound
     {   42621,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-aman", "jan_alai", "Fire Bomb" },  // verified
+    {   43093,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "zul-aman", "daakara", "Grievous Throw" },  // unbound
     {   43140,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-aman", "jan_alai", "Flame Breath" },  // verified
     {   43267,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-aman", "halazzi", "Saber Lash" },  // unbound
     {   43622,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-aman", "akil_zon", "Static Disruption" },  // verified
+    {   43661,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "zul-aman", "akil_zon", "Call Lightning" },  // verified
     {   45101,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "forgemaster_throngus", "Flaming Arrow" },  // unbound
     {   65279,  10.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "siamat", "Lightning Nova" },  // unbound
     {   74108,   4.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "rajh", "Solar Winds" },  // unbound
+    {   74133,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "halls-of-origination", "isiset", "Veil of Sky" },  // verified
     {   74136,  50.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "isiset", "Supernova" },  // verified
+    {   74374,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "halls-of-origination", "isiset", "Arcane Barrage" },  // verified
+    {   74538,   6.0f, MechanicClass::Dispel, DispelType::Poison, InterruptPriority::Default, "halls-of-origination", "temple_guardian_anhuur", "Poison-tipped Fangs" },  // unbound
     {   74634,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "general_umbriss", "Ground Siege" },  // verified
     {   74670,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "general_umbriss", "Blitz" },  // verified
+    {   74976,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "grim-batol", "forgemaster_throngus", "Disorienting Roar" },  // verified
     {   74987,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "forgemaster_throngus", "Cave In" },  // verified
+    {   75057,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "grim-batol", "forgemaster_throngus", "Impaling Slam" },  // unbound
     {   75117,   4.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "temple_guardian_anhuur", "Burning Light" },  // unbound
     {   75238,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "drahga_shadowburner", "Supernova" },  // unbound
     {   75271,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "drahga_shadowburner", "Shredding Swipe" },  // verified
+    {   75272,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "blackrock-caverns", "rom_ogg_bonecrusher", "Quake" },  // verified
     {   75317,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "drahga_shadowburner", "Seeping Twilight" },  // unbound
     {   75339,   4.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "earthrager_ptah", "Earth Spike" },  // unbound
+    {   75540,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "halls-of-origination", "earthrager_ptah", "Flame Bolt" },  // unbound
     {   75543,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "blackrock-caverns", "rom_ogg_bonecrusher", "The Skullcracker" },  // verified
     {   75547,   7.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "earthrager_ptah", "Quicksand" },  // unbound
-    {   75592,   7.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "temple_guardian_anhuur", "Divine Reckoning" },  // verified
+    {   75592,   7.0f, MechanicClass::Avoidable, DispelType::Magic, InterruptPriority::Default, "halls-of-origination", "temple_guardian_anhuur", "Divine Reckoning" },  // verified
+    {   75604,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "halls-of-origination", "anraphet", "Nemesis Strike" },  // verified
+    {   75665,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "halls-of-origination", "ammunae", "Consume Life Energy" },  // verified
     {   75694,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "erudax_duke_of_below", "Shadow Gale" },  // unbound
     {   75702,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "ammunae", "Noxious Spores" },  // unbound
     {   75722,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "lady_nazjar", "Summon Geyser" },  // verified
     {   75732,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "blackrock-caverns", "corla_herald_of_twilight", "Twilight Evolution" },  // verified
+    {   75763,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "grim-batol", "Ambient Twilight Hatchling", "Umbral Mending" },  // verified
+    {   75792,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "grim-batol", "erudax_duke_of_below", "Feeble Body" },  // unbound
+    {   75809,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "grim-batol", "Ambient Twilight Hatchling", "Shield of Nightmares" },  // verified
     {   75907,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "Tainted Sentry", "Arc Slash" },  // verified
-    {   76001,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "lady_nazjar", "Fungal Spores" },  // verified
+    {   75992,   8.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "throne-of-the-tides", "Tainted Sentry", "Lightning Surge" },  // verified
+    {   76001,   6.0f, MechanicClass::Avoidable, DispelType::Disease, InterruptPriority::Default, "throne-of-the-tides", "lady_nazjar", "Fungal Spores" },  // verified
+    {   76008,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "throne-of-the-tides", "lady_nazjar", "Shock Blast" },  // verified
     {   76030,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "blackrock-caverns", "beauty", "Berserker Charge" },  // verified
     {   76032,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "blackrock-caverns", "beauty", "Flamebreak" },  // verified
+    {   76043,   6.0f, MechanicClass::Interrupt, DispelType::Magic, InterruptPriority::Default, "halls-of-origination", "ammunae", "Wither" },  // verified
     {   76047,   7.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "commander_ulthok", "Dark Fissure" },  // verified
-    {   76170,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "mindbender_ghursha", "Magma Splash" },  // unbound
+    {   76094,   6.0f, MechanicClass::Dispel, DispelType::Curse, InterruptPriority::HighDispel, "throne-of-the-tides", "commander_ulthok", "Curse of Fatigue" },  // verified
+    {   76100,   6.0f, MechanicClass::Dispel, DispelType::EnragePurge, InterruptPriority::Default, "throne-of-the-tides", "commander_ulthok", "Enrage" },  // verified
+    {   76165,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "throne-of-the-tides", "mindbender_ghursha", "Emberstrike" },  // unbound
+    {   76170,   6.0f, MechanicClass::Avoidable, DispelType::Magic, InterruptPriority::Default, "throne-of-the-tides", "mindbender_ghursha", "Magma Splash" },  // unbound
+    {   76171,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "throne-of-the-tides", "mindbender_ghursha", "Lava Bolt" },  // unbound
     {   76184,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "anraphet", "Alpha Beams" },  // verified
+    {   76189,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "blackrock-caverns", "ascendant_lord_obsidius", "Crepuscular Veil" },  // unbound
     {   76230,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "mindbender_ghursha", "Mind Fog" },  // unbound
+    {   76308,   6.0f, MechanicClass::Interrupt, DispelType::MagicOffensive, InterruptPriority::HighestDispelOffensive, "throne-of-the-tides", "mindbender_ghursha", "Absorb Magic" },  // unbound
     {   76681,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "setesh", "Chaos Blast" },  // verified
     {   77030,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "setesh", "Reign of Chaos" },  // unbound
+    {   77217,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "Naz'jar Sentinel", "Noxious Mire" },  // unbound
     {   77715,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "ozruk", "Shatter" },  // unbound
     {   78903,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "ozruk", "Ground Slam" },  // verified
     {   79002,   3.5f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "high_priestess_azil", "Seismic Shard" },  // verified
     {   79249,  10.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "high_priestess_azil", "Gravity Well" },  // verified
-    {   79466,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "grim-batol", "erudax_duke_of_below", "Binding Shadows" },  // verified
+    {   79351,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "the-stonecore", "high_priestess_azil", "Force Grip" },  // verified
+    {   79466,   6.0f, MechanicClass::Avoidable, DispelType::Magic, InterruptPriority::Default, "grim-batol", "erudax_duke_of_below", "Binding Shadows" },  // verified
+    {   80352,  13.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "halls-of-origination", "rajh", "Summon Sun Orb" },  // verified
     {   80643,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "slabhide", "Stalactite" },  // verified
     {   80803,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "slabhide", "Lava Fissure" },  // verified
     {   80807,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "slabhide", "Sand Blast" },  // verified
-    {   81630,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Viscous Poison" },  // verified
+    {   81459,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "the-stonecore", "Stonecore Earthshaper", "Force of Earth" },  // verified
+    {   81576,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "the-stonecore", "Stonecore Earthshaper", "Lava Burst" },  // unbound
+    {   81630,   5.0f, MechanicClass::Avoidable, DispelType::Poison, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Viscous Poison" },  // verified
     {   81644,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Dust Flail" },  // unbound
+    {   81706,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Venomous Rage" },  // verified
     {   81828,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "corborus", "Thrashing Charge" },  // verified
     {   81942,  12.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "high_prophet_barim", "Heaven's Fury" },  // unbound
     {   82263,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "high_prophet_barim", "Merged Souls" },  // verified
+    {   82415,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "the-stonecore", "corborus", "Dampening Wave" },  // verified
+    {   82506,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "high_prophet_barim", "Fifty Lashings" },  // verified
+    {   82622,   6.0f, MechanicClass::Dispel, DispelType::Disease, InterruptPriority::Default, "lost-city-of-the-tolvir", "high_prophet_barim", "Plague of Ages" },  // verified
     {   83051,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "siamat", "Cloud Burst" },  // unbound
     {   83066,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "siamat", "Wailing Winds" },  // verified
     {   83171,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "general_husam", "Mystic Trap" },  // verified
@@ -62,41 +97,61 @@ namespace AltbotMechanicDb
     {   83561,  10.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "ozumat", "Blight of Ozumat" },  // unbound
     {   83650,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "earthrager_ptah", "Raging Smash" },  // verified
     {   84522,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "siamat", "Thunder Crash" },  // unbound
+    {   84799,   6.0f, MechanicClass::Dispel, DispelType::Poison, InterruptPriority::Default, "lost-city-of-the-tolvir", "lockmaw", "Paralytic Blow Dart" },  // verified
     {   84931,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "throne-of-the-tides", "mindbender_ghursha", "Earth Shards" },  // unbound
     {   84987,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "siamat", "Gathered Storms" },  // unbound
     {   86292,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-vortex-pinnacle", "grand_vizier_ertan", "Cyclone Shield" },  // unbound
     {   86309,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-vortex-pinnacle", "grand_vizier_ertan", "Storm's Edge" },  // unbound
     {   86881,   5.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "corborus", "Crystal Barrage" },  // verified
     {   86930,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-vortex-pinnacle", "asaad_caliph_of_zephyrs", "Supremacy of the Storm" },  // verified
+    {   87618,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "the-vortex-pinnacle", "asaad_caliph_of_zephyrs", "Static Cling" },  // verified
     {   87622,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-vortex-pinnacle", "asaad_caliph_of_zephyrs", "Chain Lightning" },  // verified
+    {   87653,  10.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "halls-of-origination", "rajh", "Inferno Leap" },  // verified
     {   88308,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-vortex-pinnacle", "altairus", "Chilling Breath" },  // unbound
     {   88314,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-vortex-pinnacle", "altairus", "Twisting Winds" },  // unbound
     {   89131,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "halls-of-origination", "rajh", "Solar Fire" },  // unbound
     {   91263,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "general_husam", "Detonate Traps" },  // verified
     {   92265,   8.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "the-stonecore", "slabhide", "Crystal Storm" },  // verified
-    {   96435,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "high_priestess_kilnara", "Tears of Blood" },  // unbound
+    {   92426,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "the-stonecore", "ozruk", "Paralyze" },  // verified
+    {   96347,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "zul-gurub", "zanzil", "Voodoo Bolt" },  // verified
+    {   96435,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::MustInterrupt, "zul-gurub", "high_priestess_kilnara", "Tears of Blood" },  // unbound
     {   96457,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "high_priestess_kilnara", "Wave of Agony" },  // verified
+    {   96466,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "zul-gurub", "high_priest_venoxis", "Whispers of Hethiss" },  // verified
     {   96477,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "high_priest_venoxis", "Toxic Link" },  // verified
     {   96684,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "bloodlord_mandokir", "Decapitate" },  // unbound
     {   96740,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "bloodlord_mandokir", "Devastating Slam" },  // verified
+    {   96776,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "zul-gurub", "bloodlord_mandokir", "Bloodletting" },  // verified
+    {   96800,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "grim-batol", "general_umbriss", "Frenzy" },  // unbound
     {   96914,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "zanzil", "Zanzili Fire" },  // verified
+    {   96956,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "zul-gurub", "high_priestess_kilnara", "Shadow Bolt" },  // unbound
+    {   96958,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "zul-gurub", "high_priestess_kilnara", "Lash of Anguish" },  // unbound
     {   97172,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "zul-gurub", "jin_do_the_godbreaker", "Shadows of Hakkar" },  // verified
     {  101339,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_jaina", "Frost Blades" },  // verified
     {  101626,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_baine", "Pulverize" },  // unbound
+    {  101809,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_jaina", "Pyroblast" },  // verified
+    {  101810,   6.0f, MechanicClass::Interrupt, DispelType::Magic, InterruptPriority::Default, "end-time", "echo_of_jaina", "Frostbolt Volley" },  // verified
     {  101836,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_baine", "Molten Axe" },  // unbound
     {  101927,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_jaina", "Flarecore" },  // unbound
     {  102149,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_tyrande", "Moonlance" },  // unbound
+    {  102173,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_tyrande", "Stardust" },  // unbound
     {  102241,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_tyrande", "Tears of Elune" },  // unbound
     {  102334,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "well-of-eternity", "queen_azshara", "Servant of the Queen" },  // unbound
     {  102414,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "end-time", "echo_of_tyrande", "Dark Moonlight" },  // unbound
+    {  102582,  65.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "hour-of-twilight", "arcurion", "Chains of Frost" },  // unbound
+    {  102593,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "hour-of-twilight", "arcurion", "Hand of Frost" },  // unbound
+    {  103149,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Righteous Shear" },  // unbound
+    {  103241,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::Default, "well-of-eternity", "queen_azshara", "Total Obedience" },  // unbound
+    {  103526,   6.0f, MechanicClass::Dispel, DispelType::Magic, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Twilight Shear" },  // unbound
     {  103578,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Purifying Light" },  // unbound
     {  103597,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "asira_dawnslayer", "Throw Knife" },  // unbound
-    {  103637,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "lost-city-of-the-tolvir", "siamat", "Chain Lightning" },  // unbound
+    {  103637,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::MustInterrupt, "lost-city-of-the-tolvir", "siamat", "Chain Lightning" },  // unbound
     {  103651,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Purifying Blast" },  // unbound
     {  103684,  15.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Wave of Virtue" },  // unbound
     {  103769,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Corrupting Twilight" },  // unbound
+    {  103777,   6.0f, MechanicClass::Interrupt, DispelType::None, InterruptPriority::MustInterrupt, "hour-of-twilight", "archbishop_benedictus", "Twilight Bolt" },  // unbound
     {  103781,  15.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "archbishop_benedictus", "Wave of Twilight" },  // unbound
     {  103790,   8.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "hour-of-twilight", "asira_dawnslayer", "Choking Smoke Bomb" },  // unbound
+    {  105544,   6.0f, MechanicClass::Dispel, DispelType::None, InterruptPriority::Default, "well-of-eternity", "perotharn", "Fel Decay" },  // unbound
     {  108141,   6.0f, MechanicClass::Avoidable, DispelType::None, InterruptPriority::Default, "well-of-eternity", "perotharn", "Fel Flames" },  // unbound
     };
 }

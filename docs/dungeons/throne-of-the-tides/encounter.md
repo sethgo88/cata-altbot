@@ -55,9 +55,15 @@ trash:
         notes: stacking debuff, non-dispellable
       - name: Shellbreaker
         target: tank
-      - name: Noxious Mire
+      - name: Noxious Mire (periodic-aura host)
+        spell_id: 77217                    # verified 2026-05-11 via DBC: APPLY_AURA / PERIODIC_TRIGGER_SPELL(76776). Applied to the summoned mire "creature"; standing in radius takes Nature ticks
         avoidable: true
-        notes: ~5k Nature/s ground patch — tank kites off
+        radius: 5                          # ground patch footprint
+        notes: ~5k Nature/s ground patch — tank kites off. Implementation in TC 4.3.4 summons a Creature (spell 77218 / Effect 28) that carries this aura; DynamicObject visitor will not see it
+      - name: Noxious Mire (summon)
+        spell_id: 77218                    # the spawn trigger; included for cross-reference. Bot doesn't avoid the summon spell itself, only the resulting aura on the spawned creature
+        avoidable: false
+        notes: Cast by Naz'jar Sentinel; spawns the mire creature at random player location
 
   - mob: Naz'jar Invader
     abilities:

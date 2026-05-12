@@ -15,7 +15,6 @@ Filters used by the avoidable rows (the only rows Phase 2 ships):
 Re-run by hand whenever the CSV changes; the generated files are checked in.
 """
 import csv
-import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -62,6 +61,42 @@ def parse_float(val, default):
     except (TypeError, ValueError):
         return default
 
+CLASS_ENUM = {
+    "avoidable": "Avoidable",
+    "interrupt": "Interrupt",
+    "dispel":    "Dispel",
+}
+
+def best_class(rows_for_sid):
+    """Pick the dominant mechanic_class for a spell_id, preferring `avoidable`
+    over `interrupt` over `dispel`. (Avoidance is the highest-priority bot
+    response — stepping out of fire trumps kicking the cast.)"""
+    classes = {r["mechanic_class"] for r in rows_for_sid}
+    for c in ("avoidable", "interrupt", "dispel"):
+        if c in classes:
+            return c
+    return ""
+
+def merge_attrs(rows_for_sid, target_class):
+    """Pick the most specific row attributes for this spell_id at the chosen
+    class — e.g. the dispel_type and priority from the `dispel` row even if
+    we tagged the entry as `avoidable`."""
+    merged = dict(rows_for_sid[0])
+    for r in rows_for_sid:
+        if r["mechanic_class"] == target_class:
+            for k in ("avoid_radius_y","dispel_type","priority","interruptible"):
+                if r.get(k):
+                    merged[k] = r[k]
+            break
+    # Also pull a dispel_type / priority from any sibling row even if we
+    # didn't pick that as the class.
+    for r in rows_for_sid:
+        if not merged.get("dispel_type") and r.get("dispel_type"):
+            merged["dispel_type"] = r["dispel_type"]
+        if (not merged.get("priority") or merged["priority"] == "") and r.get("priority"):
+            merged["priority"] = r["priority"]
+    return merged
+
 def main():
     if not CSV_PATH.exists():
         raise SystemExit(f"input CSV missing: {CSV_PATH}")
@@ -69,28 +104,30 @@ def main():
     with open(CSV_PATH, encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
 
-    # Avoidable rows for Phase 2.
-    avoidable = []
+    # Phase 2/3 accept three mechanic_class values into the runtime table.
+    # Group by spell_id first — a single ID can have multiple rows (e.g.
+    # "interrupt" and "dispel" because it's interruptible AND has a dispel
+    # type). We keep one entry per spell_id, with merged attributes.
+    by_sid = defaultdict(list)
     for r in rows:
-        if r["mechanic_class"] != "avoidable":
+        if r["mechanic_class"] not in CLASS_ENUM:
             continue
         if r["status"] not in ACCEPTED_STATUSES:
             continue
         sid = r["spell_id"]
         if not sid or not sid.isdigit():
             continue
-        avoidable.append(r)
+        by_sid[int(sid)].append(r)
 
-    # Deduplicate by spell_id — same ID across dungeons is allowed but we only
-    # emit one row per ID (the first encountered after sort).
-    seen = set()
     deduped = []
-    for r in sorted(avoidable, key=lambda r: int(r["spell_id"])):
-        sid = int(r["spell_id"])
-        if sid in seen:
+    for sid in sorted(by_sid):
+        rows_for_sid = by_sid[sid]
+        cls = best_class(rows_for_sid)
+        if not cls:
             continue
-        seen.add(sid)
-        deduped.append(r)
+        merged = merge_attrs(rows_for_sid, cls)
+        merged["__class"] = cls
+        deduped.append((sid, merged))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -103,18 +140,25 @@ def main():
     # Generate cpp.
     with open(OUT_CPP, "w", encoding="utf-8") as f:
         f.write(_CPP_PROLOGUE)
-        for r in deduped:
-            sid = int(r["spell_id"])
+        for sid, r in deduped:
             name = r["spell_name_dbc"].replace('"', '\\"') or r["spell_name_doc"].replace('"', '\\"')
             radius = parse_float(r["avoid_radius_y"], DEFAULT_AVOID_RADIUS_Y)
             slug = r["dungeon_slug"] or "?"
             mob = (r["boss_or_mob"] or "?").replace('"', '\\"')
-            f.write(f'    {{ {sid:>7}, {radius:>5.1f}f, MechanicClass::Avoidable, '
-                    f'DispelType::None, InterruptPriority::Default, '
+            cls = CLASS_ENUM[r["__class"]]
+            dispel = DISPEL_ENUM.get((r.get("dispel_type") or "").lower(), "None")
+            priority = PRIORITY_ENUM.get((r.get("priority") or "").strip(), "Default")
+            f.write(f'    {{ {sid:>7}, {radius:>5.1f}f, MechanicClass::{cls}, '
+                    f'DispelType::{dispel}, InterruptPriority::{priority}, '
                     f'"{slug}", "{mob}", "{name}" }},  // {r["status"]}\n')
         f.write(_CPP_EPILOGUE)
 
-    print(f"  emitted {OUT_H} ({len(deduped)} rows)")
+    # Tally counts per class for the operator.
+    counts = {c: 0 for c in CLASS_ENUM.values()}
+    for _, r in deduped:
+        counts[CLASS_ENUM[r["__class"]]] += 1
+    print(f"  emitted {OUT_H} ({len(deduped)} rows: " +
+          ", ".join(f"{k}={v}" for k, v in counts.items()) + ")")
     print(f"  emitted {OUT_CPP}")
 
 _HEADER_PROLOGUE = '''// AUTO-GENERATED by tools/gen-mechanic-db.py — DO NOT EDIT BY HAND.

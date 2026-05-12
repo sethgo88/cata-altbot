@@ -23,7 +23,8 @@ private:
         HuntersMark,
         SerpentSting,
         ChimeraShot,
-        AimedShot,
+        AimedShot,         // 19434 — focus-costing version
+        AimedShotProc,     // 82928 "Aimed Shot!" — the no-focus instant variant cast under the Fire! proc
         KillShot,
         ArcaneShot,
         SteadyShot,
@@ -34,6 +35,7 @@ private:
         Disengage,
         FeignDeath,
         Deterrence,
+        TranqShot,            // offensive purge — strips Magic + Enrage off hostile
         Count
     };
 

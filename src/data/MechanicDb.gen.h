@@ -54,7 +54,7 @@ namespace AltbotMechanicDb
         char const*        spellName;
     };
 
-static constexpr std::size_t kMechanicDbSize = 94;
+static constexpr std::size_t kMechanicDbSize = 149;
 
     // Defined in MechanicDb.gen.cpp.
     extern MechanicEntry const kMechanicDb[];

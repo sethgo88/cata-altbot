@@ -2,6 +2,8 @@
 #include "AltbotPosition.h"
 #include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
+#include "EncounterMechanics.h"
+#include "EncounterReactions.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Pet.h"
@@ -63,18 +65,19 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
 
         TC_LOG_DEBUG("altbot",
             "MmHunterStrategy cache for '%s': "
-            "Hawk=%u Mark=%u Serpent=%u Chimera=%u Aimed=%u Kill=%u Arcane=%u "
-            "Steady=%u Multi=%u Misdirection=%u MendPet=%u CallPet=%u "
-            "Disengage=%u FeignDeath=%u Deterrence=%u",
+            "Hawk=%u Mark=%u Serpent=%u Chimera=%u Aimed=%u AimedProc=%u "
+            "Kill=%u Arcane=%u Steady=%u Multi=%u Misdirection=%u MendPet=%u "
+            "CallPet=%u Disengage=%u FeignDeath=%u Deterrence=%u TranqShot=%u",
             bot->GetName().c_str(),
             GetSpell(Spell::AspectOfTheHawk), GetSpell(Spell::HuntersMark),
             GetSpell(Spell::SerpentSting), GetSpell(Spell::ChimeraShot),
-            GetSpell(Spell::AimedShot), GetSpell(Spell::KillShot),
-            GetSpell(Spell::ArcaneShot), GetSpell(Spell::SteadyShot),
-            GetSpell(Spell::MultiShot), GetSpell(Spell::Misdirection),
-            GetSpell(Spell::MendPet), GetSpell(Spell::CallPet1),
-            GetSpell(Spell::Disengage), GetSpell(Spell::FeignDeath),
-            GetSpell(Spell::Deterrence));
+            GetSpell(Spell::AimedShot), GetSpell(Spell::AimedShotProc),
+            GetSpell(Spell::KillShot), GetSpell(Spell::ArcaneShot),
+            GetSpell(Spell::SteadyShot), GetSpell(Spell::MultiShot),
+            GetSpell(Spell::Misdirection), GetSpell(Spell::MendPet),
+            GetSpell(Spell::CallPet1), GetSpell(Spell::Disengage),
+            GetSpell(Spell::FeignDeath), GetSpell(Spell::Deterrence),
+            GetSpell(Spell::TranqShot));
     }
 
     Unit* target = ObjectAccessor::GetUnit(*bot, master->GetTarget());
@@ -139,6 +142,17 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
             return;
     }
 
+    // Phase 3 encounter-override: Tranq Shot strips magic / enrage buffs off
+    // a hostile (e.g. ToTT Tainted Sentry Enrage 22428). TryPurgeHostile
+    // walks visible creatures' applied auras and picks the first match.
+    // EnragePurge is the right channel for Cata enrage strips.
+    if (uint32 tranq = GetSpell(Spell::TranqShot))
+    {
+        if (EncounterReactions::TryPurgeHostile(bot,
+                EncounterMechanics::DispelType::EnragePurge, tranq, "MmHunter"))
+            return;
+    }
+
     if (Tier_AimedShotProc(bot, target))    return;
     if (Tier_SerpentSting(bot, target))     return;
     if (Tier_ChimeraShot(bot, target))      return;
@@ -161,6 +175,14 @@ void MmHunterStrategy::ResolveSpellCache(Player* bot)
     _cache[size_t(Spell::SerpentSting)]    = find("Serpent Sting");
     _cache[size_t(Spell::ChimeraShot)]     = find("Chimera Shot");
     _cache[size_t(Spell::AimedShot)]       = find("Aimed Shot");
+    // Master Marksman's "Fire!" proc swaps the action bar to 82928 ("Aimed
+    // Shot!" with exclamation — PowerId=0, no focus cost) while the hard-cast
+    // Aimed Shot 19434 still costs 50 focus. We cache both: the proc tier
+    // fires the no-cost variant, the hard-cast tier fires the focus version.
+    // Casting 19434 with a Fire! aura up incurs SPELL_FAILED_NO_POWER (87)
+    // server-side; the override only kicks in via action-bar binding, not
+    // direct CastSpell.
+    _cache[size_t(Spell::AimedShotProc)]   = find("Aimed Shot!");
     _cache[size_t(Spell::KillShot)]        = find("Kill Shot");
     _cache[size_t(Spell::ArcaneShot)]      = find("Arcane Shot");
     _cache[size_t(Spell::SteadyShot)]      = find("Steady Shot");
@@ -171,6 +193,7 @@ void MmHunterStrategy::ResolveSpellCache(Player* bot)
     _cache[size_t(Spell::Disengage)]       = find("Disengage");
     _cache[size_t(Spell::FeignDeath)]      = find("Feign Death");
     _cache[size_t(Spell::Deterrence)]      = find("Deterrence");
+    _cache[size_t(Spell::TranqShot)]       = find("Tranquilizing Shot");
 }
 
 bool MmHunterStrategy::IsOnCooldown(Player* bot, uint32 spellId) const
@@ -312,12 +335,18 @@ namespace
 
 bool MmHunterStrategy::Tier_AimedShotProc(Player* bot, Unit* target) const
 {
-    uint32 aimed = GetSpell(Spell::AimedShot);
-    if (!aimed || IsOnCooldown(bot, aimed))
-        return false;
+    // The Fire! proc replaces the normal Aimed Shot with the free instant
+    // variant 82928. Fall back to the hard cast only if the proc variant
+    // wasn't trained (e.g. the bot doesn't have Master Marksman maxed yet).
+    uint32 procId = GetSpell(Spell::AimedShotProc);
+    uint32 hardId = GetSpell(Spell::AimedShot);
     if (!HasFireProc(bot))
         return false;
-    return TryCast(bot, target, Spell::AimedShot);
+    if (procId && !IsOnCooldown(bot, procId))
+        return TryCast(bot, target, Spell::AimedShotProc);
+    if (hardId && !IsOnCooldown(bot, hardId))
+        return TryCast(bot, target, Spell::AimedShot);
+    return false;
 }
 
 bool MmHunterStrategy::Tier_SerpentSting(Player* bot, Unit* target) const

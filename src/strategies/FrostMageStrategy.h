@@ -34,6 +34,7 @@ private:
         IceBlock,
         MageWard,
         Blink,
+        Counterspell,        // 24y interrupt; 24s CD; locks the school for 7s
         Count
     };
 

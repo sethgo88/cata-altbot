@@ -76,6 +76,16 @@ private:
     uint32 _firstFireSeenMs     = 0;   // sticky; cleared after retreat
     uint32 _lastEmergencyMoveMs = 0;   // 3000ms cooldown to avoid re-spam
 
+    // Cumulative HP-loss ring over the rolling window. Each FastTick / Tick
+    // appends (timestamp, delta). The detector sums entries within
+    // kFireCumulativeWindowMs and trips when total >= kFireCumulativePct.
+    // Catches the "ticks just under per-sample threshold but kill me in 3s"
+    // case that Noxious Mire-class mechanics hit.
+    struct HpDelta { uint32 ms; uint32 delta; };
+    static constexpr size_t kHpRingSize = 8;
+    HpDelta _hpRing[kHpRingSize] = {};
+    size_t  _hpRingHead = 0;
+
     // LOS cache (~750ms TTL keyed by target GUID)
     ObjectGuid _losCacheTarget;
     uint32     _lastLosCheckMs = 0;

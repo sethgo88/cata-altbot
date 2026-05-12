@@ -3,12 +3,14 @@
 #include "AltbotTickContext.h"
 #include "AreaTrigger.h"
 #include "CellImpl.h"
+#include "Creature.h"
 #include "DynamicObject.h"
 #include "EncounterMechanics.h"
 #include "GridNotifiers.h"
 #include "Log.h"
 #include "MotionMaster.h"
 #include "Player.h"
+#include "SpellAuras.h"
 #include "Unit.h"
 #include <cmath>
 
@@ -22,7 +24,15 @@ namespace
     constexpr float kHealerStackRange    = 8.0f;
     constexpr float kRangedDesiredRange  = 25.0f;
 
-    constexpr float kFireDamagePctTrip   = 8.0f;
+    // 5% single-sample trip catches Cata ground-patch tick rates (Noxious
+    // Mire ~5k/s on an 85, ~4-5% of max HP per FastTick window). Bumped down
+    // from 8% which was tuned against Wrath-era effects.
+    constexpr float kFireDamagePctTrip   = 5.0f;
+    // Cumulative trip: if the bot loses this much HP over the rolling window
+    // below with no melee attacker in range, trip even when individual ticks
+    // stayed under the per-sample threshold. Catches slow-bleed mechanics.
+    constexpr float kFireCumulativePct   = 12.0f;
+    constexpr uint32 kFireCumulativeWindowMs = 3000;
     constexpr uint32 kFireMoveCooldownMs = 3000;
     constexpr uint32 kLosCacheTtlMs      = 750;
     constexpr float kMeleeAttackerRadius = 8.0f;
@@ -93,6 +103,32 @@ namespace
             }
         }
 
+        // Creatures can host "ground patch" mechanics too — in TC 4.3.4 most
+        // Cata encounter ground effects (Noxious Mire 77217, Quicksand,
+        // Crystal Storm, etc.) are implemented as a summoned invisible
+        // creature carrying a PERIODIC_TRIGGER_SPELL aura that hits anything
+        // standing in radius. The DynamicObject scan misses those entirely.
+        // For each nearby creature, check its applied auras against the
+        // mechanic DB; if one matches, the bot is inside that mechanic's
+        // footprint (the creature sits at the patch origin).
+        void Visit(CreatureMapType& m)
+        {
+            for (auto iter = m.begin(); iter != m.end(); ++iter)
+            {
+                Creature* c = iter->GetSource();
+                if (!c || !c->IsAlive()) continue;
+                for (auto const& [auraSpellId, app] : c->GetAppliedAuras())
+                {
+                    if (!app || !app->GetBase()) continue;
+                    if (EncounterMechanics::IsAvoidable(auraSpellId))
+                    {
+                        Consider(auraSpellId, c->GetPositionX(), c->GetPositionY());
+                        break;
+                    }
+                }
+            }
+        }
+
         // No-op visits for the rest of GridTypeMapContainer; required so the
         // TypeContainerVisitor template instantiation succeeds.
         template <class T> void Visit(GridRefManager<T>&) {}
@@ -109,6 +145,8 @@ void AltbotPositionManager::Reset()
     _losCacheTarget      = ObjectGuid::Empty;
     _lastLosCheckMs      = 0;
     _lastLosOk           = true;
+    for (size_t i = 0; i < kHpRingSize; ++i) _hpRing[i] = HpDelta{};
+    _hpRingHead = 0;
 }
 
 bool AltbotPositionManager::IsBotCasting() const
@@ -157,28 +195,58 @@ bool AltbotPositionManager::DetectUnexpectedDamage(uint32 nowMs)
     int32 delta = int32(_lastHpAbs) - int32(hpNow);
     _lastHpAbs = hpNow;
     _lastHpSampleMs = nowMs;
-    if (delta <= 0)
-        return false;
 
     uint32 maxHp = _bot->GetMaxHealth();
     if (!maxHp)
         return false;
-    float pctOfMax = 100.0f * float(delta) / float(maxHp);
-    if (pctOfMax < kFireDamagePctTrip)
-        return false;
 
-    // No melee attacker in 8y → call it environmental damage.
-    Unit::AttackerSet const& atks = _bot->getAttackers();
-    for (Unit* atk : atks)
+    // Always record into the ring (even on 0/negative deltas — we only sum
+    // positive ones below). Drops stale entries naturally as we overwrite.
+    if (delta > 0)
     {
-        if (atk && _bot->GetDistance(atk) < kMeleeAttackerRadius)
-            return false;
+        _hpRing[_hpRingHead] = HpDelta{ nowMs, uint32(delta) };
+        _hpRingHead = (_hpRingHead + 1) % kHpRingSize;
     }
 
-    TC_LOG_INFO("altbot",
-        "AltbotPositionManager [%s]: emergency-fire signal (delta=%u hp / %.1f%% max, attackers_in_8y=0)",
-        _bot->GetName().c_str(), uint32(delta), pctOfMax);
-    return true;
+    auto meleeAttackerInRange = [this]()
+    {
+        for (Unit* atk : _bot->getAttackers())
+            if (atk && _bot->GetDistance(atk) < kMeleeAttackerRadius)
+                return true;
+        return false;
+    };
+
+    float pctOfMax = 100.0f * float(std::max<int32>(delta, 0)) / float(maxHp);
+
+    // Per-sample spike: existing trip path. Tightened to 5% so Cata ground-
+    // patch ticks register reliably.
+    if (pctOfMax >= kFireDamagePctTrip && !meleeAttackerInRange())
+    {
+        TC_LOG_INFO("altbot",
+            "AltbotPositionManager [%s]: emergency-fire signal (spike delta=%u hp / %.1f%% max, attackers_in_8y=0)",
+            _bot->GetName().c_str(), uint32(delta), pctOfMax);
+        return true;
+    }
+
+    // Cumulative: sum deltas inside the rolling window. Catches the slow-bleed
+    // pattern (3 × 4%-tick spread over 3 seconds) the spike test misses.
+    uint32 sum = 0;
+    for (size_t i = 0; i < kHpRingSize; ++i)
+    {
+        HpDelta const& d = _hpRing[i];
+        if (d.ms != 0 && (nowMs - d.ms) <= kFireCumulativeWindowMs)
+            sum += d.delta;
+    }
+    float cumPct = 100.0f * float(sum) / float(maxHp);
+    if (cumPct >= kFireCumulativePct && !meleeAttackerInRange())
+    {
+        TC_LOG_INFO("altbot",
+            "AltbotPositionManager [%s]: emergency-fire signal (cumulative %u hp / %.1f%% max over %ums, attackers_in_8y=0)",
+            _bot->GetName().c_str(), sum, cumPct, kFireCumulativeWindowMs);
+        return true;
+    }
+
+    return false;
 }
 
 bool AltbotPositionManager::ShouldEscapeFire(uint32 nowMs) const

@@ -130,6 +130,16 @@ SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId, char cons
 SpellCastResult CastWithLog(Player* bot, Unit* target, uint32 spellId,
                             char const* specLabel, int tierIdx, char const* tierName)
 {
+    // Pre-cast facing fix. The chase generator faces the target while moving,
+    // but once the bot is in-range and stationary it doesn't re-orient when
+    // the target sidesteps — so 2.5s Frostbolt / Aimed Shot can land with
+    // `SPELL_FAILED_UNIT_NOT_INFRONT (136)` even though chase is active. We
+    // only orient for non-self casts on a different target (self-buffs and
+    // PBAoEs don't care about facing); SetFacingToObject is a cheap
+    // orientation update that doesn't fight the motion generator.
+    if (target && target != bot && !bot->isInFront(target))
+        bot->SetFacingToObject(target);
+
     SpellCastResult result = bot->CastSpell(target, spellId, false);
 
     // Failure log on the existing "altbot" channel — kept verbatim so existing

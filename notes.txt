@@ -1,261 +1,132 @@
+AltbotAI: 'Warlockone' strategy='affliction-warlock' (class=9 tree=867 override='affliction-warlock')
+AltbotLfg: 'Mageone' lfg state 0 -> 5
+AltbotLfg: 'Shamanone' lfg state 0 -> 5
+AltbotLfg: 'Warlockone' lfg state 0 -> 5
 FindSpellByFamilyName 'Molten Armor' (family=3) on 'Mageone' considered 2 candidates: {id=34913 lvl=54 mana=0 cd=0} {id=30482 lvl=34 mana=0 cd=1}
 FindSpellByFamilyName 'Deep Freeze' (family=3) on 'Mageone' considered 2 candidates: {id=71757 lvl=60 mana=0 cd=0} {id=44572 lvl=1 mana=1 cd=1}
 FindSpellByFamilyName 'Blizzard' (family=3) on 'Mageone' considered 2 candidates: {id=10 lvl=52 mana=1 cd=1} {id=42208 lvl=20 mana=0 cd=0}
-FrostMage[Mageone] CastSpell 30482 failed: SpellCastResult=69
-FrostMage[Mageone] CastSpell 543 failed: SpellCastResult=69
-FrostMage[Mageone] tick: threat-window (909<2000)
+FrostMage[Mageone] tick: threat-window (824<2000)
 FindSpellByFamilyName 'Unstable Affliction' (family=5) on 'Warlockone' considered 2 candidates: {id=30108 lvl=10 mana=1 cd=1} {id=31117 lvl=1 mana=0 cd=1}
 FindSpellByFamilyName 'Drain Life' (family=5) on 'Warlockone' considered 2 candidates: {id=689 lvl=6 mana=1 cd=1} {id=89420 lvl=6 mana=1 cd=1}
 FindSpellByFamilyName 'Seed of Corruption' (family=5) on 'Warlockone' considered 2 candidates: {id=27243 lvl=72 mana=1 cd=1} {id=27285 lvl=72 mana=0 cd=0}
-AffWarlock[Warlockone] CastSpell 691 failed: SpellCastResult=53
-AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=53
-FrostMage[Mageone] CastSpell 543 failed: SpellCastResult=69
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.8 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -405.487122 Y: 802.191650 Z: 248.299408 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected: Naz'jar Spiritmender (GUID Full: 0xf130a088000000a2 Type: Creature Entry: 41096  Low: 162)]
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.7 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: no target
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Spiritmender' dist=17.3 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=16.9 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=16.9 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=16.9 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=16.9 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=16.9 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: no target
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=17.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=17.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=17.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -407.173523 Y: 806.708740 Z: 248.287994 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected: Naz'jar Invader (GUID Full: 0xf1309ac0000000a4 Type: Creature Entry: 39616  Low: 164)]
-AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=53
-FrostMage[Mageone] tick: threat-window (1254<2000)
-AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=53
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=42.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=99
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=99
-  -> NO TIER FIRED
-MmHunter[Hunterone] CastSpell 1978 failed: SpellCastResult=99
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=99
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=99
-MmHunter[Hunterone] CastSpell 19434 failed: SpellCastResult=99
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=99
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=99
-AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=53
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=31.8 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=53
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Shamanone]: emergency-fire-move to (-307.4,810.4,260.9) (casting=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=69
+AffWarlock[Warlockone] CastSpell 1490 failed: SpellCastResult=69
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=69
+AffWarlock[Warlockone] CastSpell 1490 failed: SpellCastResult=69
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
 AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Mageone]: emergency-fire-move to (-302.6,809.1,260.4) (casting=1)
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-302.6,809.1,260.4) (casting=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-303.7,800.6,260.5) (casting=1)
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
 AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-306.1,799.4,260.7) (casting=0)
 AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4797 hp / 11.1% max, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4934 hp / 11.3% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire-move to (-298.4,810.4,260.7) (casting=1)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4568 hp / 10.5% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: emergency-fire-move to (-302.6,809.1,260.4) (casting=1)
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-293.6,809.1,260.8) (casting=0)
+AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=69
+AffWarlock[Warlockone] CastSpell 1490 failed: SpellCastResult=69
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-303.6,800.6,260.5) (casting=1)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4125 hp / 9.5% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.4 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4597 hp / 12.3% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 4597 hp / 12.3% max over 3000ms, attackers_in_8y=0)
+AffWarlock[Warlockone] CastSpell 1490 failed: SpellCastResult=69
+AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=5158 hp / 11.9% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9283 hp / 21.4% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4561 hp / 12.2% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=7.0 casting=0 FoF=1 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9158 hp / 24.5% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-297.3,800.6,260.9) (casting=0)
+AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9283 hp / 21.4% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-297.1,799.4,260.8) (casting=1)
+AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9283 hp / 21.2% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-296.3,800.6,260.9) (casting=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 172 failed: SpellCastResult=49
+AffWarlock[Warlockone] CastSpell 30108 failed: SpellCastResult=49
+AffWarlock[Warlockone] CastSpell 686 failed: SpellCastResult=49
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=6.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-288.1,799.4,262.3) (casting=0)
 AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4942 hp / 11.4% max, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Shamanone]: emergency-fire-move to (-289.4,810.4,260.4) (casting=1)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4455 hp / 10.1% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: emergency-fire-move to (-302.6,809.1,260.4) (casting=1)
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-284.6,809.1,260.0) (casting=1)
 AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-288.0,798.8,260.8) (casting=0)
 AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=9.6 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=3842 hp / 10.0% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-288.3,800.6,260.2) (casting=1)
 AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=9.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-283.6,807.2,259.7) (casting=1)
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4754 hp / 12.3% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-288.0,807.8,260.1) (casting=1)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=13.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 4920 hp / 12.7% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-283.0,805.1,259.7) (casting=1)
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: emergency-fire-move to (-284.5,808.7,259.9) (casting=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=4940 hp / 8.6% max, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=130
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=130
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=130
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4485 hp / 9.7% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire-move to (-280.4,810.4,259.6) (casting=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.2 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire-move to (-294.8,813.6,260.6) (casting=1)
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-274.4,810.8,216.3) (casting=0)
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -291.998962 Y: 804.504761 Z: 260.746277 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected: Naz'jar Sentinel (GUID Full: 0xf1309e8100000029 Type: Creature Entry: 40577  Low: 41)]
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-298.8,803.1,260.7) (casting=1)
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=8.6 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=5261 hp / 10.6% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire-move to (-275.5,808.7,259.0) (casting=1)
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4544 hp / 9.8% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4268 hp / 9.2% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire-move to (-271.4,810.4,259.0) (casting=1)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.7 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-277.0,807.3,216.3) (casting=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=2947 hp / 5.9% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=13.9 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=5065 hp / 10.1% max, attackers_in_8y=0)
+AffWarlock[Warlockone] CastSpell 27243 failed: SpellCastResult=53
+AffWarlock[Warlockone] CastSpell 686 failed: SpellCastResult=53
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -307.225159 Y: 816.517029 Z: 260.464172 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected: Naz'jar Sentinel (GUID Full: 0xf1309e8100000017 Type: Creature Entry: 40577  Low: 23)]
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=13.9 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=4898 hp / 9.7% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 9963 hp / 19.4% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-292.5,803.1,260.8) (casting=0)
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=5040 hp / 10.1% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4171 hp / 9.0% max, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.7 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=5078 hp / 10.2% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire-move to (-272.1,808.7,258.9) (casting=1)
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Shamanone]: emergency-fire-move to (-262.4,810.4,259.1) (casting=1)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.5 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-277.7,805.7,216.3) (casting=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=3220 hp / 6.5% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4960 hp / 10.0% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 8180 hp / 16.4% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=10.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=2575 hp / 5.1% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire-move to (-272.1,808.7,258.9) (casting=1)
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=10.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 1978 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-277.9,804.6,216.3) (casting=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4660 hp / 9.2% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=5225 hp / 10.3% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9885 hp / 19.4% max over 3000ms, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=10.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 1978 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9885 hp / 19.4% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: emergency-fire-move to (-263.1,808.7,259.0) (casting=1)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=10.4 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 1978 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.8 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 1978 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=14.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=14.2 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=13.9 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=4868 hp / 9.5% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=13.9 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-283.5,803.1,259.8) (casting=1)
 FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=14.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=130
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=130
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=130
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-293.5,798.8,222.4) (casting=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.3 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.3 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.3 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.3 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=14.6 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AffWarlock[Warlockone] CastSpell 27243 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=14.7 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-295.8,798.6,222.4) (casting=0)
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-274.5,803.1,259.5) (casting=1)
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=2835 hp / 6.6% max, attackers_in_8y=0)
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=14.7 casting=0 FoF=1 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire-move to (-292.9,815.2,260.4) (casting=0)
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AffWarlock[Warlockone] CastSpell 27243 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=20.1 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 34477 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-296.0,798.4,222.4) (casting=0)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-274.6,807.2,258.9) (casting=0)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-274.6,805.6,259.1) (casting=0)
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-265.6,807.2,258.9) (casting=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+RestoShaman[Shamanone] CastSpell 331 failed: SpellCastResult=99
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+RestoShaman[Shamanone] CastSpell 331 failed: SpellCastResult=99
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-265.6,805.6,258.9) (casting=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=20.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 34477 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 53351 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
+RestoShaman[Shamanone] CastSpell 331 failed: SpellCastResult=99
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=20.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 34477 failed: SpellCastResult=49
+RestoShaman[Shamanone] CastSpell 331 failed: SpellCastResult=99
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-256.6,807.2,259.1) (casting=0)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=53
+AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-268.1,811.7,259.0) (casting=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=2213 hp / 5.9% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-282.5,810.6,259.9) (casting=1)
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=20.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 34477 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-AltbotPositionManager [Hunterone]: emergency-fire-move to (-294.4,798.4,222.4) (casting=0)
+RestoShaman[Shamanone] CastSpell 331 failed: SpellCastResult=99
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=17.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
 RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=20.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 34477 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-RestoShaman[Shamanone] CastSpell 61295 failed: SpellCastResult=99
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=20.1 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-MmHunter[Hunterone] CastSpell 34477 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 53209 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 2643 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 3044 failed: SpellCastResult=49
-MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=49
-Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -315.197144 Y: 799.375854 Z: 261.543671 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected:  (GUID Full: 0x0000000000000000 Type: None Low: 0)]
+RestoShaman[Shamanone] CastSpell 331 failed: SpellCastResult=99
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-247.6,807.2,258.5) (casting=0)

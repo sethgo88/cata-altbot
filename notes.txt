@@ -1,84 +1,122 @@
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=7.7 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4785 hp / 10.2% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 14305 hp / 30.4% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=5015 hp / 9.3% max, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: leash violation, eating fire
-AltbotPositionManager [Warlockone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4969 hp / 10.6% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: defensive
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4703 hp / 10.0% max, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=5114 hp / 9.5% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 14457 hp / 30.7% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 12553 hp / 23.3% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 12553 hp / 22.9% max over 3000ms, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
-  -> NO TIER FIRED
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9672 hp / 20.2% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9672 hp / 20.2% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=3392 hp / 7.3% max, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 7538 hp / 13.8% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 7538 hp / 13.8% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: leash violation, eating fire
-AltbotPositionManager [Warlockone]: leash violation, eating fire
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
-  -> NO TIER FIRED
-AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
-  -> NO TIER FIRED
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=3963 hp / 8.0% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=21.8 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=21.8 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Invader' (entry=39616) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Invader' dist=21.8 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: threat-window (65<2000)
+AffWarlock[Warlockone] CastSpell 48018 failed: SpellCastResult=53
+FrostMage[Mageone] tick: threat-window (1565<2000)
+AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=53
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AffWarlock[Warlockone] CastSpell 48181 failed: SpellCastResult=53
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.5 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
 AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
-  -> NO TIER FIRED
-AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Hunterone]: leash violation, eating fire
-AltbotPositionManager [Warlockone]: leash violation, eating fire
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 120 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
-  -> NO TIER FIRED
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 120 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
-FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
-  -> NO TIER FIRED
-AltbotPositionManager [Shamanone]: leash violation, eating fire
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Hunterone]: leash violation, eating fire
-AltbotPositionManager [Warlockone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=9345 hp / 19.5% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4482 hp / 9.4% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-301.9,808.5,260.5) (casting=0)
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.5 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4114 hp / 9.5% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-302.9,809.1,260.5) (casting=1)
+AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4585 hp / 10.6% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.5 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 8699 hp / 20.2% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9033 hp / 20.8% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-292.9,808.5,260.8) (casting=1)
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=21.5 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4698 hp / 10.8% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire-move to (-302.9,809.1,260.5) (casting=1)
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9617 hp / 22.1% max over 3000ms, attackers_in_8y=0)
+Command: server info [Player: Warriorone (GUID Full: 0x0000000000000001 Type: Player Low: 1) (Account: 1) X: -288.695679 Y: 807.457581 Z: 260.189056 Map: 643 (Throne of the Tides) Area: 5004 (T) Zone: Unknown Selected: Naz'jar Sentinel (GUID Full: 0xf1309e8100000029 Type: Creature Entry: 40577  Low: 41)]
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-283.0,808.3,259.8) (casting=1)
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.5 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4795 hp / 9.6% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-284.2,808.5,259.9) (casting=0)
+AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.5 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire-move to (-293.9,809.1,260.8) (casting=1)
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=4411 hp / 8.9% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+MmHunter[Hunterone] CastSpell 56641 failed: SpellCastResult=130
+AltbotPositionManager [Hunterone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=12.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Hunterone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-274.5,808.3,258.9) (casting=1)
+AltbotPositionManager [Hunterone]: emergency-fire-move to (-266.3,810.8,258.9) (casting=1)
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=8.7 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
 AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 14509 hp / 30.3% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=4.8 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=4.2 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=2.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=2.4 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
 AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
-AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
 AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
-AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
-WaypointMovementGenerator::DoInitialize: creature Orgrimmar Wind Rider (Entry: 51346 GUID: 937 DB GUID: 287138) doesn't have waypoint path id: 0
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=2.5 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=4.2 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.1 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.1 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.1 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.1 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=5.1 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire-move to (-291.1,809.1,260.5) (casting=0)
+AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4339 hp / 9.4% max, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-289.6,808.6,260.3) (casting=1)
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4696 hp / 10.5% max, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=11.3 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4629 hp / 9.9% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=13.6 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Shamanone]: emergency-fire signal (cumulative 8968 hp / 19.1% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: emergency-fire-move to (-280.6,808.6,259.5) (casting=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire-move to (-282.1,809.1,259.7) (casting=1)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.1 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=15.9 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=19.7 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-265.5,808.3,258.9) (casting=1)
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=19.9 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4672 hp / 9.4% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=19.5 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4830 hp / 9.7% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9502 hp / 18.9% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: emergency-fire-move to (-265.5,808.3,258.9) (casting=1)
+AltbotPositionManager [Warlockone]: emergency-fire signal (cumulative 9502 hp / 18.9% max over 3000ms, attackers_in_8y=0)

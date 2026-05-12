@@ -23,7 +23,10 @@ static bpt::ptree LoadAltbotTree()
     }
     catch (bpt::ini_parser::ini_parser_error const& e)
     {
-        TC_LOG_WARN("altbot", "AltbotConfig: could not read altbot.conf (%s) — using defaults.",
+        TC_LOG_ERROR("altbot",
+            "AltbotConfig: PARSE FAILED for altbot.conf (%s). "
+            "The file must start with an [altbot] section header. "
+            "All altbot features are DISABLED until this is corrected.",
             e.what());
     }
     return {};
@@ -61,7 +64,7 @@ void AltbotConfig::Reload()
     _telemetryMinFightMs     = getInt ("Altbot.Telemetry.MinFightMs",      15000);
 
     if (_autoEquip)
-        TC_LOG_WARN("altbot", "Altbot.AutoEquip is enabled but the auto-equip module is WIP — no-op.");
+        TC_LOG_WARN("altbot", "Altbot.AutoEquip is enabled but the auto-equip module is WIP -- no-op.");
     if (_autoTalent)
-        TC_LOG_WARN("altbot", "Altbot.AutoTalent is enabled but the auto-talent module is WIP — no-op.");
+        TC_LOG_WARN("altbot", "Altbot.AutoTalent is enabled but the auto-talent module is WIP -- no-op.");
 }

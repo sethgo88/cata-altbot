@@ -10,6 +10,7 @@
 #include "SpellAuras.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
+#include "SpellHistory.h"
 #include "Unit.h"
 #include "strategies/StrategyUtil.h"
 #include <vector>

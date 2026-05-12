@@ -5,6 +5,7 @@
 #include "LFG.h"
 #include "LFGMgr.h"
 #include "Log.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 
 namespace AltbotLfg
@@ -15,10 +16,26 @@ static void HandleRoleCheck(Player* bot, AltbotAI* ai)
     if (ai->HasLfgRoleResponded())
         return;
 
-    Group* group = bot->GetGroup();
+    // Do NOT use bot->GetGroup() here.  When _LoadGroup attaches the bot to
+    // its previously-persisted DB group and auto-invite then calls AddMember
+    // on the master's *current* group, AddMember finds the bot already has a
+    // group and calls SetOriginalGroup (sets m_originalGroup) instead of
+    // SetGroup (sets m_group).  bot->GetGroup() returns m_group — the old
+    // group — while the LFG rolecheck is registered under the *master's*
+    // current group GUID.  Passing the old GUID to UpdateRoleCheck causes
+    // RoleChecksStore.find() to return end() and the call silently no-ops.
+    Player* master = ObjectAccessor::FindPlayer(ai->GetMasterGuid());
+    if (!master || !master->IsInWorld())
+    {
+        TC_LOG_ERROR("altbot", "AltbotLfg: '%s' in rolecheck but master not in world",
+                     bot->GetName().c_str());
+        return;
+    }
+
+    Group* group = master->GetGroup();
     if (!group)
     {
-        TC_LOG_ERROR("altbot", "AltbotLfg: '%s' in rolecheck but has no group",
+        TC_LOG_ERROR("altbot", "AltbotLfg: '%s' in rolecheck but master has no group",
                      bot->GetName().c_str());
         return;
     }

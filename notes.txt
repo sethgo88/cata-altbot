@@ -1,57 +1,84 @@
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 8855 hp / 20.6% max over 3000ms, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=7.7 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4785 hp / 10.2% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: leash violation, eating fire
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 14305 hp / 30.4% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=5015 hp / 9.3% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: leash violation, eating fire
+AltbotPositionManager [Warlockone]: leash violation, eating fire
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4969 hp / 10.6% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: defensive
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4703 hp / 10.0% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=5114 hp / 9.5% max, attackers_in_8y=0)
 AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 8855 hp / 19.9% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 14457 hp / 30.7% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 12553 hp / 23.3% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 12553 hp / 22.9% max over 3000ms, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
+  -> NO TIER FIRED
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9672 hp / 20.2% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: leash violation, eating fire
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9672 hp / 20.2% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=3392 hp / 7.3% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 7538 hp / 13.8% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 7538 hp / 13.8% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: leash violation, eating fire
+AltbotPositionManager [Warlockone]: leash violation, eating fire
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
+  -> NO TIER FIRED
+AltbotPositionManager [Shamanone]: leash violation, eating fire
 AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
 FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 120 failed: SpellCastResult=99
-FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=87
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4766 hp / 10.7% max, attackers_in_8y=0)
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
+  -> NO TIER FIRED
 AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 8897 hp / 20.0% max over 3000ms, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=1 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4723 hp / 10.5% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=3888 hp / 7.6% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=3963 hp / 8.0% max, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
 FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
-FrostMage[Mageone] CastSpell 120 failed: SpellCastResult=99
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4469 hp / 10.0% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9475 hp / 21.1% max over 3000ms, attackers_in_8y=0)
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
+  -> NO TIER FIRED
 AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4133 hp / 8.1% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9192 hp / 20.1% max over 3000ms, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 9192 hp / 20.1% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4190 hp / 8.2% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (cumulative 12211 hp / 23.8% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4437 hp / 9.7% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4180 hp / 8.2% max, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=2767 hp / 6.0% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 7204 hp / 15.7% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (cumulative 12503 hp / 24.4% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4017 hp / 7.8% max, attackers_in_8y=0)
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 7204 hp / 15.5% max over 3000ms, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 7204 hp / 15.5% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4436 hp / 8.7% max, attackers_in_8y=0)
-AltbotPositionManager [Shamanone]: emergency-fire signal (cumulative 12633 hp / 24.6% max over 3000ms, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: emergency-fire signal (spike delta=4426 hp / 8.9% max, attackers_in_8y=0)
-AltbotPositionManager [Warlockone]: leash violation, eating fire
-AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=5175 hp / 9.4% max, attackers_in_8y=0)
+AltbotPositionManager [Shamanone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
 AltbotPositionManager [Hunterone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=4325 hp / 8.4% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: leash violation, eating fire
 AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=1 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 120 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
+  -> NO TIER FIRED
 AltbotPositionManager [Mageone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: emergency-fire signal (cumulative 12778 hp / 24.9% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+FrostMage[Mageone] CastSpell 120 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 10 failed: SpellCastResult=150
+FrostMage[Mageone] CastSpell 116 failed: SpellCastResult=136
+  -> NO TIER FIRED
 AltbotPositionManager [Shamanone]: leash violation, eating fire
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=3888 hp / 7.6% max, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (spike delta=4722 hp / 8.6% max, attackers_in_8y=0)
-AltbotPositionManager [Hunterone]: emergency-fire signal (cumulative 9897 hp / 18.1% max over 3000ms, attackers_in_8y=0)
-FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=1 FB-id=116 IL-id=30455 FFB-id=44614
-AltbotPositionManager [Shamanone]: emergency-fire signal (spike delta=3667 hp / 7.2% max, attackers_in_8y=0)
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: leash violation, eating fire
+AltbotPositionManager [Mageone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Hunterone]: leash violation, eating fire
+AltbotPositionManager [Warlockone]: leash violation, eating fire
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=9345 hp / 19.5% max, attackers_in_8y=0)
+AltbotPositionManager [Warlockone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+FrostMage[Mageone] tick: tgt='Naz'jar Sentinel' dist=3.0 casting=0 FoF=0 BF=0 FB-id=116 IL-id=30455 FFB-id=44614
+AltbotPositionManager [Mageone]: emergency-fire signal (spike delta=4482 hp / 9.4% max, attackers_in_8y=0)
+AltbotPositionManager [Hunterone]: hazard-detected spell 77217 (radius 5.0y) ΓÇö retreating
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Mageone]: emergency-fire signal (cumulative 14509 hp / 30.3% max over 3000ms, attackers_in_8y=0)
+AltbotPositionManager [Mageone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Shamanone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+AltbotPositionManager [Warlockone]: NEAR creature 'Naz'jar Sentinel' (entry=40577) with periodic-trigger aura 10 ('Blizzard') trig=42208 ΓÇö not in mechanic DB
+WaypointMovementGenerator::DoInitialize: creature Orgrimmar Wind Rider (Entry: 51346 GUID: 937 DB GUID: 287138) doesn't have waypoint path id: 0

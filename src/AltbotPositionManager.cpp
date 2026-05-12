@@ -394,11 +394,23 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& ctx, u
     // 1) Emergency fire retreat — highest priority, can move mid-cast.
     if (ShouldEscapeFire(nowMs))
     {
-        Unit* anchor = _intent.anchor ? _intent.anchor : master;
+        // Fire retreat geometry:
+        //   - Sample a small ring around the BOT (not the target). The ground
+        //     patch is at or near the bot's current position; we just need to
+        //     step out by `kFireRetreatRadius`.
+        //   - Drop the master-leash for this path (pass nullptr). The earlier
+        //     code anchored samples at 25y from target — but for a ranged DPS
+        //     the bot is ~20y from master while master is meleeing at 5y, so
+        //     every sample violated the 12y leash and the retreat always
+        //     ended in `leash violation, eating fire`. The leash is a normal-
+        //     positioning constraint, not an emergency one — a bot bleeding
+        //     in fire should always step out. MaintainRange re-establishes
+        //     caster range on the next combat tick.
+        constexpr float kFireRetreatRadius = 9.0f;
         float retX = 0.0f, retY = 0.0f, retZ = 0.0f;
         bool found = AltbotPosition::FindSafeRetreatPosition(
-            _bot, anchor, _intent.desiredRange,
-            _intent.leashAnchor, _intent.leashRange,
+            _bot, _bot, kFireRetreatRadius,
+            /*leashAnchor*/ nullptr, /*leashRange*/ 0.0f,
             retX, retY, retZ);
 
         if (found)
@@ -413,10 +425,10 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& ctx, u
         }
         else
         {
-            // No leash-compliant safe spot — eat the fire rather than break
-            // the master-anchored stack.
+            // No reachable spot anywhere on the small retreat ring — usually
+            // means terrain / pathing block. Logged but rare.
             TC_LOG_INFO("altbot",
-                "AltbotPositionManager [%s]: leash violation, eating fire",
+                "AltbotPositionManager [%s]: no reachable retreat spot, eating fire",
                 _bot->GetName().c_str());
             _firstFireSeenMs = 0;
             _lastEmergencyMoveMs = nowMs;

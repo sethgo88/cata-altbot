@@ -5,6 +5,7 @@
 #include "CellImpl.h"
 #include "Creature.h"
 #include "DynamicObject.h"
+#include "GameObject.h"
 #include "EncounterMechanics.h"
 #include "GridNotifiers.h"
 #include "Log.h"
@@ -103,6 +104,19 @@ namespace
             }
         }
 
+        // GameObjects sometimes carry spell-bound effects (some Cata ground
+        // patches are GameObject-based instead of DynamicObject/Creature).
+        // GameObject::GetSpellId returns the source spell when set.
+        void Visit(GameObjectMapType& m)
+        {
+            for (auto iter = m.begin(); iter != m.end(); ++iter)
+            {
+                GameObject* obj = iter->GetSource();
+                if (!obj) continue;
+                Consider(obj->GetSpellId(), obj->GetPositionX(), obj->GetPositionY());
+            }
+        }
+
         // Creatures can host "ground patch" mechanics too — in TC 4.3.4 most
         // Cata encounter ground effects (Noxious Mire 77217, Quicksand,
         // Crystal Storm, etc.) are implemented as a summoned invisible
@@ -111,12 +125,22 @@ namespace
         // For each nearby creature, check its applied auras against the
         // mechanic DB; if one matches, the bot is inside that mechanic's
         // footprint (the creature sits at the patch origin).
+        //
+        // Diagnostic note: when bots are dying to a ground patch but the
+        // scan isn't tripping, enable trace and check this log line —
+        // missing IDs in the DB show up as "creature aura X near bot Y" with
+        // no corresponding `hazard-detected` line. Add the surfaced IDs to
+        // the appropriate encounter.md and re-gen the DB.
         void Visit(CreatureMapType& m)
         {
             for (auto iter = m.begin(); iter != m.end(); ++iter)
             {
                 Creature* c = iter->GetSource();
                 if (!c || !c->IsAlive()) continue;
+                float dx = bot->GetPositionX() - c->GetPositionX();
+                float dy = bot->GetPositionY() - c->GetPositionY();
+                float dist2 = dx * dx + dy * dy;
+                if (dist2 > 100.0f) continue;   // 10y radius for the diagnostic
                 for (auto const& [auraSpellId, app] : c->GetAppliedAuras())
                 {
                     if (!app || !app->GetBase()) continue;
@@ -124,6 +148,28 @@ namespace
                     {
                         Consider(auraSpellId, c->GetPositionX(), c->GetPositionY());
                         break;
+                    }
+                    // Diagnostic: surface candidate hazard auras the DB
+                    // doesn't know about. Periodic-trigger auras (aura 23 =
+                    // SPELL_AURA_PERIODIC_TRIGGER_SPELL) are the canonical
+                    // signature for ground patches.
+                    Aura const* a = app->GetBase();
+                    SpellInfo const* info = a ? a->GetSpellInfo() : nullptr;
+                    if (info)
+                    {
+                        for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+                        {
+                            if (info->Effects[i].ApplyAuraName == SPELL_AURA_PERIODIC_TRIGGER_SPELL)
+                            {
+                                TC_LOG_INFO("altbot",
+                                    "AltbotPositionManager [%s]: NEAR creature '%s' (entry=%u) with"
+                                    " periodic-trigger aura %u ('%s') trig=%u — not in mechanic DB",
+                                    bot->GetName().c_str(), c->GetName().c_str(), c->GetEntry(),
+                                    auraSpellId, info->SpellName ? info->SpellName : "?",
+                                    info->Effects[i].TriggerSpell);
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -238,10 +284,28 @@ bool AltbotPositionManager::DetectUnexpectedDamage(uint32 nowMs)
             sum += d.delta;
     }
     float cumPct = 100.0f * float(sum) / float(maxHp);
+
+    // Standard cumulative trip — gated on no melee attacker, same as the
+    // single-sample spike check. This catches the "I'm a ranged caster
+    // sitting in a pool with nobody hitting me" case.
     if (cumPct >= kFireCumulativePct && !meleeAttackerInRange())
     {
         TC_LOG_INFO("altbot",
             "AltbotPositionManager [%s]: emergency-fire signal (cumulative %u hp / %.1f%% max over %ums, attackers_in_8y=0)",
+            _bot->GetName().c_str(), sum, cumPct, kFireCumulativeWindowMs);
+        return true;
+    }
+
+    // Severe cumulative loss overrides the melee-attacker gate. A bot bleeding
+    // >20% in 3s while also being meleed is in environmental + melee damage
+    // both — the melee alone wouldn't produce that rate (auto-attacks tick
+    // ~2-3% per swing, ~4-5% combined over 3s). The excess almost always
+    // means "I'm also standing in a ground patch."
+    constexpr float kFireSevereCumulativePct = 20.0f;
+    if (cumPct >= kFireSevereCumulativePct)
+    {
+        TC_LOG_INFO("altbot",
+            "AltbotPositionManager [%s]: emergency-fire signal (SEVERE cumulative %u hp / %.1f%% max over %ums, overriding melee-attacker gate)",
             _bot->GetName().c_str(), sum, cumPct, kFireCumulativeWindowMs);
         return true;
     }
@@ -372,14 +436,18 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& ctx, u
         return;
     }
 
-    // 3) Dead-zone escape (hunter): physical shots reject inside ~8y. Skip
-    // when master is also at melee range with the target — stack mechanic.
+    // 3) Dead-zone escape (hunter): physical shots reject inside ~8y. The
+    // original `masterAtRange` gate suppressed the escape when the master
+    // was *also* at melee range with the target — intended for stack
+    // mechanics (Bronjahm Soulstorm), but in a normal tank pull the master
+    // IS in melee with the mob, so the gate inverted and the hunter sat in
+    // melee getting SPELL_FAILED_TOO_CLOSE (130) every shot. Default behavior
+    // is now: if the hunter is too close, always back up. Stack mechanics
+    // override per-encounter by clearing `requireDeadZoneEscape` on the intent.
     if (_intent.requireDeadZoneEscape && _intent.anchor && _intent.deadZoneInner > 0.0f)
     {
         float distToAnchor = _bot->GetDistance(_intent.anchor);
-        bool masterAtRange = (!_intent.leashAnchor)
-            || (_intent.leashAnchor->GetDistance(_intent.anchor) > _intent.masterStackRange);
-        if (distToAnchor < _intent.deadZoneInner && masterAtRange)
+        if (distToAnchor < _intent.deadZoneInner)
         {
             TC_LOG_DEBUG("altbot",
                 "AltbotPositionManager [%s]: dead-zone escape (dist=%.1f<%.1f)",

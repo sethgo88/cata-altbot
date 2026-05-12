@@ -352,11 +352,20 @@ bool FrostMageStrategy::Tier_AoE(Player* bot, Unit* target) const
     if (nearCount < AOE_MIN_TARGETS)
         return false;
 
-    // Cone of Cold prefers melee-range cluster. Use TryCast so a failure
-    // (LoS, target moved out of cone) falls through to Blizzard / Frostbolt
-    // instead of consuming the tier.
-    if (bot->GetDistance(target) <= CONE_RANGE && TryCast(bot, target, Spell::ConeOfCold))
-        return true;
+    // Cone of Cold is a self-cast PBAoE — its target parameter is the bot,
+    // not the enemy. Passing the enemy as `TryCast(target=enemy)` made the
+    // server-side range check use enemy distance (>10y from a caster-range
+    // bot → SPELL_FAILED_OUT_OF_RANGE 99 every tick). Cast on self and let
+    // the cone sweep in the bot's facing direction. Range gate (CONE_RANGE)
+    // ensures we only attempt when there's actually a target within the cone
+    // — outside that we fall through to Blizzard.
+    if (bot->GetDistance(target) <= CONE_RANGE)
+    {
+        uint32 coc = GetSpell(Spell::ConeOfCold);
+        if (coc && !IsOnCooldown(bot, coc)
+            && StrategyUtil::CastWithLog(bot, bot, coc, "FrostMage") == SPELL_CAST_OK)
+            return true;
+    }
 
     // Blizzard channel for sustained AoE
     if (TryCast(bot, target, Spell::Blizzard))

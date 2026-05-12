@@ -1,6 +1,7 @@
 #include "RestoShamanStrategy.h"
 #include "AltbotPositionManager.h"
 #include "AltbotTickContext.h"
+#include "EncounterReactions.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -49,13 +50,15 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
         TC_LOG_DEBUG("altbot",
             "RestoShamanStrategy cache for '%s': "
             "HSurge=%u HW=%u GHW=%u Riptide=%u ChainHeal=%u "
-            "EarthShield=%u WaterShield=%u SpiritLinkTotem=%u ManaTideTotem=%u LightningBolt=%u",
+            "EarthShield=%u WaterShield=%u SpiritLinkTotem=%u ManaTideTotem=%u "
+            "LightningBolt=%u CleanseSpirit=%u",
             bot->GetName().c_str(),
             GetSpell(Spell::HealingSurge), GetSpell(Spell::HealingWave),
             GetSpell(Spell::GreaterHealingWave), GetSpell(Spell::Riptide),
             GetSpell(Spell::ChainHeal), GetSpell(Spell::EarthShield),
             GetSpell(Spell::WaterShield), GetSpell(Spell::SpiritLinkTotem),
-            GetSpell(Spell::ManaTideTotem), GetSpell(Spell::LightningBolt));
+            GetSpell(Spell::ManaTideTotem), GetSpell(Spell::LightningBolt),
+            GetSpell(Spell::CleanseSpirit));
     }
 
     DoMaintenance(bot, master);
@@ -91,6 +94,20 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
     {
         SpellInfo const* hwInfo = sSpellMgr->GetSpellInfo(hw);
         if (hwInfo && bot->GetSpellHistory()->HasGlobalCooldown(hwInfo))
+            return;
+    }
+
+    // Phase 3 encounter-override slot. Curse dispel preempts the heal rotation
+    // because Stonecore Ulthok's Curse of Fatigue (76094) and similar slow the
+    // tank into Dark Fissure damage if left up; one Cleanse Spirit GCD is
+    // cheaper than the heal pressure the curse generates. TryDispelAlly walks
+    // the party for any aura whose SpellInfo::Dispel matches the requested
+    // type, so the filter is "any curse," not a per-encounter whitelist —
+    // acceptable for v1 (PvE rarely has beneficial curses).
+    if (uint32 cleanse = GetSpell(Spell::CleanseSpirit))
+    {
+        if (EncounterReactions::TryDispelAlly(bot, master,
+                EncounterMechanics::DispelType::Curse, cleanse, SPEC_LABEL))
             return;
     }
 
@@ -223,6 +240,13 @@ void RestoShamanStrategy::ResolveSpellCache(Player* bot)
     _cache[size_t(Spell::SpiritLinkTotem)]    = 0;
     _cache[size_t(Spell::ManaTideTotem)]      = 0;
     _cache[size_t(Spell::LightningBolt)]      = bestLightningBolt.id;
+
+    // Cleanse Spirit: effect-introspection (Effect=DISPEL, MiscValue=DISPEL_CURSE)
+    // matches both the player-castable cast and stray dispel rows on totems and
+    // other helpers, so use the name-match path (`FindSpellByFamilyName` already
+    // filters passives and prefers castable variants).
+    _cache[size_t(Spell::CleanseSpirit)]
+        = StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_SHAMAN, "Cleanse Spirit");
 }
 
 RestoShamanStrategy::ManaMode RestoShamanStrategy::GetManaMode(Player* bot) const

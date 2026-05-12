@@ -164,6 +164,17 @@ uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name)
     // fired by 44572's script). Both are family MAGE, both named "Deep Freeze".
     // Without the castable filter the higher-SpellLevel one (the trigger) wins
     // and IsOnCooldown reads false every tick.
+    //
+    // The "Molten Armor" collision (30482 cast vs 34913 on-attacker damage
+    // proc payload) hits a nastier corner: neither variant is flagged
+    // SPELL_ATTR0_PASSIVE in the 4.3.4 DBC, neither has a SpellPowerId, and
+    // the cast 30482 has SpellCooldownsId pointing at a row with
+    // `RecoveryTime=0, CategoryRecoveryTime=0, StartRecoveryTime=1500` (the
+    // GCD). So we extend `hasCooldown` to count `StartRecoveryTime > 0` as a
+    // signal — that's the "lands on GCD" bit that distinguishes a castable
+    // self-buff from its damage-proc payload. The proc 34913 has
+    // SpellCooldownsId=0, so its StartRecoveryTime parses as 0 and the
+    // disambiguator picks 30482.
     struct Cand
     {
         uint32 spellId;
@@ -187,10 +198,10 @@ uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name)
             continue;
 
         // Skip passive helpers that share the cast spell's name — e.g.
-        // Molten Armor 34913 (the SPELL_ATTR0_PASSIVE on-attacker fire damage)
-        // colliding with 30482 (the player-castable buff). The two-pass
-        // "prefer castable" filter below doesn't disambiguate when neither has
-        // mana cost or cooldown (Cata armor self-buffs are free toggles).
+        // Fingers of Frost talent 44544 vs. proc aura 74396. The
+        // 30482/34913 Molten Armor pair does NOT trip this branch (34913
+        // isn't flagged PASSIVE in 4.3.4 DBC) — the StartRecoveryTime
+        // disambiguator below handles that one.
         if (info->IsPassive())
             continue;
 
@@ -198,7 +209,9 @@ uint32 FindSpellByFamilyName(Player* bot, uint32 family, char const* name)
         c.spellId     = spellId;
         c.spellLevel  = info->SpellLevel;
         c.hasMana     = info->ManaCost > 0 || info->ManaCostPercentage > 0;
-        c.hasCooldown = info->RecoveryTime > 0 || info->CategoryRecoveryTime > 0;
+        c.hasCooldown = info->RecoveryTime > 0
+                     || info->CategoryRecoveryTime > 0
+                     || info->StartRecoveryTime > 0;
         cands.push_back(c);
     }
 

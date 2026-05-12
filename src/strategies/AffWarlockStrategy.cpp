@@ -197,12 +197,28 @@ void AffWarlockStrategy::PetMaintenance(Player* bot)
 
     if (!pet || !pet->IsAlive())
     {
-        // Out of combat only — summoning is a 6s cast and won't resolve mid-fight.
-        if (!bot->IsInCombat() && GetSpell(Spell::SummonFelhunter)
-            && !IsOnCooldown(bot, GetSpell(Spell::SummonFelhunter)))
-        {
-            StrategyUtil::CastWithLog(bot, bot, GetSpell(Spell::SummonFelhunter), SPEC_LABEL);
-        }
+        uint32 summon = GetSpell(Spell::SummonFelhunter);
+        if (!summon || IsOnCooldown(bot, summon))
+            return;
+
+        // Summon Felhunter is a 6s cast that fails with SPELL_FAILED_MOVING (53)
+        // if the bot is mid-follow, and gets interrupted by damage in heavy
+        // combat. Gate:
+        //   - Out of combat                 → always try (the cheap pre-pull case).
+        //   - In combat AND stationary AND  → allow retry on safe pulls; the next
+        //     HP >= 70 AND not casting        combat-tick (1.5s) drives the retry
+        //                                     loop if this attempt fails.
+        // Without the in-combat retry the bot fights the entire fight with no
+        // pet whenever the pre-pull attempt loses to MaintainRange (the
+        // canonical failure mode — see notes.txt 2026-05-11 ToTT pull).
+        bool oocOk = !bot->IsInCombat();
+        bool icOk  = bot->IsInCombat()
+                  && !bot->isMoving()
+                  && bot->GetHealthPct() >= 70.0f
+                  && !bot->HasUnitState(UNIT_STATE_CASTING)
+                  && !bot->IsNonMeleeSpellCast(false);
+        if (oocOk || icOk)
+            StrategyUtil::CastWithLog(bot, bot, summon, SPEC_LABEL);
         return;
     }
 

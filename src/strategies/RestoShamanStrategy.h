@@ -30,6 +30,7 @@ private:
         SpiritLinkTotem,
         ManaTideTotem,
         LightningBolt,
+        CleanseSpirit,         // dispel: curse (and magic via Improved Cleanse Spirit talent)
         Count
     };
 

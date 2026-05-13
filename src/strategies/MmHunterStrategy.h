@@ -36,6 +36,7 @@ private:
         FeignDeath,
         Deterrence,
         TranqShot,            // offensive purge — strips Magic + Enrage off hostile
+        SilencingShot,        // MM-tree interrupt (talent) — 3s silence, 24s CD, on GCD
         Count
     };
 

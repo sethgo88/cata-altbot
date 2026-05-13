@@ -38,6 +38,16 @@ private:
         DeathCoil,
         SummonFelhunter,
         HealthFunnel,
+        // 142-pt build (Aff+Destro) additions. Spec doc:
+        // `docs/research/142pt-aff-warlock-build.md` §G.1.
+        // ImprovedSoulFire's proc-aura ID is intentionally NOT cached — the
+        // talent passive shares its SpellName, so the maintenance helper
+        // walks bot->GetAppliedAuras() and filters IsPassive() instead
+        // (CLAUDE.md cast-pipeline gotcha #1).
+        ChaosBolt,
+        Shadowburn,
+        SoulFire,
+        BaneOfHavoc,
         Count
     };
 
@@ -62,12 +72,16 @@ private:
     void DoMaintenance(Player* bot, Unit* target);
     void PetMaintenance(Player* bot);
     bool DoDefensives(Player* bot);
+    void MaintainImprovedSoulFire(Player* bot, Unit* target);
 
     bool Tier_Haunt(Player* bot, Unit* target) const;
     bool Tier_BaneOfDoom(Player* bot, Unit* target) const;
     bool Tier_Corruption(Player* bot, Unit* target) const;
     bool Tier_UnstableAffliction(Player* bot, Unit* target) const;
     bool Tier_AoE(Player* bot, Unit* target);
+    bool Tier_BaneOfHavocCleave(Player* bot, Unit* target) const;
+    bool Tier_ChaosBolt(Player* bot, Unit* target) const;
+    bool Tier_Shadowburn(Player* bot, Unit* target) const;
     bool Tier_DrainSoul(Player* bot, Unit* target) const;
     bool Tier_ShadowBolt(Player* bot, Unit* target, ManaMode mode) const;
 };

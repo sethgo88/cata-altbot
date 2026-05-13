@@ -67,7 +67,8 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
             "MmHunterStrategy cache for '%s': "
             "Hawk=%u Mark=%u Serpent=%u Chimera=%u Aimed=%u AimedProc=%u "
             "Kill=%u Arcane=%u Steady=%u Multi=%u Misdirection=%u MendPet=%u "
-            "CallPet=%u Disengage=%u FeignDeath=%u Deterrence=%u TranqShot=%u",
+            "CallPet=%u Disengage=%u FeignDeath=%u Deterrence=%u TranqShot=%u "
+            "SilencingShot=%u",
             bot->GetName().c_str(),
             GetSpell(Spell::AspectOfTheHawk), GetSpell(Spell::HuntersMark),
             GetSpell(Spell::SerpentSting), GetSpell(Spell::ChimeraShot),
@@ -77,7 +78,7 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
             GetSpell(Spell::Misdirection), GetSpell(Spell::MendPet),
             GetSpell(Spell::CallPet1), GetSpell(Spell::Disengage),
             GetSpell(Spell::FeignDeath), GetSpell(Spell::Deterrence),
-            GetSpell(Spell::TranqShot));
+            GetSpell(Spell::TranqShot), GetSpell(Spell::SilencingShot));
     }
 
     Unit* target = ObjectAccessor::GetUnit(*bot, master->GetTarget());
@@ -142,6 +143,18 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
             return;
     }
 
+    // Phase 3 encounter-override: Silencing Shot kicks any mid-cast MM-flagged
+    // by the mechanic DB. On the GCD (unlike Wind Shear / Counterspell), so it
+    // must run after the GCD probe. Talent — `silencing` cache is 0 when the
+    // bot hasn't picked it up, and the hook no-ops.
+    if (uint32 silencing = GetSpell(Spell::SilencingShot))
+    {
+        if (EncounterReactions::TryInterruptNearbyCast(bot, silencing, SPEC_LABEL,
+                /*radius*/ 30.0f,
+                EncounterMechanics::InterruptPriority::MustInterrupt))
+            return;
+    }
+
     // Phase 3 encounter-override: Tranq Shot strips magic / enrage buffs off
     // a hostile (e.g. ToTT Tainted Sentry Enrage 22428). TryPurgeHostile
     // walks visible creatures' applied auras and picks the first match.
@@ -149,7 +162,7 @@ void MmHunterStrategy::Update(Player* bot, Player* master, AltbotTickContext con
     if (uint32 tranq = GetSpell(Spell::TranqShot))
     {
         if (EncounterReactions::TryPurgeHostile(bot,
-                EncounterMechanics::DispelType::EnragePurge, tranq, "MmHunter"))
+                EncounterMechanics::DispelType::EnragePurge, tranq, SPEC_LABEL))
             return;
     }
 
@@ -194,6 +207,9 @@ void MmHunterStrategy::ResolveSpellCache(Player* bot)
     _cache[size_t(Spell::FeignDeath)]      = find("Feign Death");
     _cache[size_t(Spell::Deterrence)]      = find("Deterrence");
     _cache[size_t(Spell::TranqShot)]       = find("Tranquilizing Shot");
+    // Silencing Shot is a talented MM ability. May be 0 if the bot hasn't
+    // talented into it — the interrupt hook just no-ops in that case.
+    _cache[size_t(Spell::SilencingShot)]   = find("Silencing Shot");
 }
 
 bool MmHunterStrategy::IsOnCooldown(Player* bot, uint32 spellId) const
@@ -273,15 +289,15 @@ bool MmHunterStrategy::DoDefensives(Player* bot)
     uint32 deter = GetSpell(Spell::Deterrence);
     if (deter && bot->GetHealthPct() < DETERRENCE_HP_PCT && !IsOnCooldown(bot, deter))
     {
-        StrategyUtil::CastWithLog(bot, bot, deter, SPEC_LABEL);
-        return true;
+        if (StrategyUtil::CastWithLog(bot, bot, deter, SPEC_LABEL) == SPELL_CAST_OK)
+            return true;
     }
 
     uint32 fd = GetSpell(Spell::FeignDeath);
     if (fd && bot->GetHealthPct() < FEIGN_DEATH_HP_PCT && !IsOnCooldown(bot, fd))
     {
-        StrategyUtil::CastWithLog(bot, bot, fd, SPEC_LABEL);
-        return true;
+        if (StrategyUtil::CastWithLog(bot, bot, fd, SPEC_LABEL) == SPELL_CAST_OK)
+            return true;
     }
 
     // Disengage only when actually pressured: meleed AND low HP. A single
@@ -296,8 +312,8 @@ bool MmHunterStrategy::DoDefensives(Player* bot)
         && bot->GetHealthPct() < ESCAPE_HP_PCT
         && !IsOnCooldown(bot, dis))
     {
-        StrategyUtil::CastWithLog(bot, bot, dis, SPEC_LABEL);
-        return true;
+        if (StrategyUtil::CastWithLog(bot, bot, dis, SPEC_LABEL) == SPELL_CAST_OK)
+            return true;
     }
 
     return false;

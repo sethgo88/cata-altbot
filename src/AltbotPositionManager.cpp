@@ -448,13 +448,16 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
         //         ending up 60y from master with every cast OOR=99). If no
         //         leash-compliant sample exists, fall back to no-leash — a
         //         dead healer is worse than a slightly out-of-range healer.
-        //       Ranged DPS / other: NO leash. The original master-leash gate
-        //         caused "leash violation, eating fire" every retreat because
-        //         a 20y caster + 5y master leashRange=12y never matched. A
-        //         bleeding caster should always step out; MaintainRange
-        //         re-establishes caster range on the next tick.
+        //       Ranged DPS: SOFT leash at ~25y — casters live further from
+        //         master than healers (25y target-range vs healer's 6y heal
+        //         band), so 12y is too tight, but no leash at all lets the
+        //         bot ratchet ~20y/retreat (observed: Warlockone drifted
+        //         ~20y from master in 2026-05-13 Sentinel pull). Like the
+        //         healer path: try soft-leash first, fall back to no-leash
+        //         if no compliant sample. Bleeding caster always steps out.
         constexpr float kFireRetreatRadius = 9.0f;
-        constexpr float kHealerEmergencyLeashRange = 12.0f;
+        constexpr float kHealerEmergencyLeashRange   = 12.0f;
+        constexpr float kRangedDpsEmergencyLeashRange = 25.0f;
         constexpr uint32 kPatchCoordsFreshMs = 2000;
         float retX = 0.0f, retY = 0.0f, retZ = 0.0f;
         bool found = false;
@@ -478,6 +481,13 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
                     _intent.leashAnchor, kHealerEmergencyLeashRange,
                     retX, retY, retZ);
             }
+            else if (_intent.role == PositionRole::RangedDPS && _intent.leashAnchor)
+            {
+                found = AltbotPosition::FindStepOutOfPatch(
+                    _bot, _lastPatchX, _lastPatchY, _lastPatchZ, _lastPatchRadius,
+                    _intent.leashAnchor, kRangedDpsEmergencyLeashRange,
+                    retX, retY, retZ);
+            }
             if (!found)
             {
                 found = AltbotPosition::FindStepOutOfPatch(
@@ -496,6 +506,13 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
             found = AltbotPosition::FindSafeRetreatPosition(
                 _bot, _bot, kFireRetreatRadius,
                 _intent.leashAnchor, kHealerEmergencyLeashRange,
+                retX, retY, retZ);
+        }
+        if (!found && _intent.role == PositionRole::RangedDPS && _intent.leashAnchor)
+        {
+            found = AltbotPosition::FindSafeRetreatPosition(
+                _bot, _bot, kFireRetreatRadius,
+                _intent.leashAnchor, kRangedDpsEmergencyLeashRange,
                 retX, retY, retZ);
         }
         if (!found)

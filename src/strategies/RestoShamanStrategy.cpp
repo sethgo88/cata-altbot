@@ -51,14 +51,14 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
             "RestoShamanStrategy cache for '%s': "
             "HSurge=%u HW=%u GHW=%u Riptide=%u ChainHeal=%u "
             "EarthShield=%u WaterShield=%u SpiritLinkTotem=%u ManaTideTotem=%u "
-            "LightningBolt=%u CleanseSpirit=%u",
+            "LightningBolt=%u CleanseSpirit=%u WindShear=%u",
             bot->GetName().c_str(),
             GetSpell(Spell::HealingSurge), GetSpell(Spell::HealingWave),
             GetSpell(Spell::GreaterHealingWave), GetSpell(Spell::Riptide),
             GetSpell(Spell::ChainHeal), GetSpell(Spell::EarthShield),
             GetSpell(Spell::WaterShield), GetSpell(Spell::SpiritLinkTotem),
             GetSpell(Spell::ManaTideTotem), GetSpell(Spell::LightningBolt),
-            GetSpell(Spell::CleanseSpirit));
+            GetSpell(Spell::CleanseSpirit), GetSpell(Spell::WindShear));
     }
 
     DoMaintenance(bot, master);
@@ -78,6 +78,18 @@ void RestoShamanStrategy::Update(Player* bot, Player* master, AltbotTickContext 
 
     ManaMode mode = GetManaMode(bot);
     CheckCooldowns(bot, mode);
+
+    // Wind Shear: off-GCD, so it runs ahead of the cast-in-progress and GCD
+    // guards — interrupting mid-heal is fine because the kick doesn't consume
+    // the active cast or the GCD bucket. Returning true here short-circuits
+    // the heal rotation for this tick; the in-flight heal will land next tick.
+    if (uint32 ws = GetSpell(Spell::WindShear))
+    {
+        if (EncounterReactions::TryInterruptNearbyCast(bot, ws, SPEC_LABEL,
+                /*radius*/ 25.0f,
+                EncounterMechanics::InterruptPriority::MustInterrupt))
+            return;
+    }
 
     // Skip the rotation while a cast is in progress — Healing Wave (2.5s) and
     // Greater Healing Wave (3s) are the bulk of healer GCDs, and re-issuing a
@@ -247,6 +259,11 @@ void RestoShamanStrategy::ResolveSpellCache(Player* bot)
     // filters passives and prefers castable variants).
     _cache[size_t(Spell::CleanseSpirit)]
         = StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_SHAMAN, "Cleanse Spirit");
+
+    // Wind Shear: instant 6s-CD interrupt. Off-GCD, so safe to slot before the
+    // GCD probe in Update.
+    _cache[size_t(Spell::WindShear)]
+        = StrategyUtil::FindSpellByFamilyName(bot, SPELLFAMILY_SHAMAN, "Wind Shear");
 }
 
 RestoShamanStrategy::ManaMode RestoShamanStrategy::GetManaMode(Player* bot) const

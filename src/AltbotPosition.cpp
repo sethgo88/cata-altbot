@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "Unit.h"
 #include <cmath>
+#include <limits>
 #include <list>
 
 namespace AltbotPosition
@@ -345,6 +346,94 @@ bool FindSafeRetreatPosition(Player* bot, Unit* anchor, float desiredRange,
     if (bestScore < 0)
         return false;
 
+    outX = bestX;
+    outY = bestY;
+    outZ = bestZ;
+    return true;
+}
+
+bool FindStepOutOfPatch(Player* bot,
+                        float patchX, float patchY, float patchZ,
+                        float patchRadius,
+                        Unit* leashAnchor, float leashRange,
+                        float& outX, float& outY, float& outZ)
+{
+    if (!bot || patchRadius <= 0.0f)
+        return false;
+
+    // Step radius: just outside the patch with a small margin. 1.5y absorbs
+    // float jitter, bot footprint, and one tick of drift before the move
+    // resolves. Smaller margin = less displacement; we deliberately don't
+    // overshoot.
+    constexpr float kMargin = 1.5f;
+    float ringRadius = patchRadius + kMargin;
+
+    float bx = bot->GetPositionX();
+    float by = bot->GetPositionY();
+
+    // Anchor sample 0 along the (patch → bot) vector so the "step straight
+    // out" geometry is sample 0. The rest spiral outward in alternating
+    // ±directions from there. The min-displacement scoring will still
+    // override if sample 0 violates a constraint and a different angle is
+    // closer to current bot pos.
+    float baseAngle = std::atan2(by - patchY, bx - patchX);
+
+    constexpr int   kSamples = 12;
+    constexpr float kStep    = 2.0f * float(M_PI) / float(kSamples);
+    // Order: 0, +1, -1, +2, -2, ..., +6. Sample 0 = straight out.
+    int order[kSamples];
+    order[0] = 0;
+    for (int i = 1; i <= 5; ++i) { order[2*i-1] = i; order[2*i] = -i; }
+    order[11] = 6;
+
+    float bestDisp = std::numeric_limits<float>::max();
+    float bestX = 0.0f, bestY = 0.0f, bestZ = 0.0f;
+    bool  haveSample = false;
+
+    for (int idx : order)
+    {
+        float angle = baseAngle + kStep * float(idx);
+        float sx = patchX + std::cos(angle) * ringRadius;
+        float sy = patchY + std::sin(angle) * ringRadius;
+        float sz = bot->GetPositionZ();
+        bot->UpdateAllowedPositionZ(sx, sy, sz);
+
+        if (!ZDeltaSafe(bot, sz))
+            continue;
+
+        if (leashAnchor && leashRange > 0.0f)
+        {
+            float ldx = sx - leashAnchor->GetPositionX();
+            float ldy = sy - leashAnchor->GetPositionY();
+            if (std::sqrt(ldx * ldx + ldy * ldy) > leashRange)
+                continue;
+        }
+
+        if (!IsPathReachable(bot, sx, sy, sz))
+            continue;
+
+        // Don't step into an idle pack we'd then aggro.
+        if (CountIdleHostilesNear(bot, sx, sy, sz, 2.0f) > 0)
+            continue;
+
+        float ddx = sx - bx;
+        float ddy = sy - by;
+        float disp = std::sqrt(ddx * ddx + ddy * ddy);
+        if (disp < bestDisp)
+        {
+            bestDisp = disp;
+            bestX = sx; bestY = sy; bestZ = sz;
+            haveSample = true;
+        }
+    }
+
+    (void)patchZ; // currently unused; the bot's Z + UpdateAllowedPositionZ is
+                  // authoritative for the sample. Kept in the signature so a
+                  // future multi-deck patch (Z-aware) can use it without API
+                  // churn.
+
+    if (!haveSample)
+        return false;
     outX = bestX;
     outY = bestY;
     outZ = bestZ;

@@ -91,6 +91,17 @@ private:
     uint32     _lastLosCheckMs = 0;
     bool       _lastLosOk      = true;
 
+    // Last detected hazard patch coords + radius. Populated by
+    // DetectMechanicHazard and consumed by the fire-retreat path so it can
+    // sample around the *patch* (not the bot) and pick the minimum-displacement
+    // step out. Zero `_lastPatchSeenMs` means "no recent patch" — retreat
+    // falls back to the bot-anchored ring (HP-spike heuristic case).
+    float  _lastPatchX = 0.0f;
+    float  _lastPatchY = 0.0f;
+    float  _lastPatchZ = 0.0f;
+    float  _lastPatchRadius = 0.0f;
+    uint32 _lastPatchSeenMs = 0;
+
     // Verbatim copy of the strategies' rotation guard. Movement that would
     // re-mutate a chase generator mid-cast trips SPELL_FAILED_MOVING (53).
     bool IsBotCasting() const;

@@ -65,6 +65,9 @@ namespace
         bool          inHazard = false;
         uint32        worstSpellId = 0;
         float         worstRadius  = 0.0f;
+        float         worstX = 0.0f;
+        float         worstY = 0.0f;
+        float         worstZ = 0.0f;
 
         void Consider(uint32 spellId, float x, float y, float z)
         {
@@ -91,11 +94,16 @@ namespace
             if (std::fabs(dz) > radius)
                 return;
             // Prefer the entry with the largest radius — the spell whose
-            // footprint we're most clearly inside. Logged once on retreat.
+            // footprint we're most clearly inside. Logged once on retreat;
+            // coords are forwarded to the retreat path so it can step
+            // perpendicular to (bot → patch-center) instead of guessing.
             if (radius > worstRadius)
             {
                 worstSpellId = spellId;
                 worstRadius  = radius;
+                worstX = x;
+                worstY = y;
+                worstZ = z;
             }
             inHazard = true;
         }
@@ -214,6 +222,8 @@ void AltbotPositionManager::Reset()
     _losCacheTarget      = ObjectGuid::Empty;
     _lastLosCheckMs      = 0;
     _lastLosOk           = true;
+    _lastPatchX = _lastPatchY = _lastPatchZ = _lastPatchRadius = 0.0f;
+    _lastPatchSeenMs = 0;
     for (size_t i = 0; i < kHpRingSize; ++i) _hpRing[i] = HpDelta{};
     _hpRingHead = 0;
 }
@@ -366,7 +376,7 @@ void AltbotPositionManager::FastTick(Player* master, uint32 nowMs)
         _firstFireSeenMs = nowMs;
 }
 
-bool AltbotPositionManager::DetectMechanicHazard(uint32 /*nowMs*/)
+bool AltbotPositionManager::DetectMechanicHazard(uint32 nowMs)
 {
     if (!_bot || !_bot->IsAlive() || !_bot->IsInWorld())
         return false;
@@ -384,6 +394,15 @@ bool AltbotPositionManager::DetectMechanicHazard(uint32 /*nowMs*/)
             TC_LOG_INFO("altbot",
                 "AltbotPositionManager [%s]: hazard-detected spell %u (radius %.1fy) — retreating",
                 _bot->GetName().c_str(), v.worstSpellId, v.worstRadius);
+
+        // Record patch coords so the fire-retreat path can sample around the
+        // patch center (minimum-displacement step out) instead of around the
+        // bot (which can pick a direction across the encounter target).
+        _lastPatchX = v.worstX;
+        _lastPatchY = v.worstY;
+        _lastPatchZ = v.worstZ;
+        _lastPatchRadius = v.worstRadius;
+        _lastPatchSeenMs = nowMs;
     }
     return v.inHazard;
 }
@@ -421,20 +440,71 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
         //   - Sample a small ring around the BOT (not the target). The ground
         //     patch is at or near the bot's current position; we just need to
         //     step out by `kFireRetreatRadius`.
-        //   - Drop the master-leash for this path (pass nullptr). The earlier
-        //     code anchored samples at 25y from target — but for a ranged DPS
-        //     the bot is ~20y from master while master is meleeing at 5y, so
-        //     every sample violated the 12y leash and the retreat always
-        //     ended in `leash violation, eating fire`. The leash is a normal-
-        //     positioning constraint, not an emergency one — a bot bleeding
-        //     in fire should always step out. MaintainRange re-establishes
-        //     caster range on the next combat tick.
+        //   - Leash policy is role-dependent:
+        //       Healer: SOFT leash — try with relaxed leashRange first so the
+        //         healer doesn't ratchet out of heal range after successive
+        //         retreats (a 6y hard leash falls inside any 5y patch, so
+        //         even the closest safe spot fails the check; healers were
+        //         ending up 60y from master with every cast OOR=99). If no
+        //         leash-compliant sample exists, fall back to no-leash — a
+        //         dead healer is worse than a slightly out-of-range healer.
+        //       Ranged DPS / other: NO leash. The original master-leash gate
+        //         caused "leash violation, eating fire" every retreat because
+        //         a 20y caster + 5y master leashRange=12y never matched. A
+        //         bleeding caster should always step out; MaintainRange
+        //         re-establishes caster range on the next tick.
         constexpr float kFireRetreatRadius = 9.0f;
+        constexpr float kHealerEmergencyLeashRange = 12.0f;
+        constexpr uint32 kPatchCoordsFreshMs = 2000;
         float retX = 0.0f, retY = 0.0f, retZ = 0.0f;
-        bool found = AltbotPosition::FindSafeRetreatPosition(
-            _bot, _bot, kFireRetreatRadius,
-            /*leashAnchor*/ nullptr, /*leashRange*/ 0.0f,
-            retX, retY, retZ);
+        bool found = false;
+
+        // Patch-anchored path: when we have recent coords from the mechanic-
+        // hazard scan, sample around the patch center and pick minimum-
+        // displacement step out. This produces the natural sidestep/orbital
+        // movement the user wants — bots don't run across the boss to the far
+        // side just to maintain caster range. Healers still respect their
+        // soft leash; if no patch-anchored sample qualifies the bot-anchored
+        // ring runs as a last resort.
+        bool havePatch = _lastPatchSeenMs > 0
+                      && (nowMs - _lastPatchSeenMs) <= kPatchCoordsFreshMs
+                      && _lastPatchRadius > 0.0f;
+        if (havePatch)
+        {
+            if (_intent.role == PositionRole::Healer && _intent.leashAnchor)
+            {
+                found = AltbotPosition::FindStepOutOfPatch(
+                    _bot, _lastPatchX, _lastPatchY, _lastPatchZ, _lastPatchRadius,
+                    _intent.leashAnchor, kHealerEmergencyLeashRange,
+                    retX, retY, retZ);
+            }
+            if (!found)
+            {
+                found = AltbotPosition::FindStepOutOfPatch(
+                    _bot, _lastPatchX, _lastPatchY, _lastPatchZ, _lastPatchRadius,
+                    /*leashAnchor*/ nullptr, /*leashRange*/ 0.0f,
+                    retX, retY, retZ);
+            }
+        }
+
+        // Bot-anchored fallback: HP-spike heuristic detected damage but no
+        // mechanic-DB patch was scanned (unknown mechanic, GameObject-bound
+        // effect we missed, dot we can't trace), or the patch-anchored ring
+        // found no compliant sample. Same role-aware leash policy.
+        if (!found && _intent.role == PositionRole::Healer && _intent.leashAnchor)
+        {
+            found = AltbotPosition::FindSafeRetreatPosition(
+                _bot, _bot, kFireRetreatRadius,
+                _intent.leashAnchor, kHealerEmergencyLeashRange,
+                retX, retY, retZ);
+        }
+        if (!found)
+        {
+            found = AltbotPosition::FindSafeRetreatPosition(
+                _bot, _bot, kFireRetreatRadius,
+                /*leashAnchor*/ nullptr, /*leashRange*/ 0.0f,
+                retX, retY, retZ);
+        }
 
         if (found)
         {
@@ -452,6 +522,11 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
             // also gating it). The next damage sample re-seeds _lastHpAbs.
             for (size_t i = 0; i < kHpRingSize; ++i) _hpRing[i] = HpDelta{};
             _hpRingHead = 0;
+            // Invalidate the patch-coord cache so we don't keep anchoring at
+            // the same patch after stepping out. A re-detection on the next
+            // scan repopulates if the bot drifts back into a (different)
+            // patch; the move cooldown gates re-firing on this one.
+            _lastPatchSeenMs = 0;
             return;
         }
         else
@@ -468,6 +543,7 @@ void AltbotPositionManager::Tick(Player* master, AltbotTickContext const& /*ctx*
             // tick on the cumulative tail.
             for (size_t i = 0; i < kHpRingSize; ++i) _hpRing[i] = HpDelta{};
             _hpRingHead = 0;
+            _lastPatchSeenMs = 0;
             // Fall through to other movement decisions — but they'll still be
             // gated by IsBotCasting() if we were mid-cast.
         }

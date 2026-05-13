@@ -61,4 +61,19 @@ namespace AltbotPosition
     bool FindSafeRetreatPosition(Player* bot, Unit* anchor, float desiredRange,
                                  Unit* leashAnchor, float leashRange,
                                  float& outX, float& outY, float& outZ);
+
+    // Sample 12 ring points around the *patch center* (`patchX/Y/Z`) at
+    // `patchRadius + margin`. Each sample by construction is just outside
+    // the patch footprint, so any choice clears the hazard. Pick the one
+    // with the smallest displacement from the bot's current position so
+    // movement is minimal — for ground patches near the encounter target,
+    // this naturally produces sidestep/orbital movement instead of a long
+    // run across the boss. Same hard constraints as FindSafeRetreatPosition
+    // (Z-delta, leash, reachable). Returns false when no constraint-
+    // compliant sample exists; caller falls back to bot-anchored retreat.
+    bool FindStepOutOfPatch(Player* bot,
+                            float patchX, float patchY, float patchZ,
+                            float patchRadius,
+                            Unit* leashAnchor, float leashRange,
+                            float& outX, float& outY, float& outZ);
 }

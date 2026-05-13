@@ -291,10 +291,12 @@ bool FrostMageStrategy::DoDefensives(Player* bot)
         uint32 blink = GetSpell(Spell::Blink);
         if (fn && !IsOnCooldown(bot, fn))
         {
-            StrategyUtil::CastWithLog(bot, bot, fn, SPEC_LABEL);
-            if (blink && !IsOnCooldown(bot, blink))
-                StrategyUtil::CastWithLog(bot, bot, blink, SPEC_LABEL);
-            return true;
+            if (StrategyUtil::CastWithLog(bot, bot, fn, SPEC_LABEL) == SPELL_CAST_OK)
+            {
+                if (blink && !IsOnCooldown(bot, blink))
+                    StrategyUtil::CastWithLog(bot, bot, blink, SPEC_LABEL);
+                return true;
+            }
         }
     }
 

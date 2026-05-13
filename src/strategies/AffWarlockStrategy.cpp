@@ -14,6 +14,7 @@
 #include "StrategyUtil.h"
 #include "Timer.h"
 #include "Unit.h"
+#include <cstring>
 
 namespace
 {
@@ -38,7 +39,39 @@ namespace
 
     constexpr uint32 PET_HEALTH_FUNNEL_PCT = 50;
 
+    // 142-pt Aff+Destro additions.
+    constexpr float SHADOWBURN_EXEC_PCT  = 20.0f;             // G_SBURN: ≤20% target HP
+    constexpr int   BOH_MIN_CLEAVE       = 2;                 // primary + ≥1 other near target
+    constexpr int32 ISF_REFRESH_REMAIN_MS = 4 * IN_MILLISECONDS;
+    constexpr float SOUL_FIRE_RANGE      = 40.0f;
+
     constexpr char const* SPEC_LABEL = "AffWarlock";
+
+    // Walk applied auras matching by name, skipping the passive talent so we
+    // only see the consumable proc/buff variant. Mirror of FrostMage's
+    // FindBotAuraByName for the Improved Soul Fire collision (G_2X §G.4 /
+    // CLAUDE.md cast-pipeline gotcha #1: passive talents and their proc auras
+    // share SpellName, so name-walk without the passive filter reads
+    // "proc up" forever).
+    Aura* FindWarlockAuraByName(Player* bot, char const* name)
+    {
+        for (auto const& [spellId, app] : bot->GetAppliedAuras())
+        {
+            Aura* a = app->GetBase();
+            if (!a)
+                continue;
+            SpellInfo const* info = a->GetSpellInfo();
+            if (!info || !info->SpellName)
+                continue;
+            if (info->SpellFamilyName != SPELLFAMILY_WARLOCK)
+                continue;
+            if (info->IsPassive())
+                continue;
+            if (std::strcmp(info->SpellName, name) == 0)
+                return a;
+        }
+        return nullptr;
+    }
 }
 
 void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext const& ctx)
@@ -52,7 +85,8 @@ void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext c
             "AffWarlockStrategy cache for '%s': "
             "FelArmor=%u DemonArmor=%u CoE=%u Haunt=%u BaneDoom=%u BaneAgony=%u "
             "Corruption=%u UA=%u SB=%u DrainSoul=%u DrainLife=%u LifeTap=%u SoC=%u "
-            "DCSummon=%u DCTeleport=%u HoT=%u DeathCoil=%u Felhunter=%u HealthFunnel=%u",
+            "DCSummon=%u DCTeleport=%u HoT=%u DeathCoil=%u Felhunter=%u HealthFunnel=%u "
+            "ChaosBolt=%u Shadowburn=%u SoulFire=%u BaneOfHavoc=%u",
             bot->GetName().c_str(),
             GetSpell(Spell::FelArmor), GetSpell(Spell::DemonArmor),
             GetSpell(Spell::CurseOfTheElements), GetSpell(Spell::Haunt),
@@ -63,7 +97,9 @@ void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext c
             GetSpell(Spell::SeedOfCorruption), GetSpell(Spell::DemonicCircleSummon),
             GetSpell(Spell::DemonicCircleTeleport), GetSpell(Spell::HowlOfTerror),
             GetSpell(Spell::DeathCoil), GetSpell(Spell::SummonFelhunter),
-            GetSpell(Spell::HealthFunnel));
+            GetSpell(Spell::HealthFunnel),
+            GetSpell(Spell::ChaosBolt), GetSpell(Spell::Shadowburn),
+            GetSpell(Spell::SoulFire), GetSpell(Spell::BaneOfHavoc));
     }
 
     // Resolve a target via master's victim. If master has no target, we still
@@ -125,6 +161,11 @@ void AffWarlockStrategy::Update(Player* bot, Player* master, AltbotTickContext c
     if (Tier_Corruption(bot, target))          return;
     if (Tier_UnstableAffliction(bot, target))  return;
     if (Tier_AoE(bot, target))                 return;
+    // 142-pt Aff+Destro tiers. Each short-circuits on missing cache so a
+    // bot without these talents (stock 71-pt build) falls through unchanged.
+    if (Tier_BaneOfHavocCleave(bot, target))   return;
+    if (Tier_ChaosBolt(bot, target))           return;
+    if (Tier_Shadowburn(bot, target))          return;
     if (Tier_DrainSoul(bot, target))           return;
     Tier_ShadowBolt(bot, target, mode);
 }
@@ -155,6 +196,15 @@ void AffWarlockStrategy::ResolveSpellCache(Player* bot)
     _cache[size_t(Spell::DeathCoil)]             = find("Death Coil");
     _cache[size_t(Spell::SummonFelhunter)]       = find("Summon Felhunter");
     _cache[size_t(Spell::HealthFunnel)]          = find("Health Funnel");
+
+    // 142-pt Aff+Destro additions. Each is SPELLFAMILY_WARLOCK and
+    // FindSpellByFamilyName's two-pass filter handles the castable-vs-helper
+    // disambiguation (CLAUDE.md gotcha #1). Bots without the talents read
+    // zero and the corresponding tiers no-op.
+    _cache[size_t(Spell::ChaosBolt)]   = find("Chaos Bolt");
+    _cache[size_t(Spell::Shadowburn)]  = find("Shadowburn");
+    _cache[size_t(Spell::SoulFire)]    = find("Soul Fire");
+    _cache[size_t(Spell::BaneOfHavoc)] = find("Bane of Havoc");
 }
 
 AffWarlockStrategy::ManaMode AffWarlockStrategy::GetManaMode(Player* bot) const
@@ -263,6 +313,10 @@ void AffWarlockStrategy::DoMaintenance(Player* bot, Unit* target)
         if (coe && !target->HasAura(coe, bot->GetGUID()))
             TryCast(bot, target, Spell::CurseOfTheElements);
     }
+
+    // 142-pt Aff+Destro: keep the Improved Soul Fire 8% haste buff up.
+    // No-op when SoulFire isn't talented (cache=0) or no target.
+    MaintainImprovedSoulFire(bot, target);
 }
 
 bool AffWarlockStrategy::DoDefensives(Player* bot)
@@ -279,8 +333,8 @@ bool AffWarlockStrategy::DoDefensives(Player* bot)
         && bot->GetHealthPct() < ESCAPE_HP_PCT
         && !IsOnCooldown(bot, dct))
     {
-        StrategyUtil::CastWithLog(bot, bot, dct, SPEC_LABEL);
-        return true;
+        if (StrategyUtil::CastWithLog(bot, bot, dct, SPEC_LABEL) == SPELL_CAST_OK)
+            return true;
     }
 
     // Howl of Terror: AoE fear when surrounded + low HP.
@@ -289,8 +343,8 @@ bool AffWarlockStrategy::DoDefensives(Player* bot)
         && bot->GetHealthPct() < ESCAPE_HP_PCT
         && !IsOnCooldown(bot, hot))
     {
-        StrategyUtil::CastWithLog(bot, bot, hot, SPEC_LABEL);
-        return true;
+        if (StrategyUtil::CastWithLog(bot, bot, hot, SPEC_LABEL) == SPELL_CAST_OK)
+            return true;
     }
 
     // Death Coil: emergency self-heal + 3s horror at low HP.
@@ -299,8 +353,8 @@ bool AffWarlockStrategy::DoDefensives(Player* bot)
     {
         if (Unit* victim = bot->GetVictim())
         {
-            StrategyUtil::CastWithLog(bot, victim, dc, SPEC_LABEL);
-            return true;
+            if (StrategyUtil::CastWithLog(bot, victim, dc, SPEC_LABEL) == SPELL_CAST_OK)
+                return true;
         }
     }
 
@@ -380,6 +434,57 @@ bool AffWarlockStrategy::Tier_AoE(Player* bot, Unit* target)
         return false;
     _lastSoCMs = now;
     return true;
+}
+
+bool AffWarlockStrategy::Tier_BaneOfHavocCleave(Player* bot, Unit* target) const
+{
+    uint32 boh = GetSpell(Spell::BaneOfHavoc);
+    if (!boh || IsOnCooldown(bot, boh))
+        return false;
+    if (target->HasAura(boh, bot->GetGUID()))
+        return false;
+    // Cluster check around the *target*, not the bot — at 25y caster range
+    // the bot's own neighborhood is empty even on 4-pack pulls (same
+    // convention as Tier_AoE; CLAUDE.md spec rule #7).
+    if (AltbotPosition::CountHostilesNearUnit(bot, target, AOE_RADIUS) < BOH_MIN_CLEAVE)
+        return false;
+    return TryCast(bot, target, Spell::BaneOfHavoc);
+}
+
+bool AffWarlockStrategy::Tier_ChaosBolt(Player* bot, Unit* target) const
+{
+    uint32 cb = GetSpell(Spell::ChaosBolt);
+    if (!cb || IsOnCooldown(bot, cb))
+        return false;
+    return TryCast(bot, target, Spell::ChaosBolt);
+}
+
+bool AffWarlockStrategy::Tier_Shadowburn(Player* bot, Unit* target) const
+{
+    uint32 sb = GetSpell(Spell::Shadowburn);
+    if (!sb || IsOnCooldown(bot, sb))
+        return false;
+    // Execute window. Above Drain Soul because Shadowburn is instant + has
+    // a kill-credit shard refund (G_SBURN); Drain Soul stays for the
+    // off-CD execute filler.
+    if (target->GetHealthPct() > SHADOWBURN_EXEC_PCT)
+        return false;
+    return TryCast(bot, target, Spell::Shadowburn);
+}
+
+void AffWarlockStrategy::MaintainImprovedSoulFire(Player* bot, Unit* target)
+{
+    uint32 sf = GetSpell(Spell::SoulFire);
+    if (!sf || !target)
+        return;
+    if (bot->GetDistance(target) > SOUL_FIRE_RANGE)
+        return;
+    // ISF proc-aura ID is not cached — the talent passive shares its name,
+    // so we walk applied auras with IsPassive() filtered (gotcha #1).
+    Aura* isf = FindWarlockAuraByName(bot, "Improved Soul Fire");
+    bool needRefresh = !isf || isf->GetDuration() < ISF_REFRESH_REMAIN_MS;
+    if (needRefresh && !IsOnCooldown(bot, sf))
+        TryCast(bot, target, Spell::SoulFire);
 }
 
 bool AffWarlockStrategy::Tier_DrainSoul(Player* bot, Unit* target) const

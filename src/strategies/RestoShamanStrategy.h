@@ -31,6 +31,7 @@ private:
         ManaTideTotem,
         LightningBolt,
         CleanseSpirit,         // dispel: curse (and magic via Improved Cleanse Spirit talent)
+        WindShear,             // interrupt (instant, 6s CD, off-GCD)
         Count
     };
 
